@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/trip_service.dart';
 import '../../theme/app_colors.dart';
 
 class ItineraryScreen extends StatefulWidget {
@@ -25,12 +24,18 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   }
 
   Future<void> _loadItinerary() async {
-    final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getString('itinerary_${widget.id}');
-    if (stored != null) {
-      final data = jsonDecode(stored) as Map<String, dynamic>;
+    final data = await TripService.getTripById(widget.id);
+    if (data != null && mounted) {
       setState(() {
-        _itinerary = data;
+        _itinerary = {
+          ...data,
+          'departurePort': data['departure_port'],
+          'startDate': data['start_date'],
+          'endDate': data['end_date'],
+          'totalCost': data['total_cost'],
+          'travelType': data['travel_type'],
+          'days': (data['days'] as List?)?.cast<Map<String, dynamic>>() ?? [],
+        };
         _isConfirmed = data['confirmed'] == true;
       });
     }
@@ -38,38 +43,27 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
 
   Future<void> _handleConfirm() async {
     if (_itinerary == null) return;
-    final updated = {..._itinerary!, 'confirmed': true};
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('itinerary_${widget.id}', jsonEncode(updated));
-    await prefs.setString('currentItineraryId', widget.id);
-    setState(() { _itinerary = updated; _isConfirmed = true; });
+    await TripService.confirmTrip(widget.id);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('일정이 확정됐어요! 홈에서 확인하세요'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
       );
+      context.go('/');
     }
   }
 
   Future<void> _handleBook(Map<String, dynamic> activity) async {
     if (_itinerary == null) return;
-    final updated = jsonDecode(jsonEncode(_itinerary)) as Map<String, dynamic>;
-    final days = updated['days'] as List;
+    final days = (_itinerary!['days'] as List).cast<Map<String, dynamic>>();
     for (final day in days) {
-      final acts = day['activities'] as List;
+      final acts = (day['activities'] as List).cast<Map<String, dynamic>>();
       for (final act in acts) {
         if (act['id'] == activity['id']) {
           act['bookingStatus'] = 'booked';
         }
       }
     }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('itinerary_${widget.id}', jsonEncode(updated));
-
-    final bookings = jsonDecode(prefs.getString('bookings') ?? '[]') as List;
-    bookings.add({'id': 'booking-${DateTime.now().millisecondsSinceEpoch}', 'itineraryId': widget.id, 'activity': activity, 'bookedAt': DateTime.now().toIso8601String(), 'status': 'confirmed'});
-    await prefs.setString('bookings', jsonEncode(bookings));
-
-    setState(() => _itinerary = updated);
+    setState(() => _itinerary = {..._itinerary!, 'days': days});
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${activity['title']} 예약 완료'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),

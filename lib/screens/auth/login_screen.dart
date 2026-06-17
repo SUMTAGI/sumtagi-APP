@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,24 +16,26 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordCtrl = TextEditingController();
   bool _showPassword = false;
   bool _keepLoggedIn = false;
+  bool _isLoading = false;
 
   void _handleSubmit() async {
     if (_emailCtrl.text.isEmpty || _passwordCtrl.text.isEmpty) {
       _showSnack('이메일과 비밀번호를 입력해주세요');
       return;
     }
-    final user = {
-      'id': '1',
-      'name': '홍길동',
-      'email': _emailCtrl.text,
-      'phone': '010-1234-5678',
-      'joinDate': DateTime.now().toIso8601String(),
-    };
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user', jsonEncode(user));
-    if (mounted) {
-      _showSnack('로그인됐어요! 반가워요');
-      context.go('/');
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.signIn(_emailCtrl.text.trim(), _passwordCtrl.text);
+      if (mounted) {
+        _showSnack('로그인됐어요! 반가워요');
+        context.go('/');
+      }
+    } on AuthException catch (e) {
+      if (mounted) _showSnack(AuthService.localizedError(e.message));
+    } catch (_) {
+      if (mounted) _showSnack('로그인 중 오류가 발생했어요');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -119,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextFormField(
                       controller: _passwordCtrl,
                       obscureText: !_showPassword,
+                      onFieldSubmitted: (_) => _handleSubmit(),
                       decoration: InputDecoration(
                         hintText: '••••••••',
                         suffixIcon: IconButton(
@@ -164,15 +167,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _handleSubmit,
+                        onPressed: _isLoading ? null : _handleSubmit,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.blue600,
                           foregroundColor: Colors.white,
+                          disabledBackgroundColor: AppColors.blue200,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
-                        child: const Text('로그인', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20, height: 20,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : const Text('로그인', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       ),
                     ),
                     const SizedBox(height: 24),

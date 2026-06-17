@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/trip_service.dart';
 import '../../theme/app_colors.dart';
 
 class TravelScreen extends StatefulWidget {
@@ -16,7 +15,7 @@ class _TravelScreenState extends State<TravelScreen> {
   int _tabIndex = 0;
   Map<String, dynamic>? _currentItinerary;
   String? _currentItineraryId;
-  List<Map<String, dynamic>> _bookings = [];
+  final List<Map<String, dynamic>> _bookings = [];
   int _checklistProgress = 0;
 
   @override
@@ -26,31 +25,15 @@ class _TravelScreenState extends State<TravelScreen> {
   }
 
   Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentId = prefs.getString('currentItineraryId');
-    _currentItineraryId = currentId;
-    if (currentId != null) {
-      final stored = prefs.getString('itinerary_$currentId');
-      if (stored != null) {
-        final data = jsonDecode(stored) as Map<String, dynamic>;
-        if (data['confirmed'] == true) {
-          setState(() => _currentItinerary = data);
-        }
-      }
-    }
-
-    final checklistStr = prefs.getString('checklistItems');
-    if (checklistStr != null) {
-      final items = jsonDecode(checklistStr) as List;
-      if (items.isNotEmpty) {
-        final completed = items.where((i) => i['checked'] == true).length;
-        setState(() => _checklistProgress = ((completed / items.length) * 100).round());
-      }
-    }
-
-    final bookingsStr = prefs.getString('bookings');
-    if (bookingsStr != null) {
-      setState(() => _bookings = (jsonDecode(bookingsStr) as List).cast<Map<String, dynamic>>());
+    final trip = await TripService.getLatestConfirmedTrip();
+    if (trip != null && mounted) {
+      setState(() {
+        _currentItinerary = {
+          ...trip,
+          'startDate': trip['start_date'],
+        };
+        _currentItineraryId = trip['id'] as String;
+      });
     }
   }
 
@@ -372,29 +355,23 @@ class _TravelScreenState extends State<TravelScreen> {
       ),
     );
     if (confirmed != true || _currentItineraryId == null) return;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('itinerary_$_currentItineraryId');
-    await prefs.remove('currentItineraryId');
+    await TripService.deleteTrip(_currentItineraryId!);
     setState(() {
       _currentItinerary = null;
       _currentItineraryId = null;
     });
   }
 
-  void _cancelBooking(String id) async {
+  void _cancelBooking(String id) {
     setState(() {
       for (final b in _bookings) {
         if (b['id'] == id) b['status'] = 'cancelled';
       }
     });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('bookings', jsonEncode(_bookings));
   }
 
-  void _deleteBooking(String id) async {
+  void _deleteBooking(String id) {
     setState(() => _bookings.removeWhere((b) => b['id'] == id));
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('bookings', jsonEncode(_bookings));
   }
 }
 

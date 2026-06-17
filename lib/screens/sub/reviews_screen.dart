@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/review_service.dart';
 import '../../theme/app_colors.dart';
 
 class ReviewsScreen extends StatefulWidget {
@@ -8,20 +9,46 @@ class ReviewsScreen extends StatefulWidget {
 }
 
 class _ReviewsScreenState extends State<ReviewsScreen> {
-  static const _reviews = [
-    {'id': '1', 'author': '바다러버', 'island': '백령도', 'rating': 5, 'content': '두무진 절벽에서 보는 일몰이 정말 장관이에요. 꼭 한번 방문해보세요!', 'date': '2025-08-20', 'likes': 24, 'photos': 3},
-    {'id': '2', 'author': '힐링여행자', 'island': '덕적도', 'rating': 4, 'content': '서포리 해변의 넓고 깨끗한 백사장이 인상적이었어요. 시설은 조금 아쉬웠지만 자연 경관은 최고!', 'date': '2025-07-15', 'likes': 18, 'photos': 5},
-    {'id': '3', 'author': '별빛캠퍼', 'island': '자월도', 'rating': 5, 'content': '도심에서는 볼 수 없는 별들이 가득한 밤하늘. 캠핑과 함께하니 더욱 특별한 경험이었어요.', 'date': '2025-06-10', 'likes': 31, 'photos': 8},
-    {'id': '4', 'author': '사진작가', 'island': '대청도', 'rating': 5, 'content': '옥죽동 모래사막은 정말 신기한 경험이었어요. 해외에 온 것 같은 느낌!', 'date': '2025-05-25', 'likes': 42, 'photos': 12},
-    {'id': '5', 'author': '가족여행맨', 'island': '영흥도', 'rating': 4, 'content': '아이들이 갯벌 체험을 너무 좋아했어요. 접근성이 좋아서 가족 여행으로 추천합니다.', 'date': '2025-09-05', 'likes': 15, 'photos': 6},
-  ];
-
+  List<Map<String, dynamic>> _reviews = [];
+  bool _isLoading = true;
   String _filter = '전체';
 
   @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _isLoading = true);
+    final data = await ReviewService.getReviews();
+    if (mounted) setState(() { _reviews = data; _isLoading = false; });
+  }
+
+  List<Map<String, dynamic>> get _filtered {
+    if (_filter == '전체') return _reviews;
+    return _reviews.where((r) => _islandName(r) == _filter).toList();
+  }
+
+  String _islandName(Map<String, dynamic> r) =>
+      (r['islands'] as Map?)?['name'] as String? ?? '';
+
+  String _nickname(Map<String, dynamic> r) =>
+      (r['profiles'] as Map?)?['nickname'] as String? ?? '여행자';
+
+  String _timeAgo(String isoString) {
+    final dt = DateTime.tryParse(isoString)?.toLocal();
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt);
+    if (diff.inDays == 0) return '오늘';
+    if (diff.inDays < 30) return '${diff.inDays}일 전';
+    return '${dt.month}/${dt.day}';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final islands = ['전체', ...{..._reviews.map((r) => r['island'] as String)}];
-    final filtered = _filter == '전체' ? _reviews : _reviews.where((r) => r['island'] == _filter).toList();
+    final islandNames = {'전체', ..._reviews.map(_islandName).where((n) => n.isNotEmpty)};
+    final islands = islandNames.toList();
 
     return Scaffold(
       backgroundColor: AppColors.gray50,
@@ -29,120 +56,128 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('리뷰', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('${_reviews.length}개의 여행 후기', style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+            const Text('여행 후기', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+            Text('${_reviews.length}개의 후기', style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.gray900,
         elevation: 0,
         titleSpacing: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: GestureDetector(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('리뷰 작성 기능은 곧 추가될 예정이에요'))),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: AppColors.blue600, borderRadius: BorderRadius.circular(8)),
-                child: const Text('리뷰 쓰기', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
-              ),
-            ),
-          ),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+            height: 52,
             color: Colors.white,
-            child: SingleChildScrollView(
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: islands.map((island) {
-                  final selected = island == _filter;
-                  return GestureDetector(
-                    onTap: () => setState(() => _filter = island),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: selected ? AppColors.blue600 : AppColors.gray100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(island, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              itemCount: islands.length,
+              itemBuilder: (_, i) {
+                final name = islands[i];
+                final isSelected = _filter == name;
+                return GestureDetector(
+                  onTap: () => setState(() => _filter = name),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.blue600 : AppColors.gray100,
+                      borderRadius: BorderRadius.circular(50),
                     ),
-                  );
-                }).toList(),
-              ),
+                    child: Text(name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isSelected ? Colors.white : AppColors.gray700)),
+                  ),
+                );
+              },
             ),
           ),
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(24),
-        itemCount: filtered.length,
-        itemBuilder: (context, i) {
-          final review = filtered[i];
-          return GestureDetector(
-            onTap: () => context.push('/review/${review['id']}'),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 36, height: 36,
-                        decoration: const BoxDecoration(color: AppColors.blue100, shape: BoxShape.circle),
-                        child: const Icon(Icons.person_rounded, size: 20, color: AppColors.blue600),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: _filtered.isEmpty
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.rate_review_outlined, size: 64, color: AppColors.gray300),
+                          SizedBox(height: 16),
+                          Text('아직 후기가 없어요', style: TextStyle(fontSize: 16, color: AppColors.gray500)),
+                          SizedBox(height: 8),
+                          Text('섬을 방문하고 후기를 남겨보세요!', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(review['author'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                            Row(children: [
-                              const Icon(Icons.location_on_rounded, size: 11, color: AppColors.gray400),
-                              const SizedBox(width: 2),
-                              Text(review['island'] as String, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
-                              const Text(' • ', style: TextStyle(fontSize: 11, color: AppColors.gray400)),
-                              Text(review['date'] as String, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
-                            ]),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(children: List.generate(5, (j) => Icon(j < (review['rating'] as int) ? Icons.star_rounded : Icons.star_border_rounded, size: 14, color: const Color(0xFFEAB308)))),
-                  const SizedBox(height: 8),
-                  Text(review['content'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray700, height: 1.5), maxLines: 3, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Row(children: [
-                        const Icon(Icons.camera_alt_outlined, size: 14, color: AppColors.gray400),
-                        const SizedBox(width: 3),
-                        Text('사진 ${review['photos']}장', style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
-                      ]),
-                      const SizedBox(width: 12),
-                      Row(children: [
-                        const Icon(Icons.favorite_border, size: 14, color: AppColors.gray400),
-                        const SizedBox(width: 3),
-                        Text('${review['likes']}', style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
-                      ]),
-                    ],
-                  ),
-                ],
-              ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(24),
+                      itemCount: _filtered.length,
+                      itemBuilder: (context, i) {
+                        final r = _filtered[i];
+                        final rating = (r['rating'] as int?) ?? 0;
+                        final islandName = _islandName(r);
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.gray200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 40, height: 40,
+                                    decoration: const BoxDecoration(color: AppColors.blue100, shape: BoxShape.circle),
+                                    child: const Icon(Icons.person_rounded, size: 22, color: AppColors.blue600),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(_nickname(r), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
+                                        Row(children: [
+                                          if (islandName.isNotEmpty) ...[
+                                            const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray500),
+                                            const SizedBox(width: 2),
+                                            Text(islandName, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+                                            const Text(' • ', style: TextStyle(fontSize: 11, color: AppColors.gray400)),
+                                          ],
+                                          Text(_timeAgo(r['created_at'] as String? ?? ''), style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+                                        ]),
+                                      ],
+                                    ),
+                                  ),
+                                  Row(
+                                    children: List.generate(5, (idx) => Icon(
+                                      idx < rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                                      size: 16,
+                                      color: idx < rating ? const Color(0xFFF59E0B) : AppColors.gray300,
+                                    )),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(r['content'] as String? ?? '', style: const TextStyle(fontSize: 14, color: AppColors.gray700, height: 1.5)),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  const Icon(Icons.favorite_border, size: 16, color: AppColors.gray400),
+                                  const SizedBox(width: 4),
+                                  Text('${(r['likes_count'] as int?) ?? 0}', style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
             ),
-          );
-        },
-      ),
     );
   }
 }

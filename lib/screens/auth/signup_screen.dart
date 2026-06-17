@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -15,6 +15,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   int _step = 0;
   String? _signupMethod;
+  bool _isLoading = false;
 
   final _nicknameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -72,6 +73,9 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_nicknameCtrl.text.isEmpty || _emailCtrl.text.isEmpty || _passwordCtrl.text.isEmpty) {
       _showSnack('모든 필드를 입력해주세요'); return;
     }
+    if (_passwordCtrl.text.length < 6) {
+      _showSnack('비밀번호는 6자 이상이어야 해요'); return;
+    }
     if (_passwordCtrl.text != _confirmPasswordCtrl.text) {
       _showSnack('비밀번호가 일치하지 않아요'); return;
     }
@@ -86,20 +90,26 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_signupMethod != 'email' && _nicknameCtrl.text.isEmpty) {
       _showSnack('닉네임을 입력해주세요'); return;
     }
-    final user = {
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      'name': _nicknameCtrl.text.isEmpty ? '섬여행러' : _nicknameCtrl.text,
-      'email': _signupMethod == 'email' ? _emailCtrl.text : '${_signupMethod}_user@social.com',
-      'phone': '',
-      'travelStyle': _travelStyle,
-      'signupMethod': _signupMethod,
-      'joinDate': DateTime.now().toIso8601String(),
-    };
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user', jsonEncode(user));
-    if (mounted) {
-      _showSnack('회원가입이 완료됐어요! 환영해요');
-      context.go('/');
+    final nickname = _nicknameCtrl.text.isEmpty ? '섬여행러' : _nicknameCtrl.text;
+
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.signUp(
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+        nickname: nickname,
+        travelStyle: _travelStyle,
+      );
+      if (mounted) {
+        _showSnack('회원가입이 완료됐어요! 환영해요');
+        context.go('/');
+      }
+    } on AuthException catch (e) {
+      if (mounted) _showSnack('[Auth] ${e.message}');
+    } catch (e) {
+      if (mounted) _showSnack('[Error] $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -248,7 +258,7 @@ class _SignupScreenState extends State<SignupScreen> {
           controller: _passwordCtrl,
           obscureText: !_showPw,
           decoration: InputDecoration(
-            hintText: '8자 이상 입력',
+            hintText: '6자 이상 입력',
             suffixIcon: IconButton(
               icon: Icon(_showPw ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppColors.gray400),
               onPressed: () => setState(() => _showPw = !_showPw),
@@ -270,7 +280,6 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
         const SizedBox(height: 20),
-        // Agreements
         _AgreementRow(
           value: _agreeTerms,
           onChanged: (v) => setState(() => _agreeTerms = v!),
@@ -366,15 +375,21 @@ class _SignupScreenState extends State<SignupScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _handleComplete,
+            onPressed: _isLoading ? null : _handleComplete,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.blue600,
               foregroundColor: Colors.white,
+              disabledBackgroundColor: AppColors.blue200,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
-            child: const Text('가입 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            child: _isLoading
+                ? const SizedBox(
+                    width: 20, height: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text('가입 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ),
         ),
       ],

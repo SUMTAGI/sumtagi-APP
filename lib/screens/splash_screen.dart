@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -30,10 +31,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
-    final userJson = prefs.getString('user');
+    final session = Supabase.instance.client.auth.currentSession;
 
     if (!mounted) return;
-    if (userJson != null) {
+    if (session != null) {
       context.go('/');
     } else if (!hasSeenOnboarding) {
       context.go('/onboarding');

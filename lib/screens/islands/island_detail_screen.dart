@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../services/island_service.dart';
+import '../../services/favorite_service.dart';
 
 class IslandDetailScreen extends StatefulWidget {
   final String id;
@@ -15,6 +16,8 @@ class IslandDetailScreen extends StatefulWidget {
 class _IslandDetailScreenState extends State<IslandDetailScreen> {
   IslandDetailModel? _island;
   bool _isLoading = true;
+  bool _isFavorited = false;
+  bool _favLoading = false;
   String _activeTab = 'attractions';
 
   @override
@@ -25,10 +28,28 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final island = await IslandService.getIslandById(widget.id);
-      if (mounted) setState(() { _island = island; _isLoading = false; });
+      final results = await Future.wait([
+        IslandService.getIslandById(widget.id),
+        FavoriteService.isFavorited(widget.id),
+      ]);
+      if (mounted) setState(() {
+        _island = results[0] as IslandDetailModel?;
+        _isFavorited = results[1] as bool;
+        _isLoading = false;
+      });
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_favLoading) return;
+    setState(() => _favLoading = true);
+    try {
+      final result = await FavoriteService.toggle(widget.id);
+      if (mounted) setState(() => _isFavorited = result);
+    } finally {
+      if (mounted) setState(() => _favLoading = false);
     }
   }
 
@@ -57,6 +78,14 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               icon: const Icon(Icons.arrow_back_ios_new_rounded),
               onPressed: () => context.pop(),
             ),
+            actions: [
+              IconButton(
+                icon: _favLoading
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Icon(_isFavorited ? Icons.favorite : Icons.favorite_border, color: Colors.white),
+                onPressed: _toggleFavorite,
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,

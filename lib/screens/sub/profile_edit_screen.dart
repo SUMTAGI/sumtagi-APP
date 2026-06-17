@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -11,54 +11,78 @@ class ProfileEditScreen extends StatefulWidget {
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _nameCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  Map<String, dynamic>? _user;
+  final _pwCtrl = TextEditingController();
+  final _pwConfirmCtrl = TextEditingController();
+  bool _isSaving = false;
+  bool _showPwForm = false;
 
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getString('user');
-    if (stored == null) {
-      if (mounted) context.go('/login');
+    final user = AuthService.currentUser;
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => context.go('/login'));
       return;
     }
-    final user = jsonDecode(stored) as Map<String, dynamic>;
-    setState(() {
-      _user = user;
-      _nameCtrl.text = user['name'] as String? ?? '';
-      _emailCtrl.text = user['email'] as String? ?? '';
-      _phoneCtrl.text = user['phone'] as String? ?? '';
-    });
+    _nameCtrl.text = user.userMetadata?['nickname'] as String? ?? '';
   }
 
   Future<void> _save() async {
-    if (_nameCtrl.text.isEmpty || _emailCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('이름과 이메일을 입력해주세요')));
+    if (_nameCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('닉네임을 입력해주세요')));
       return;
     }
-    final prefs = await SharedPreferences.getInstance();
-    final updated = {
-      ..._user!,
-      'name': _nameCtrl.text,
-      'email': _emailCtrl.text,
-      'phone': _phoneCtrl.text,
-    };
-    await prefs.setString('user', jsonEncode(updated));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('프로필이 수정됐어요')));
-      context.pop();
+    setState(() => _isSaving = true);
+    try {
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(data: {'nickname': _nameCtrl.text}),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('프로필이 수정됐어요'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('저장 실패: $e')));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _changePassword() async {
+    if (_pwCtrl.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('비밀번호는 6자 이상이어야 해요')));
+      return;
+    }
+    if (_pwCtrl.text != _pwConfirmCtrl.text) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('비밀번호가 일치하지 않아요')));
+      return;
+    }
+    setState(() => _isSaving = true);
+    try {
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(password: _pwCtrl.text),
+      );
+      _pwCtrl.clear();
+      _pwConfirmCtrl.clear();
+      if (mounted) {
+        setState(() => _showPwForm = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('비밀번호가 변경됐어요'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('비밀번호 변경에 실패했어요')));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final user = AuthService.currentUser;
+    final email = user?.email ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.gray50,
@@ -75,7 +99,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // Avatar
                   Container(
                     width: 88, height: 88,
                     decoration: const BoxDecoration(color: AppColors.blue100, shape: BoxShape.circle),
@@ -88,27 +111,58 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Form
                   _FormSection(
                     title: '기본 정보',
                     children: [
-                      _FormField(label: '이름', controller: _nameCtrl, hint: '이름을 입력하세요', icon: Icons.person_outline_rounded),
+                      _FormField(label: '닉네임', controller: _nameCtrl, hint: '닉네임을 입력하세요', icon: Icons.person_outline_rounded),
                       const Divider(height: 1, color: AppColors.gray100),
-                      _FormField(label: '이메일', controller: _emailCtrl, hint: '이메일을 입력하세요', icon: Icons.mail_outline_rounded, keyboardType: TextInputType.emailAddress),
-                      const Divider(height: 1, color: AppColors.gray100),
-                      _FormField(label: '전화번호', controller: _phoneCtrl, hint: '010-0000-0000', icon: Icons.phone_outlined, keyboardType: TextInputType.phone),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(children: [
+                          const Icon(Icons.mail_outline_rounded, size: 20, color: AppColors.gray500),
+                          const SizedBox(width: 12),
+                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            const Text('이메일', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
+                            const SizedBox(height: 4),
+                            Text(email, style: const TextStyle(fontSize: 15, color: AppColors.gray600)),
+                          ])),
+                        ]),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  // Password change
                   Container(
                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
-                    child: ListTile(
-                      leading: const Icon(Icons.lock_outline_rounded, color: AppColors.gray500),
-                      title: const Text('비밀번호 변경', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.gray900)),
-                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
-                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('비밀번호 변경 기능은 곧 추가될 예정이에요'))),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.lock_outline_rounded, color: AppColors.gray500),
+                          title: const Text('비밀번호 변경', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.gray900)),
+                          trailing: Icon(_showPwForm ? Icons.expand_less : Icons.chevron_right_rounded, color: AppColors.gray400),
+                          onTap: () => setState(() => _showPwForm = !_showPwForm),
+                        ),
+                        if (_showPwForm) ...[
+                          const Divider(height: 1, color: AppColors.gray100),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(children: [
+                              _PwField(label: '새 비밀번호', controller: _pwCtrl, hint: '6자 이상 입력'),
+                              const SizedBox(height: 12),
+                              _PwField(label: '비밀번호 확인', controller: _pwConfirmCtrl, hint: '비밀번호 재입력'),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _isSaving ? null : _changePassword,
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                                  child: const Text('변경하기'),
+                                ),
+                              ),
+                            ]),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
@@ -119,13 +173,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
             decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.gray200))),
             child: ElevatedButton(
-              onPressed: _save,
+              onPressed: _isSaving ? null : _save,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.blue600, foregroundColor: Colors.white,
                 elevation: 0, minimumSize: const Size.fromHeight(52),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text('저장하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: _isSaving
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('저장하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -163,39 +219,51 @@ class _FormField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final IconData icon;
-  final TextInputType? keyboardType;
-  const _FormField({required this.label, required this.controller, required this.hint, required this.icon, this.keyboardType});
+  const _FormField({required this.label, required this.controller, required this.hint, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: AppColors.gray500),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
-                const SizedBox(height: 4),
-                TextField(
-                  controller: controller,
-                  keyboardType: keyboardType,
-                  style: const TextStyle(fontSize: 15, color: AppColors.gray900),
-                  decoration: InputDecoration(
-                    hintText: hint,
-                    hintStyle: const TextStyle(color: AppColors.gray400),
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    border: InputBorder.none,
-                  ),
-                ),
-              ],
-            ),
+      child: Row(children: [
+        Icon(icon, size: 20, color: AppColors.gray500),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+          const SizedBox(height: 4),
+          TextField(
+            controller: controller,
+            style: const TextStyle(fontSize: 15, color: AppColors.gray900),
+            decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: AppColors.gray400), isDense: true, contentPadding: EdgeInsets.zero, border: InputBorder.none),
           ),
-        ],
+        ])),
+      ]),
+    );
+  }
+}
+
+class _PwField extends StatefulWidget {
+  final String label, hint;
+  final TextEditingController controller;
+  const _PwField({required this.label, required this.hint, required this.controller});
+  @override State<_PwField> createState() => _PwFieldState();
+}
+
+class _PwFieldState extends State<_PwField> {
+  bool _obscure = true;
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: widget.controller,
+      obscureText: _obscure,
+      decoration: InputDecoration(
+        labelText: widget.label,
+        hintText: widget.hint,
+        suffixIcon: IconButton(icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20, color: AppColors.gray400), onPressed: () => setState(() => _obscure = !_obscure)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
     );
   }

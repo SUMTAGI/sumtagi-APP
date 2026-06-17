@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/auth_service.dart';
+import '../../services/trip_service.dart';
 import '../../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +15,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _unreadNotifications = 0;
-  Map<String, dynamic>? _confirmedItinerary;
+  Map<String, dynamic>? _upcomingTrip;
+  String _userName = '';
 
   @override
   void initState() {
@@ -24,22 +25,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentId = prefs.getString('currentItineraryId');
-    if (currentId != null) {
-      final stored = prefs.getString('itinerary_$currentId');
-      if (stored != null) {
-        final data = jsonDecode(stored) as Map<String, dynamic>;
-        if (data['confirmed'] == true) {
-          setState(() => _confirmedItinerary = data);
-        }
-      }
-    }
-
-    final notifStr = prefs.getString('notifications');
-    if (notifStr != null) {
-      final notifs = jsonDecode(notifStr) as List;
-      setState(() => _unreadNotifications = notifs.where((n) => n['isRead'] == false).length);
+    final user = AuthService.currentUser;
+    final meta = user?.userMetadata;
+    final name = (meta != null && meta['nickname'] != null)
+        ? meta['nickname'] as String
+        : user?.email?.split('@')[0] ?? '';
+    final trip = await TripService.getUpcomingTrip();
+    if (mounted) {
+      setState(() {
+        _userName = name;
+        _upcomingTrip = trip;
+      });
     }
   }
 
@@ -125,9 +121,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '인천 섬 여행',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                      Text(
+                        _userName.isNotEmpty ? '안녕하세요, $_userName님!' : '인천 섬 여행',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                       GestureDetector(
                         onTap: () => context.push('/notifications'),
@@ -155,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  if (_confirmedItinerary != null)
+                  if (_upcomingTrip != null)
                     _buildConfirmedTrip()
                   else
                     _buildNoTrip(),
@@ -169,8 +165,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildConfirmedTrip() {
-    final itin = _confirmedItinerary!;
-    final dday = _getDDay(itin['startDate'] as String);
+    final itin = _upcomingTrip!;
+    final dday = _getDDay((itin['start_date'] ?? itin['startDate']) as String);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

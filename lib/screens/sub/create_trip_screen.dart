@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/trip_service.dart';
 import '../../theme/app_colors.dart';
 
 class CreateTripScreen extends StatefulWidget {
@@ -38,19 +37,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
   bool get _hasPreSelected => widget.preSelectedIsland != null;
 
+  bool _isSubmitting = false;
+
   void _handleSubmit() async {
-    final itinerary = {
-      'title': '${_selectedIslands.join(', ')} 여행',
-      'departurePort': _departurePort,
-      'islands': _selectedIslands,
-      'startDate': _startDate!.toIso8601String().split('T')[0],
-      'endDate': _endDate!.toIso8601String().split('T')[0],
-      'travelers': _travelers,
-      'travelType': _travelType,
-      'budget': _budget,
-      'confirmed': false,
-      'totalCost': 80000 * _travelers,
-      'days': [
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      final days = [
         {
           'dayNumber': 1,
           'date': _startDate!.toIso8601String().split('T')[0],
@@ -61,16 +54,35 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             {'id': '4', 'type': 'accommodation', 'time': '18:00', 'title': '민박 체크인', 'description': '섬 민박 숙박', 'location': _selectedIslands.first, 'price': 60000},
           ],
         },
-      ],
-    };
+      ];
 
-    final itineraryId = DateTime.now().millisecondsSinceEpoch.toString();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('itinerary_$itineraryId', jsonEncode(itinerary));
-    await prefs.setString('currentItineraryId', itineraryId);
+      final id = await TripService.createTrip(
+        title: '${_selectedIslands.join(', ')} 여행',
+        departurePort: _departurePort,
+        islands: _selectedIslands,
+        startDate: _startDate!.toIso8601String().split('T')[0],
+        endDate: _endDate!.toIso8601String().split('T')[0],
+        travelers: _travelers,
+        travelType: _travelType,
+        budget: _budget,
+        totalCost: 80000 * _travelers,
+        days: days,
+      );
 
-    if (mounted) {
-      context.pushReplacement('/itinerary/$itineraryId');
+      if (mounted) context.pushReplacement('/itinerary/$id');
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('일정 생성 중 오류가 발생했어요'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            backgroundColor: AppColors.gray900,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -424,9 +436,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _handleSubmit,
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
-              child: const Text('일정 생성하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              onPressed: _isSubmitting ? null : _handleSubmit,
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, disabledBackgroundColor: AppColors.blue200, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+              child: _isSubmitting
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('일정 생성하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
         ],

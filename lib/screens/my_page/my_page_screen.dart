@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -13,25 +13,16 @@ class MyPageScreen extends StatefulWidget {
 }
 
 class _MyPageScreenState extends State<MyPageScreen> {
-  Map<String, dynamic>? _user;
+  User? _user;
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
-  }
-
-  Future<void> _loadUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userStr = prefs.getString('user');
-    if (userStr != null) {
-      setState(() => _user = jsonDecode(userStr) as Map<String, dynamic>);
-    }
+    _user = AuthService.currentUser;
   }
 
   void _handleLogout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user');
+    await AuthService.signOut();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -43,6 +34,21 @@ class _MyPageScreenState extends State<MyPageScreen> {
       );
       context.go('/login');
     }
+  }
+
+  String get _displayName {
+    final meta = _user?.userMetadata;
+    if (meta != null && meta['nickname'] != null) return meta['nickname'] as String;
+    return _user?.email?.split('@')[0] ?? '사용자';
+  }
+
+  String get _email => _user?.email ?? '';
+
+  int get _daysSinceJoin {
+    final raw = _user?.createdAt;
+    if (raw == null) return 0;
+    final joined = DateTime.tryParse(raw) ?? DateTime.now();
+    return DateTime.now().difference(joined).inDays;
   }
 
   @override
@@ -79,10 +85,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
       );
     }
 
-    final user = _user!;
-    final joinDate = DateTime.tryParse(user['joinDate'] as String? ?? '') ?? DateTime.now();
-    final daysSinceJoin = DateTime.now().difference(joinDate).inDays;
-
     return Scaffold(
       backgroundColor: AppColors.gray50,
       body: CustomScrollView(
@@ -90,7 +92,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
           SliverAppBar(
             pinned: false,
             floating: false,
-            expandedHeight: 160,
+            expandedHeight: 200,
             toolbarHeight: 0,
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
@@ -98,7 +100,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
             systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.none,
-              background: _buildHeader(user, daysSinceJoin),
+              background: _buildHeader(),
             ),
           ),
           SliverToBoxAdapter(
@@ -107,17 +109,14 @@ class _MyPageScreenState extends State<MyPageScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Account
                   _SectionTitle(label: '계정 정보'),
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.person_outline_rounded, label: '프로필 수정', onTap: () => context.push('/profile-edit')),
-                    _MenuItem(icon: Icons.mail_outline_rounded, label: '이메일', value: user['email'] as String?, onTap: () => context.push('/profile-edit')),
-                    _MenuItem(icon: Icons.phone_outlined, label: '전화번호', value: (user['phone'] as String?)?.isNotEmpty == true ? user['phone'] as String : '미등록', onTap: () => context.push('/profile-edit')),
+                    _MenuItem(icon: Icons.mail_outline_rounded, label: '이메일', value: _email, onTap: () => context.push('/profile-edit')),
                     _MenuItem(icon: Icons.lock_outline_rounded, label: '비밀번호 변경', onTap: () => context.push('/profile-edit'), showDivider: false),
                   ]),
                   const SizedBox(height: 20),
 
-                  // Travel
                   _SectionTitle(label: '여행 관리'),
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.calendar_month_rounded, label: '내 여행 일정', onTap: () => context.go('/travel')),
@@ -131,7 +130,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ]),
                   const SizedBox(height: 20),
 
-                  // Utilities
                   _SectionTitle(label: '편의 기능'),
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.schedule_rounded, label: '교통 시간표', onTap: () => context.push('/schedule')),
@@ -140,7 +138,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ]),
                   const SizedBox(height: 20),
 
-                  // Settings
                   _SectionTitle(label: '설정'),
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.notifications_outlined, label: '알림 설정', onTap: () => context.push('/notification-settings')),
@@ -149,7 +146,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ]),
                   const SizedBox(height: 20),
 
-                  // Logout
                   GestureDetector(
                     onTap: _handleLogout,
                     child: Container(
@@ -159,7 +155,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.gray200),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)],
                       ),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -183,49 +178,49 @@ class _MyPageScreenState extends State<MyPageScreen> {
     );
   }
 
-  Widget _buildHeader(Map<String, dynamic> user, int daysSinceJoin) {
+  Widget _buildHeader() {
     return Container(
       decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)])),
       child: SafeArea(
         bottom: false,
         child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 64, height: 64,
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: const Icon(Icons.person_rounded, size: 32, color: AppColors.blue600),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 64, height: 64,
+                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                    child: const Icon(Icons.person_rounded, size: 32, color: AppColors.blue600),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                        const SizedBox(height: 4),
+                        Text(_email, style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(user['name'] as String? ?? '사용자', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                          const SizedBox(height: 4),
-                          Text(user['email'] as String? ?? '', style: const TextStyle(fontSize: 13, color: Colors.white70)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(child: _StatCard(label: '가입일', value: '${daysSinceJoin}일전')),
-                    const SizedBox(width: 8),
-                    const Expanded(child: _StatCard(label: '예약', value: '3건')),
-                    const SizedBox(width: 8),
-                    const Expanded(child: _StatCard(label: '리뷰', value: '0개')),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _StatCard(label: '가입일', value: '${_daysSinceJoin}일전')),
+                  const SizedBox(width: 8),
+                  const Expanded(child: _StatCard(label: '예약', value: '0건')),
+                  const SizedBox(width: 8),
+                  const Expanded(child: _StatCard(label: '리뷰', value: '0개')),
+                ],
+              ),
+            ],
           ),
         ),
+      ),
     );
   }
 }
@@ -239,7 +234,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -277,7 +272,6 @@ class _MenuCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.gray200),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)],
       ),
       clipBehavior: Clip.hardEdge,
       child: Column(children: children),
