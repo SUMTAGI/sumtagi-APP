@@ -34,7 +34,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       (r['islands'] as Map?)?['name'] as String? ?? '';
 
   String _nickname(Map<String, dynamic> r) =>
-      (r['profiles'] as Map?)?['nickname'] as String? ?? '여행자';
+      r['author_name'] as String? ?? '여행자';
 
   String _timeAgo(String isoString) {
     final dt = DateTime.tryParse(isoString)?.toLocal();

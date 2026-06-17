@@ -4,10 +4,16 @@ class ReviewService {
   static final _client = Supabase.instance.client;
   static String? get _userId => _client.auth.currentUser?.id;
 
+  static String get _authorName {
+    final meta = _client.auth.currentUser?.userMetadata;
+    return (meta?['nickname'] as String?) ??
+        (_client.auth.currentUser?.email?.split('@').first ?? '여행자');
+  }
+
   static Future<List<Map<String, dynamic>>> getReviews({String? islandId}) async {
     var query = _client
         .from('reviews')
-        .select('*, profiles(nickname), islands(name)');
+        .select('*, islands(name)');
     if (islandId != null) {
       query = query.eq('island_id', islandId);
     }
@@ -26,6 +32,7 @@ class ReviewService {
       'island_id': islandId,
       'rating': rating,
       'content': content,
+      'author_name': _authorName,
     });
   }
 
