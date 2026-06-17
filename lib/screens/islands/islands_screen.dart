@@ -3,34 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
-
-class IslandData {
-  final String id, name, description, ferryTime, bestSeason;
-  final List<String> features, ports;
-  final int ferryPrice;
-  final String popularityTrend, congestion, image;
-
-  const IslandData({
-    required this.id, required this.name, required this.description,
-    required this.features, required this.ferryTime, required this.ferryPrice,
-    required this.popularityTrend, required this.congestion, required this.bestSeason,
-    required this.image, required this.ports,
-  });
-}
-
-const islandsData = [
-  IslandData(id: 'baengnyeong', name: '백령도', description: '천혜의 자연경관과 독특한 지질을 자랑하는 서해 최북단 섬', features: ['두무진 해안 절벽', '사곶해변', '콩돌해변'], ferryTime: '4시간', ferryPrice: 45000, popularityTrend: 'up', congestion: 'medium', bestSeason: '5~10월', image: 'https://images.unsplash.com/photo-1635355942488-a8bdb5a0803e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['인천항']),
-  IslandData(id: 'daecheong', name: '대청도', description: '모래사막과 기암절벽이 공존하는 신비로운 섬', features: ['옥죽동 사막', '농여해변', '미아동 해안'], ferryTime: '4시간', ferryPrice: 45000, popularityTrend: 'stable', congestion: 'low', bestSeason: '5~9월', image: 'https://images.unsplash.com/photo-1700621496615-6ee6240503ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['인천항']),
-  IslandData(id: 'socheong', name: '소청도', description: '작지만 아름다운 서해의 보석', features: ['분바위', '등대', '해안절벽'], ferryTime: '4시간', ferryPrice: 45000, popularityTrend: 'stable', congestion: 'low', bestSeason: '5~9월', image: 'https://images.unsplash.com/photo-1661488601431-e8257e864068?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['인천항']),
-  IslandData(id: 'yeonpyeong', name: '연평도', description: '조기로 유명한 서해 5도 중 하나', features: ['조기잡이', '낚시', '해안산책'], ferryTime: '3.5시간', ferryPrice: 40000, popularityTrend: 'stable', congestion: 'medium', bestSeason: '4~10월', image: 'https://images.unsplash.com/photo-1628412071389-6e8f7a7a4e6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['인천항']),
-  IslandData(id: 'deokjeok', name: '덕적도', description: '맑은 바다와 아름다운 해변이 어우러진 가족 여행지', features: ['서포리해수욕장', '비조봉', '소야도'], ferryTime: '2.5시간', ferryPrice: 28000, popularityTrend: 'stable', congestion: 'medium', bestSeason: '6~9월', image: 'https://images.unsplash.com/photo-1662898069390-badabf2d65df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['인천항', '대부도']),
-  IslandData(id: 'jawol', name: '자월도', description: '한적한 어촌 풍경과 에메랄드빛 바다', features: ['큰말해변', '선착장마을', '일몰 명소'], ferryTime: '2.5시간', ferryPrice: 25000, popularityTrend: 'up', congestion: 'low', bestSeason: '5~10월', image: 'https://images.unsplash.com/photo-1758327740342-4e705edea29b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['인천항', '대부도']),
-  IslandData(id: 'seungbong', name: '승봉도', description: '작고 아담한 섬의 매력', features: ['해안산책로', '선착장', '조용한 마을'], ferryTime: '2시간', ferryPrice: 23000, popularityTrend: 'stable', congestion: 'low', bestSeason: '5~10월', image: 'https://images.unsplash.com/photo-1635355942488-a8bdb5a0803e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['인천항', '대부도']),
-  IslandData(id: 'daeijak', name: '대이작도', description: '청정 해역과 고운 모래가 특징인 섬', features: ['목기미해변', '부아산', '해안 트레킹'], ferryTime: '2시간', ferryPrice: 25000, popularityTrend: 'up', congestion: 'low', bestSeason: '6~9월', image: 'https://images.unsplash.com/photo-1661488601431-e8257e864068?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['인천항', '대부도']),
-  IslandData(id: 'soijak', name: '소이작도', description: '작은 이작도의 조용한 해변', features: ['해수욕장', '낚시', '조개잡이'], ferryTime: '2시간', ferryPrice: 25000, popularityTrend: 'stable', congestion: 'low', bestSeason: '6~9월', image: 'https://images.unsplash.com/photo-1662898069390-badabf2d65df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['대부도']),
-  IslandData(id: 'pungdo', name: '풍도', description: '동백꽃으로 유명한 아름다운 섬', features: ['동백나무숲', '해안트레킹', '일몰명소'], ferryTime: '2.5시간', ferryPrice: 27000, popularityTrend: 'up', congestion: 'medium', bestSeason: '3~5월', image: 'https://images.unsplash.com/photo-1700621496615-6ee6240503ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['대부도']),
-  IslandData(id: 'yukdo', name: '육도', description: '작은 섬의 평화로운 풍경', features: ['작은해변', '어촌마을', '산책로'], ferryTime: '3시간', ferryPrice: 28000, popularityTrend: 'stable', congestion: 'low', bestSeason: '5~9월', image: 'https://images.unsplash.com/photo-1758327740342-4e705edea29b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600', ports: ['대부도']),
-];
+import '../../services/island_service.dart';
 
 class IslandsScreen extends StatefulWidget {
   const IslandsScreen({super.key});
@@ -40,12 +13,35 @@ class IslandsScreen extends StatefulWidget {
 }
 
 class _IslandsScreenState extends State<IslandsScreen> {
+  List<IslandModel> _islands = [];
+  bool _isLoading = true;
   String _portFilter = 'all';
   String _congestionFilter = 'all';
   String _searchQuery = '';
   final _searchCtrl = TextEditingController();
 
-  List<IslandData> get _filtered => islandsData.where((island) {
+  @override
+  void initState() {
+    super.initState();
+    _loadIslands();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadIslands() async {
+    try {
+      final islands = await IslandService.getIslands();
+      if (mounted) setState(() { _islands = islands; _isLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  List<IslandModel> get _filtered => _islands.where((island) {
     final portMatch = _portFilter == 'all' || island.ports.contains(_portFilter);
     final congestionMatch = _congestionFilter == 'all' || island.congestion == _congestionFilter;
     final searchMatch = _searchQuery.isEmpty ||
@@ -54,12 +50,6 @@ class _IslandsScreenState extends State<IslandsScreen> {
         island.features.any((f) => f.contains(_searchQuery));
     return portMatch && congestionMatch && searchMatch;
   }).toList();
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,15 +76,15 @@ class _IslandsScreenState extends State<IslandsScreen> {
         ),
         titleSpacing: 24,
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          _buildFilters(),
-          Expanded(
-            child: _buildIslandList(),
-          ),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _buildSearchBar(),
+                _buildFilters(),
+                Expanded(child: _buildIslandList()),
+              ],
+            ),
     );
   }
 
@@ -114,26 +104,14 @@ class _IslandsScreenState extends State<IslandsScreen> {
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.close, color: AppColors.gray400, size: 18),
-                  onPressed: () {
-                    _searchCtrl.clear();
-                    setState(() => _searchQuery = '');
-                  },
+                  onPressed: () { _searchCtrl.clear(); setState(() => _searchQuery = ''); },
                 )
               : null,
           filled: true,
           fillColor: AppColors.gray50,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.gray200),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.gray200),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.blue600, width: 2),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200)),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
@@ -141,6 +119,10 @@ class _IslandsScreenState extends State<IslandsScreen> {
   }
 
   Widget _buildFilters() {
+    final total = _islands.length;
+    final incheon = _islands.where((i) => i.ports.contains('인천항')).length;
+    final daebudo = _islands.where((i) => i.ports.contains('대부도')).length;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       decoration: const BoxDecoration(
@@ -150,33 +132,27 @@ class _IslandsScreenState extends State<IslandsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Port filter
           const Text('출발 항구', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.gray500)),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(child: _FilterBtn(label: '전체 (${islandsData.length})', isActive: _portFilter == 'all', color: 'blue', onTap: () => setState(() => _portFilter = 'all'))),
-              const SizedBox(width: 8),
-              Expanded(child: _FilterBtn(label: '인천항 (${islandsData.where((i) => i.ports.contains('인천항')).length})', isActive: _portFilter == '인천항', color: 'red', onTap: () => setState(() => _portFilter = '인천항'))),
-              const SizedBox(width: 8),
-              Expanded(child: _FilterBtn(label: '대부도 (${islandsData.where((i) => i.ports.contains('대부도')).length})', isActive: _portFilter == '대부도', color: 'orange', onTap: () => setState(() => _portFilter = '대부도'))),
-            ],
-          ),
+          Row(children: [
+            Expanded(child: _FilterBtn(label: '전체 ($total)', isActive: _portFilter == 'all', color: 'blue', onTap: () => setState(() => _portFilter = 'all'))),
+            const SizedBox(width: 8),
+            Expanded(child: _FilterBtn(label: '인천항 ($incheon)', isActive: _portFilter == '인천항', color: 'red', onTap: () => setState(() => _portFilter = '인천항'))),
+            const SizedBox(width: 8),
+            Expanded(child: _FilterBtn(label: '대부도 ($daebudo)', isActive: _portFilter == '대부도', color: 'orange', onTap: () => setState(() => _portFilter = '대부도'))),
+          ]),
           const SizedBox(height: 12),
-          // Congestion filter
           const Text('혼잡도', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.gray500)),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(child: _FilterBtn(label: '전체', isActive: _congestionFilter == 'all', color: 'blue', onTap: () => setState(() => _congestionFilter = 'all'))),
-              const SizedBox(width: 8),
-              Expanded(child: _FilterBtn(label: '여유', isActive: _congestionFilter == 'low', color: 'green', onTap: () => setState(() => _congestionFilter = 'low'))),
-              const SizedBox(width: 8),
-              Expanded(child: _FilterBtn(label: '보통', isActive: _congestionFilter == 'medium', color: 'yellow', onTap: () => setState(() => _congestionFilter = 'medium'))),
-              const SizedBox(width: 8),
-              Expanded(child: _FilterBtn(label: '혼잡', isActive: _congestionFilter == 'high', color: 'red', onTap: () => setState(() => _congestionFilter = 'high'))),
-            ],
-          ),
+          Row(children: [
+            Expanded(child: _FilterBtn(label: '전체', isActive: _congestionFilter == 'all', color: 'blue', onTap: () => setState(() => _congestionFilter = 'all'))),
+            const SizedBox(width: 8),
+            Expanded(child: _FilterBtn(label: '여유', isActive: _congestionFilter == 'low', color: 'green', onTap: () => setState(() => _congestionFilter = 'low'))),
+            const SizedBox(width: 8),
+            Expanded(child: _FilterBtn(label: '보통', isActive: _congestionFilter == 'medium', color: 'yellow', onTap: () => setState(() => _congestionFilter = 'medium'))),
+            const SizedBox(width: 8),
+            Expanded(child: _FilterBtn(label: '혼잡', isActive: _congestionFilter == 'high', color: 'red', onTap: () => setState(() => _congestionFilter = 'high'))),
+          ]),
         ],
       ),
     );
@@ -184,6 +160,9 @@ class _IslandsScreenState extends State<IslandsScreen> {
 
   Widget _buildIslandList() {
     final filtered = _filtered;
+    if (filtered.isEmpty) {
+      return const Center(child: Text('검색 결과가 없어요', style: TextStyle(color: AppColors.gray500)));
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(24),
       itemCount: filtered.length + 1,
@@ -197,9 +176,9 @@ class _IslandsScreenState extends State<IslandsScreen> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.blue200),
             ),
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text('💡 여행 가이드', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.blue700, fontSize: 14)),
                 SizedBox(height: 8),
                 Text('• 주말/공휴일은 1주일 전에 미리 예약하세요', style: TextStyle(fontSize: 13, color: AppColors.blue700, height: 1.5)),
@@ -255,22 +234,14 @@ class _FilterBtn extends StatelessWidget {
           color: isActive ? _activeColor : _inactiveBg,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isActive ? Colors.white : _inactiveText,
-          ),
-        ),
+        child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isActive ? Colors.white : _inactiveText)),
       ),
     );
   }
 }
 
 class _IslandCard extends StatelessWidget {
-  final IslandData island;
+  final IslandModel island;
   const _IslandCard({required this.island});
 
   String get _congestionLabel => switch (island.congestion) {
@@ -299,15 +270,12 @@ class _IslandCard extends StatelessWidget {
         clipBehavior: Clip.hardEdge,
         child: Column(
           children: [
-            // Image
             Stack(
               children: [
                 SizedBox(
-                  height: 160,
-                  width: double.infinity,
+                  height: 160, width: double.infinity,
                   child: CachedNetworkImage(
-                    imageUrl: island.image,
-                    fit: BoxFit.cover,
+                    imageUrl: island.image, fit: BoxFit.cover,
                     errorWidget: (_, __, ___) => Container(color: AppColors.gray100),
                   ),
                 ),
@@ -315,8 +283,7 @@ class _IslandCard extends StatelessWidget {
                   child: Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+                        begin: Alignment.topCenter, end: Alignment.bottomCenter,
                         colors: [Colors.transparent, Color(0x66000000), Color(0x99000000)],
                         stops: [0.3, 0.7, 1.0],
                       ),
@@ -329,13 +296,11 @@ class _IslandCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(color: AppColors.red500, borderRadius: BorderRadius.circular(50)),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.trending_up, size: 12, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text('인기상승', style: TextStyle(fontSize: 11, color: Colors.white)),
-                        ],
-                      ),
+                      child: const Row(children: [
+                        Icon(Icons.trending_up, size: 12, color: Colors.white),
+                        SizedBox(width: 4),
+                        Text('인기상승', style: TextStyle(fontSize: 11, color: Colors.white)),
+                      ]),
                     ),
                   ),
                 Positioned(
@@ -354,7 +319,6 @@ class _IslandCard extends StatelessWidget {
                 ),
               ],
             ),
-            // Content
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -364,33 +328,29 @@ class _IslandCard extends StatelessWidget {
                   const SizedBox(height: 10),
                   ...island.features.take(2).map((f) => Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      children: [
-                        Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.blue500, shape: BoxShape.circle)),
-                        const SizedBox(width: 8),
-                        Text(f, style: const TextStyle(fontSize: 12, color: AppColors.gray700)),
-                      ],
-                    ),
+                    child: Row(children: [
+                      Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.blue500, shape: BoxShape.circle)),
+                      const SizedBox(width: 8),
+                      Text(f, style: const TextStyle(fontSize: 12, color: AppColors.gray700)),
+                    ]),
                   )),
                   const SizedBox(height: 12),
                   const Divider(height: 1, color: AppColors.gray200),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.directions_boat_rounded, size: 14, color: AppColors.gray400),
-                      const SizedBox(width: 4),
-                      Text(island.ferryTime, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray900)),
-                      const SizedBox(width: 16),
-                      const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.gray400),
-                      const SizedBox(width: 4),
-                      Text(island.bestSeason, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray900)),
-                    ],
-                  ),
+                  Row(children: [
+                    const Icon(Icons.directions_boat_rounded, size: 14, color: AppColors.gray400),
+                    const SizedBox(width: 4),
+                    Text(island.ferryTime, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray900)),
+                    const SizedBox(width: 16),
+                    const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.gray400),
+                    const SizedBox(width: 4),
+                    Text(island.bestSeason, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray900)),
+                  ]),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('여객선 요금', style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+                      const Text('여객선 요금', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
                       Text(
                         '${island.ferryPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
                         style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue500, fontSize: 14),
