@@ -94,7 +94,27 @@ class WeatherResult {
   };
 }
 
+enum FerryRisk { safe, caution, danger }
+
+extension FerryRiskExt on FerryRisk {
+  String get label => switch (this) {
+    FerryRisk.safe    => '운항 정상',
+    FerryRisk.caution => '운항 주의',
+    FerryRisk.danger  => '결항 위험',
+  };
+  String get description => switch (this) {
+    FerryRisk.safe    => '현재 기상 조건이 양호합니다',
+    FerryRisk.caution => '기상 악화로 일부 항로 지연 가능',
+    FerryRisk.danger  => '강풍·높은 파고로 결항 가능성 있음',
+  };
+}
+
 class WeatherService {
+  static FerryRisk assessFerryRisk(double windSpeed, double waveHeight) {
+    if (windSpeed >= 50 || waveHeight >= 2.5) return FerryRisk.danger;
+    if (windSpeed >= 36 || waveHeight >= 1.5) return FerryRisk.caution;
+    return FerryRisk.safe;
+  }
   static const _cacheKey = 'incheon_weather_v1';
   static const _cacheDuration = Duration(minutes: 30);
   static const _lat = 37.4563;

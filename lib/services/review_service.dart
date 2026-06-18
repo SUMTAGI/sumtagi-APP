@@ -10,6 +10,16 @@ class ReviewService {
         (_client.auth.currentUser?.email?.split('@').first ?? '여행자');
   }
 
+  static Future<int> getMyReviewCount() async {
+    if (_userId == null) return 0;
+    final res = await _client
+        .from('reviews')
+        .select()
+        .eq('user_id', _userId!)
+        .count(CountOption.exact);
+    return res.count;
+  }
+
   static Future<List<Map<String, dynamic>>> getReviews({String? islandId}) async {
     var query = _client
         .from('reviews')

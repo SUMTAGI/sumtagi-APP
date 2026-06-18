@@ -59,6 +59,16 @@ class TripService {
     await _client.from('trips').update({'days': days}).eq('id', id);
   }
 
+  static Future<int> getTripCount() async {
+    if (_userId == null) return 0;
+    final res = await _client
+        .from('trips')
+        .select()
+        .eq('user_id', _userId!)
+        .count(CountOption.exact);
+    return res.count;
+  }
+
   static Future<void> deleteTrip(String id) async {
     await _client.from('trips').delete().eq('id', id);
   }

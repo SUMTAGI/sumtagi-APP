@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
+import '../../services/trip_service.dart';
+import '../../services/review_service.dart';
 import '../../theme/app_colors.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -14,11 +16,27 @@ class MyPageScreen extends StatefulWidget {
 
 class _MyPageScreenState extends State<MyPageScreen> {
   User? _user;
+  int _tripCount = 0;
+  int _reviewCount = 0;
 
   @override
   void initState() {
     super.initState();
     _user = AuthService.currentUser;
+    _loadCounts();
+  }
+
+  Future<void> _loadCounts() async {
+    final results = await Future.wait([
+      TripService.getTripCount(),
+      ReviewService.getMyReviewCount(),
+    ]);
+    if (mounted) {
+      setState(() {
+        _tripCount = results[0];
+        _reviewCount = results[1];
+      });
+    }
   }
 
   void _handleLogout() async {
@@ -210,11 +228,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _StatCard(label: '가입일', value: '${_daysSinceJoin}일전')),
+                  Expanded(child: _StatCard(label: '가입일', value: '$_daysSinceJoin일전')),
                   const SizedBox(width: 8),
-                  const Expanded(child: _StatCard(label: '예약', value: '0건')),
+                  Expanded(child: _StatCard(label: '예약', value: '$_tripCount건')),
                   const SizedBox(width: 8),
-                  const Expanded(child: _StatCard(label: '리뷰', value: '0개')),
+                  Expanded(child: _StatCard(label: '리뷰', value: '$_reviewCount개')),
                 ],
               ),
             ],

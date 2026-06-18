@@ -69,11 +69,57 @@ class _HomeScreenState extends State<HomeScreen> {
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(child: _buildHeroContent()),
+            SliverToBoxAdapter(child: _buildFerryRiskBanner()),
             SliverToBoxAdapter(child: _buildQuickLinks()),
             SliverToBoxAdapter(child: _buildStatus()),
             SliverToBoxAdapter(child: _buildPopularReviews()),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFerryRiskBanner() {
+    if (_weather == null) return const SizedBox.shrink();
+    final risk = WeatherService.assessFerryRisk(
+      _weather!.current.windSpeed,
+      _weather!.current.waveHeight,
+    );
+    if (risk == FerryRisk.safe) return const SizedBox.shrink();
+
+    final isDanger = risk == FerryRisk.danger;
+    final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
+    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
+    final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
+    final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
+    final icon     = isDanger ? Icons.warning_rounded : Icons.info_outline_rounded;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(risk.label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: textColor)),
+                const SizedBox(height: 2),
+                Text(
+                  '${risk.description} (풍속 ${_weather!.current.windSpeed.toStringAsFixed(1)} km/h · 파고 ${_weather!.current.waveHeight.toStringAsFixed(1)} m)',
+                  style: TextStyle(fontSize: 12, color: textColor),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
