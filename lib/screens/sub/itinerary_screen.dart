@@ -64,6 +64,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
       }
     }
     setState(() => _itinerary = {..._itinerary!, 'days': days});
+    await TripService.updateDays(widget.id, days);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${activity['title']} 예약 완료'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),

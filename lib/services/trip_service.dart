@@ -55,6 +55,10 @@ class TripService {
     await _client.from('trips').update({'confirmed': true}).eq('id', id);
   }
 
+  static Future<void> updateDays(String id, List<Map<String, dynamic>> days) async {
+    await _client.from('trips').update({'days': days}).eq('id', id);
+  }
+
   static Future<void> deleteTrip(String id) async {
     await _client.from('trips').delete().eq('id', id);
   }
