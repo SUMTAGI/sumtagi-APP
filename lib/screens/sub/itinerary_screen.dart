@@ -45,10 +45,11 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     if (_itinerary == null) return;
     await TripService.confirmTrip(widget.id);
     if (mounted) {
+      setState(() => _isConfirmed = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('일정이 확정됐어요! 홈에서 확인하세요'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
+        const SnackBar(content: Text('일정이 확정됐어요!'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
       );
-      context.go('/');
+      context.go('/travel');
     }
   }
 
@@ -269,7 +270,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('일정이 확정됐어요', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.green700, fontSize: 15)),
-                    Text('홈 화면에서 일정을 확인하세요', style: TextStyle(fontSize: 12, color: AppColors.green700)),
+                    Text('여행 탭에서 일정을 확인하세요', style: TextStyle(fontSize: 12, color: AppColors.green700)),
                   ],
                 ),
               ),

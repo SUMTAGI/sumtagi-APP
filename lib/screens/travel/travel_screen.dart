@@ -25,7 +25,7 @@ class _TravelScreenState extends State<TravelScreen> {
   }
 
   Future<void> _loadData() async {
-    final trip = await TripService.getLatestConfirmedTrip();
+    final trip = await TripService.getUpcomingTrip();
     if (trip != null && mounted) {
       setState(() {
         _currentItinerary = {
@@ -163,17 +163,60 @@ class _TravelScreenState extends State<TravelScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () => context.push('/itinerary/$_currentItineraryId'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                      child: const Text('일정 전체보기', style: TextStyle(color: AppColors.blue600, fontWeight: FontWeight.w600, fontSize: 14)),
-                    ),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => context.push('/itinerary/$_currentItineraryId'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                          child: const Text('일정 전체보기', style: TextStyle(color: AppColors.blue600, fontWeight: FontWeight.w600, fontSize: 14)),
+                        ),
+                      ),
+                      if (_currentItinerary!['confirmed'] != true) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white.withOpacity(0.5)),
+                          ),
+                          child: const Text('미확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
             ),
+            if (_currentItinerary!['confirmed'] != true) ...[
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => context.push('/itinerary/$_currentItineraryId'),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded, color: Color(0xFFD97706), size: 18),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '일정이 아직 미확정이에요. 열어서 확정하면 홈에도 표시돼요.',
+                          style: TextStyle(fontSize: 13, color: Color(0xFF92400E)),
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: Color(0xFFD97706), size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
 
             // Preparation status
