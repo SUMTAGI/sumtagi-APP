@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../services/trip_service.dart';
+import '../../services/weather_service.dart';
 import '../../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _unreadNotifications = 0;
   Map<String, dynamic>? _upcomingTrip;
   String _userName = '';
+  WeatherResult? _weather;
 
   @override
   void initState() {
@@ -30,11 +32,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final name = (meta != null && meta['nickname'] != null)
         ? meta['nickname'] as String
         : user?.email?.split('@')[0] ?? '';
-    final trip = await TripService.getUpcomingTrip();
+    final results = await Future.wait([
+      TripService.getUpcomingTrip(),
+      WeatherService.getWeather(),
+    ]);
     if (mounted) {
       setState(() {
         _userName = name;
-        _upcomingTrip = trip;
+        _upcomingTrip = results[0] as Map<String, dynamic>?;
+        _weather = results[1] as WeatherResult?;
       });
     }
   }
@@ -367,11 +373,15 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.wb_sunny_rounded, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text('오늘의 날씨', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
+                    Icon(
+                      _weatherIcon(_weather?.current.condition ?? '맑음'),
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('오늘의 날씨', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -382,15 +392,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('인천 앞바다', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                        const Text('맑음', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                        Text('파고: 0.5m • 풍속: 3m/s', style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12)),
+                        Text(
+                          _weather?.current.condition ?? '맑음',
+                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '파고: ${(_weather?.current.waveHeight ?? 0.5).toStringAsFixed(1)}m • 풍속: ${(_weather?.current.windSpeed ?? 3).toStringAsFixed(0)}m/s',
+                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+                        ),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text('22°C', style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
-                        Text('체감 20°C', style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12)),
+                        Text(
+                          '${(_weather?.current.temperature ?? 22).round()}°C',
+                          style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '체감 ${(_weather?.current.apparentTemperature ?? 20).round()}°C',
+                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+                        ),
                       ],
                     ),
                   ],
@@ -428,22 +450,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildWeeklyForecast() {
-    final now = DateTime.now();
-    const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
-    const conditions = ['맑음', '맑음', '구름조금', '흐림', '비'];
-    const highs = [23, 24, 25, 22, 20];
-    const lows = [18, 19, 19, 18, 17];
-    const rainChances = [5, 0, 10, 30, 70];
-
-    final days = List.generate(5, (i) {
-      final date = now.add(Duration(days: i + 1));
+    final days = _weather?.forecast.map((f) => {
+      'day': f.day,
+      'date': f.date,
+      'condition': f.condition,
+      'high': f.high,
+      'low': f.low,
+      'rainChance': f.rainChance,
+    }).toList() ?? List.generate(5, (i) {
+      final date = DateTime.now().add(Duration(days: i + 1));
       return {
-        'day': weekdays[date.weekday - 1],
+        'day': ['월', '화', '수', '목', '금', '토', '일'][date.weekday - 1],
         'date': '${date.month}/${date.day}',
-        'condition': conditions[i],
-        'high': highs[i],
-        'low': lows[i],
-        'rainChance': rainChances[i],
+        'condition': '맑음',
+        'high': 23,
+        'low': 18,
+        'rainChance': 0,
       };
     });
 
