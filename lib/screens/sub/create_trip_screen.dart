@@ -13,13 +13,25 @@ class CreateTripScreen extends StatefulWidget {
 
 class _CreateTripScreenState extends State<CreateTripScreen> {
   int _step = 0;
-  String _departurePort = '';
   List<String> _selectedIslands = [];
   DateTime? _startDate;
   DateTime? _endDate;
   int _travelers = 2;
   String _travelType = '';
   String _budget = '보통';
+  bool _isSubmitting = false;
+
+  static const _allIslands = [
+    '백령도', '대청도', '소청도', '연평도',
+    '덕적도', '자월도', '승봉도', '대이작도',
+    '소이작도', '풍도', '육도',
+  ];
+
+  static const _islandPortMap = {
+    '백령도': '인천항', '대청도': '인천항', '소청도': '인천항', '연평도': '인천항',
+    '덕적도': '인천항', '자월도': '인천항', '승봉도': '인천항', '대이작도': '인천항',
+    '소이작도': '대부도', '풍도': '대부도', '육도': '대부도',
+  };
 
   @override
   void initState() {
@@ -29,17 +41,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     }
   }
 
-  List<String> get _availableIslands => switch (_departurePort) {
-    '인천항' => ['백령도', '대청도', '소청도', '연평도', '덕적도', '자월도', '승봉도', '대이작도'],
-    '대부도' => ['자월도', '승봉도', '대이작도', '소이작도', '덕적도', '풍도', '육도'],
-    _ => [],
-  };
-
   bool get _hasPreSelected => widget.preSelectedIsland != null;
+  int get _totalSteps => _hasPreSelected ? 2 : 3;
 
-  bool _isSubmitting = false;
+  String get _computedPort =>
+      _islandPortMap[_selectedIslands.firstOrNull ?? ''] ?? '인천항';
 
-  void _handleSubmit() async {
+  Future<void> _handleSubmit() async {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
@@ -48,7 +56,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           'dayNumber': 1,
           'date': _startDate!.toIso8601String().split('T')[0],
           'activities': [
-            {'id': '1', 'type': 'ferry', 'time': '07:00', 'title': '$_departurePort 출발', 'description': '여객선 탑승', 'location': _departurePort, 'price': 45000},
+            {'id': '1', 'type': 'ferry', 'time': '07:00', 'title': '$_computedPort 출발', 'description': '여객선 탑승', 'location': _computedPort, 'price': 45000},
             {'id': '2', 'type': 'attraction', 'time': '11:00', 'title': '${_selectedIslands.first} 도착', 'description': '섬 탐방 시작', 'location': _selectedIslands.first, 'price': 0},
             {'id': '3', 'type': 'meal', 'time': '13:00', 'title': '해산물 점심', 'description': '신선한 해산물 정식', 'location': _selectedIslands.first, 'price': 15000},
             {'id': '4', 'type': 'accommodation', 'time': '18:00', 'title': '민박 체크인', 'description': '섬 민박 숙박', 'location': _selectedIslands.first, 'price': 60000},
@@ -58,7 +66,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
       final id = await TripService.createTrip(
         title: '${_selectedIslands.join(', ')} 여행',
-        departurePort: _departurePort,
+        departurePort: _computedPort,
         islands: _selectedIslands,
         startDate: _startDate!.toIso8601String().split('T')[0],
         endDate: _endDate!.toIso8601String().split('T')[0],
@@ -95,16 +103,30 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           children: [
             _buildHeader(),
             _buildProgressBar(),
-            Expanded(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: _buildStep())),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: _buildCurrentStep(),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildCurrentStep() {
+    if (_hasPreSelected) {
+      return _step == 0 ? _buildDateStep() : _buildStyleStep();
+    }
+    return switch (_step) {
+      0 => _buildIslandStep(),
+      1 => _buildDateStep(),
+      _ => _buildStyleStep(),
+    };
+  }
+
   Widget _buildHeader() {
-    final totalSteps = _hasPreSelected ? 3 : 4;
-    final currentStep = _hasPreSelected ? (_step == 0 ? 1 : _step == 2 ? 2 : 3) : _step + 1;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
@@ -112,21 +134,20 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gray700, size: 20),
-            onPressed: () {
-              if (_step == 0) {
-                context.pop();
-              } else {
-                setState(() => _step--);
-              }
-            },
+            onPressed: () => _step == 0 ? context.pop() : setState(() => _step--),
           ),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_hasPreSelected ? '${widget.preSelectedIsland} 일정 만들기' : '일정 만들기',
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.gray900)),
-              Text('Step $currentStep / $totalSteps', style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+              Text(
+                _hasPreSelected ? '${widget.preSelectedIsland} 일정 만들기' : '일정 만들기',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.gray900),
+              ),
+              Text(
+                'Step ${_step + 1} / $_totalSteps',
+                style: const TextStyle(fontSize: 12, color: AppColors.gray500),
+              ),
             ],
           ),
         ],
@@ -135,18 +156,16 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   }
 
   Widget _buildProgressBar() {
-    final steps = _hasPreSelected ? 3 : 4;
-    final current = _step == 0 ? 0 : _step == 2 ? 1 : 2;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
       child: Row(
-        children: List.generate(steps, (i) {
-          final filled = i <= (current + (_step == 3 ? 1 : 0));
+        children: List.generate(_totalSteps, (i) {
+          final filled = i <= _step;
           return Expanded(
             child: Container(
               height: 8,
-              margin: EdgeInsets.only(right: i < steps - 1 ? 6 : 0),
+              margin: EdgeInsets.only(right: i < _totalSteps - 1 ? 6 : 0),
               decoration: BoxDecoration(
                 color: filled ? AppColors.blue600 : AppColors.gray200,
                 borderRadius: BorderRadius.circular(4),
@@ -158,85 +177,22 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     );
   }
 
-  Widget _buildStep() {
-    return switch (_step) {
-      0 => _buildStep0(),
-      1 => _buildStep1(),
-      2 => _buildStep2(),
-      3 => _buildStep3(),
-      _ => const SizedBox(),
-    };
-  }
-
-  Widget _buildStep0() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_hasPreSelected) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.blue200)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('선택된 섬', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.blue700)),
-                const SizedBox(height: 4),
-                Text(widget.preSelectedIsland!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.blue700)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-        const Text('출발 항구 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
-        const SizedBox(height: 4),
-        const Text('여행을 시작할 항구를 선택하세요', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
-        const SizedBox(height: 20),
-        _PortCard(
-          title: '인천항 연안여객터미널',
-          subtitle: '인천 도서 지역 주요 여객선 출발지',
-          islands: const ['백령도', '대청도', '소청도', '연평도', '덕적도', '자월도', '승봉도', '대이작도'],
-          isSelected: _departurePort == '인천항',
-          onTap: () => setState(() => _departurePort = '인천항'),
-        ),
-        const SizedBox(height: 16),
-        _PortCard(
-          title: '대부도 방아머리여객터미널',
-          subtitle: '수도권 남부에서 접근하기 좋은 섬 여행 출발지',
-          islands: const ['자월도', '승봉도', '대이작도', '소이작도', '덕적도', '풍도', '육도'],
-          isSelected: _departurePort == '대부도',
-          onTap: () => setState(() => _departurePort = '대부도'),
-        ),
-        if (_departurePort.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => setState(() => _step = _hasPreSelected ? 2 : 1),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
-              child: Text(_hasPreSelected ? '다음: 날짜 선택' : '다음: 방문할 섬 선택'),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildStep1() {
+  Widget _buildIslandStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('방문할 섬 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
-        Text('$_departurePort에서 갈 수 있는 섬이에요', style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const Text('어느 섬으로 떠나고 싶으세요?', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
         const SizedBox(height: 20),
         GridView.count(
           crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12,
           childAspectRatio: 2.5, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-          children: _availableIslands.map((island) {
+          children: _allIslands.map((island) {
             final selected = _selectedIslands.contains(island);
             return GestureDetector(
               onTap: () => setState(() {
-                if (selected) _selectedIslands.remove(island); else _selectedIslands.add(island);
+                if (selected) { _selectedIslands.remove(island); } else { _selectedIslands.add(island); }
               }),
               child: Container(
                 decoration: BoxDecoration(
@@ -244,7 +200,12 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   border: Border.all(color: selected ? AppColors.blue600 : AppColors.gray200, width: 2),
                   color: selected ? AppColors.blue50 : Colors.white,
                 ),
-                child: Center(child: Text(island, style: TextStyle(fontWeight: FontWeight.w600, color: selected ? AppColors.blue600 : AppColors.gray900))),
+                child: Center(
+                  child: Text(
+                    island,
+                    style: TextStyle(fontWeight: FontWeight.w600, color: selected ? AppColors.blue600 : AppColors.gray900),
+                  ),
+                ),
               ),
             );
           }).toList(),
@@ -253,15 +214,28 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.blue100)),
-            child: Text('${_selectedIslands.length}개 섬 선택됨: ${_selectedIslands.join(', ')}', style: const TextStyle(fontSize: 13, color: AppColors.blue700)),
+            decoration: BoxDecoration(
+              color: AppColors.blue50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.blue100),
+            ),
+            child: Text(
+              '${_selectedIslands.length}개 섬 선택됨: ${_selectedIslands.join(', ')}',
+              style: const TextStyle(fontSize: 13, color: AppColors.blue700),
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => setState(() => _step = 2),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+              onPressed: () => setState(() => _step = 1),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
               child: const Text('다음: 날짜 선택'),
             ),
           ),
@@ -270,10 +244,32 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     );
   }
 
-  Widget _buildStep2() {
+  Widget _buildDateStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_hasPreSelected) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.blue50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.blue200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('선택된 섬', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.blue700)),
+                const SizedBox(height: 4),
+                Text(
+                  widget.preSelectedIsland!,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.blue700),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
         const Text('여행 날짜', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
         const Text('언제 떠나시나요?', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
@@ -321,7 +317,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.blue100)),
+            decoration: BoxDecoration(
+              color: AppColors.blue50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.blue100),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -344,8 +344,14 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => setState(() => _step = 3),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+              onPressed: () => setState(() => _step++),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
               child: const Text('다음: 인원 & 스타일 선택'),
             ),
           ),
@@ -354,7 +360,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     );
   }
 
-  Widget _buildStep3() {
+  Widget _buildStyleStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -425,7 +431,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                     border: Border.all(color: isSelected ? AppColors.blue600 : AppColors.gray200, width: 2),
                     color: isSelected ? AppColors.blue50 : Colors.white,
                   ),
-                  child: Text(b, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.blue600 : AppColors.gray900)),
+                  child: Text(
+                    b,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.blue600 : AppColors.gray900),
+                  ),
                 ),
               ),
             );
@@ -437,7 +447,14 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _handleSubmit,
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, disabledBackgroundColor: AppColors.blue200, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue600,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.blue200,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
               child: _isSubmitting
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Text('일정 생성하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -445,64 +462,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           ),
         ],
       ],
-    );
-  }
-}
-
-class _PortCard extends StatelessWidget {
-  final String title, subtitle;
-  final List<String> islands;
-  final bool isSelected;
-  final VoidCallback onTap;
-  const _PortCard({required this.title, required this.subtitle, required this.islands, required this.isSelected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isSelected ? AppColors.blue600 : AppColors.gray200, width: 2),
-          color: isSelected ? AppColors.blue50 : Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isSelected ? AppColors.blue700 : AppColors.gray900)),
-                      const SizedBox(height: 4),
-                      Text(subtitle, style: TextStyle(fontSize: 12, color: isSelected ? AppColors.blue700 : AppColors.gray600)),
-                    ],
-                  ),
-                ),
-                if (isSelected) const Icon(Icons.check_circle_rounded, color: AppColors.blue600),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text('이 항구에서 갈 수 있는 섬', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 4, runSpacing: 4,
-              children: islands.map((i) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.blue100 : AppColors.gray100,
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: Text(i, style: TextStyle(fontSize: 11, color: isSelected ? AppColors.blue700 : AppColors.gray700)),
-              )).toList(),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -555,7 +514,10 @@ class _DateConfirm extends StatelessWidget {
         children: [
           const Icon(Icons.check_circle_rounded, color: AppColors.blue600, size: 16),
           const SizedBox(width: 8),
-          Text('${date.year}년 ${date.month}월 ${date.day}일 (${_weekdays[date.weekday]})', style: const TextStyle(fontSize: 13, color: AppColors.blue700, fontWeight: FontWeight.w500)),
+          Text(
+            '${date.year}년 ${date.month}월 ${date.day}일 (${_weekdays[date.weekday]})',
+            style: const TextStyle(fontSize: 13, color: AppColors.blue700, fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );

@@ -84,7 +84,9 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/create-trip',
-      builder: (context, state) => const CreateTripScreen(),
+      builder: (context, state) => CreateTripScreen(
+        preSelectedIsland: state.uri.queryParameters['name'],
+      ),
     ),
     GoRoute(
       path: '/itinerary/:id',
