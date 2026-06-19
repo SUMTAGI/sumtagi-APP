@@ -22,6 +22,7 @@ import '../screens/sub/schedule_screen.dart';
 import '../screens/sub/coupons_screen.dart';
 import '../screens/sub/diary_screen.dart';
 import '../screens/sub/group_trip_screen.dart';
+import '../screens/sub/group_join_screen.dart';
 import '../screens/sub/app_settings_screen.dart';
 import '../screens/sub/support_screen.dart';
 import '../screens/sub/experiences_screen.dart';
@@ -131,6 +132,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/group-trip',
       builder: (context, state) => const GroupTripScreen(),
+    ),
+    GoRoute(
+      path: '/group-join/:code',
+      builder: (context, state) => GroupJoinScreen(code: state.pathParameters['code']!),
     ),
     GoRoute(
       path: '/app-settings',
