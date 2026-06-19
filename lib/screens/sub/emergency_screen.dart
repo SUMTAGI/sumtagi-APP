@@ -66,7 +66,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 110,
+        toolbarHeight: 124,
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,

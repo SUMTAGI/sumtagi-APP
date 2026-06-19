@@ -31,6 +31,15 @@ class ReviewService {
     return List<Map<String, dynamic>>.from(data as List);
   }
 
+  static Future<List<Map<String, dynamic>>> getPopularReviews() async {
+    final data = await _client
+        .from('reviews')
+        .select('id, rating, content, images, likes_count, profiles(nickname), islands(name, image)')
+        .order('likes_count', ascending: false)
+        .limit(3);
+    return List<Map<String, dynamic>>.from(data as List);
+  }
+
   static Future<void> createReview({
     required String islandId,
     required int rating,

@@ -85,7 +85,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          isQna ? '질문하기' : '게시글 작성',
+          isQna ? '질문하기' : '리뷰 작성',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
         ),
         actions: [
@@ -180,7 +180,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText:
-                    isQna ? '무엇이 궁금한가요?' : '어떤 여행이었나요?',
+                    isQna ? '무엇이 궁금한가요?' : '어떤 섬을 다녀오셨나요?',
                 hintStyle: const TextStyle(
                     color: AppColors.gray400, fontSize: 14),
                 filled: true,
@@ -223,7 +223,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
               decoration: InputDecoration(
                 hintText: isQna
                     ? '섬 여행에 대해 궁금한 점을 자유롭게 물어보세요'
-                    : '여행 중 느낀 점, 팁, 후기를 자유롭게 공유해보세요',
+                    : '다녀온 섬에 대한 솔직한 리뷰를 남겨보세요',
                 hintStyle: const TextStyle(
                     color: AppColors.gray400, fontSize: 14),
                 filled: true,

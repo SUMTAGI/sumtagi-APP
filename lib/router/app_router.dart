@@ -32,8 +32,6 @@ import '../screens/sub/notification_settings_screen.dart';
 import '../screens/sub/payment_methods_screen.dart';
 import '../screens/sub/visited_islands_screen.dart';
 import '../screens/sub/favorites_screen.dart';
-import '../screens/sub/reviews_screen.dart';
-import '../screens/sub/review_detail_screen.dart';
 import '../screens/sub/notifications_screen.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -178,14 +176,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/favorites',
       builder: (context, state) => const FavoritesScreen(),
-    ),
-    GoRoute(
-      path: '/reviews',
-      builder: (context, state) => const ReviewsScreen(),
-    ),
-    GoRoute(
-      path: '/review/:id',
-      builder: (context, state) => ReviewDetailScreen(id: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/notifications',

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../services/trip_service.dart';
 import '../../services/weather_service.dart';
+import '../../services/review_service.dart';
 import '../../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _upcomingTrip;
   String _userName = '';
   WeatherResult? _weather;
+  List<Map<String, dynamic>> _popularReviews = [];
 
   @override
   void initState() {
@@ -35,12 +37,30 @@ class _HomeScreenState extends State<HomeScreen> {
     final results = await Future.wait([
       TripService.getUpcomingTrip(),
       WeatherService.getWeather(),
+      ReviewService.getPopularReviews(),
     ]);
     if (mounted) {
       setState(() {
         _userName = name;
         _upcomingTrip = results[0] as Map<String, dynamic>?;
         _weather = results[1] as WeatherResult?;
+        _popularReviews = ((results[2] as List<Map<String, dynamic>>?) ?? [])
+            .map((r) {
+              final images = r['images'] as List?;
+              final island = r['islands'] as Map?;
+              return {
+                'id': r['id'],
+                'author': (r['profiles'] as Map?)?['nickname'] ?? '여행자',
+                'location': island?['name'] ?? '',
+                'rating': r['rating'],
+                'preview': r['content'] ?? '',
+                'image': (images != null && images.isNotEmpty)
+                    ? images[0] as String
+                    : (island?['image'] as String? ?? ''),
+                'likes': r['likes_count'] ?? 0,
+              };
+            })
+            .toList();
       });
     }
   }
@@ -327,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final links = [
       {'icon': Icons.auto_awesome_rounded, 'title': '패키지', 'route': '/packages'},
       {'icon': Icons.photo_camera_rounded, 'title': '체험', 'route': '/experiences'},
-      {'icon': Icons.people_rounded, 'title': '커뮤니티', 'route': '/community'},
+      {'icon': Icons.people_rounded, 'title': '리뷰', 'route': '/community'},
       {'icon': Icons.security_rounded, 'title': '체크리스트', 'route': '/checklist'},
       {'icon': Icons.attach_money_rounded, 'title': '경비관리', 'route': '/budget'},
     ];
@@ -583,27 +603,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildPopularReviews() {
-    final reviews = [
-      {
-        'id': '1', 'author': '김여행', 'location': '백령도', 'rating': 5,
-        'preview': '두무진의 절경이 정말 압권이었어요. 일몰은 꼭 보세요!',
-        'image': 'https://images.unsplash.com/photo-1635355942488-a8bdb5a0803e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400',
-        'likes': 124,
-      },
-      {
-        'id': '2', 'author': '박바다', 'location': '덕적도', 'rating': 5,
-        'preview': '서포리 해변의 투명한 바다에 감탄했어요. 가족 여행 최고!',
-        'image': 'https://images.unsplash.com/photo-1662898069390-badabf2d65df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400',
-        'likes': 98,
-      },
-      {
-        'id': '3', 'author': '이섬순', 'location': '영흥도', 'rating': 4,
-        'preview': '당일치기로 다녀오기 딱 좋았어요. 해산물도 맛있고!',
-        'image': 'https://images.unsplash.com/photo-1628412071389-6e8f7a7a4e6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400',
-        'likes': 87,
-      },
-    ];
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -616,7 +615,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Text('인기 리뷰', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                 GestureDetector(
-                  onTap: () => context.push('/reviews'),
+                  onTap: () => context.push('/community'),
                   child: const Row(
                     children: [
                       Text('전체보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
@@ -627,19 +626,25 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          SizedBox(
-            height: 240,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              itemCount: reviews.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, i) => _ReviewCard(
-                review: reviews[i],
-                onTap: () => context.push('/review/${reviews[i]['id']}'),
+          if (_popularReviews.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text('아직 리뷰가 없어요.', style: TextStyle(fontSize: 14, color: AppColors.gray400)),
+            )
+          else
+            SizedBox(
+              height: 240,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: _popularReviews.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, i) => _ReviewCard(
+                  review: _popularReviews[i],
+                  onTap: () => context.push('/community'),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

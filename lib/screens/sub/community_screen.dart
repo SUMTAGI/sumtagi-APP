@@ -58,9 +58,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('커뮤니티',
+            Text('리뷰 & Q&A',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('여행자들과 소통하세요',
+            Text('섬 여행 리뷰와 질문을 공유하세요',
                 style: TextStyle(fontSize: 11, color: AppColors.gray500)),
           ],
         ),
@@ -98,7 +98,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Row(children: [
                     _TabBtn(
-                        label: '실시간 피드',
+                        label: '리뷰',
                         selected: _tab == 0,
                         onTap: () => setState(() => _tab = 0)),
                     const SizedBox(width: 8),
@@ -153,15 +153,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       const Icon(Icons.chat_bubble_outline_rounded,
                           size: 64, color: AppColors.gray200),
                       const SizedBox(height: 16),
-                      const Text('아직 게시글이 없어요',
-                          style: TextStyle(
-                              fontSize: 16, color: AppColors.gray500)),
+                      Text(
+                        _tab == 0 ? '아직 리뷰가 없어요' : '아직 질문이 없어요',
+                        style: const TextStyle(fontSize: 16, color: AppColors.gray500),
+                      ),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: () => context
                             .push('/community-write?type=$type')
                             .then((_) => _load()),
-                        child: const Text('첫 번째 글 작성하기'),
+                        child: Text(_tab == 0 ? '첫 번째 리뷰 남기기' : '질문하기'),
                       ),
                     ],
                   ),
