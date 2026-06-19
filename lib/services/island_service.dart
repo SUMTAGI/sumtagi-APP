@@ -4,12 +4,15 @@ class IslandModel {
   final String id, name, description, ferryTime, bestSeason, image, popularityTrend, congestion;
   final List<String> features, ports;
   final int ferryPrice;
+  final double? lat;
+  final double? lng;
 
   const IslandModel({
     required this.id, required this.name, required this.description,
     required this.ferryTime, required this.bestSeason, required this.image,
     required this.popularityTrend, required this.congestion,
     required this.features, required this.ports, required this.ferryPrice,
+    this.lat, this.lng,
   });
 
   factory IslandModel.fromMap(Map<String, dynamic> map) => IslandModel(
@@ -24,6 +27,8 @@ class IslandModel {
     image: map['image'] as String? ?? '',
     features: List<String>.from(map['features'] as List? ?? []),
     ports: List<String>.from(map['ports'] as List? ?? []),
+    lat: (map['lat'] as num?)?.toDouble(),
+    lng: (map['lng'] as num?)?.toDouble(),
   );
 }
 

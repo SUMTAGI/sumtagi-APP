@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../services/island_service.dart';
 import '../../theme/app_colors.dart';
 
 class _Island {
@@ -21,20 +22,9 @@ class _Island {
   });
 }
 
-const _islands = [
-  _Island(id: 'incheon',    name: '인천항',   ferryTime: '-',    description: '인천 연안여객터미널', position: LatLng(37.4744, 126.6169), color: Color(0xFFEF4444), isPort: true),
-  _Island(id: 'daebu',      name: '대부도항', ferryTime: '-',    description: '방아머리여객터미널',  position: LatLng(37.2173, 126.5589), color: Color(0xFFF97316), isPort: true),
-  _Island(id: 'baengnyeong',name: '백령도',   ferryTime: '4시간', description: '서해 최북단 섬',    position: LatLng(37.9685, 124.6902), color: Color(0xFF3B82F6)),
-  _Island(id: 'daecheong',  name: '대청도',   ferryTime: '4시간', description: '모래사막의 섬',     position: LatLng(37.8371, 124.7182), color: Color(0xFF3B82F6)),
-  _Island(id: 'socheong',   name: '소청도',   ferryTime: '4시간', description: '작은 섬',           position: LatLng(37.7625, 124.7431), color: Color(0xFF3B82F6)),
-  _Island(id: 'yeonpyeong', name: '연평도',   ferryTime: '3.5시간', description: '조기의 섬',      position: LatLng(37.6736, 125.6814), color: Color(0xFF3B82F6)),
-  _Island(id: 'deokjeok',   name: '덕적도',   ferryTime: '2.5시간', description: '서포리 해변',    position: LatLng(37.2269, 126.1432), color: Color(0xFF3B82F6)),
-  _Island(id: 'jawol',      name: '자월도',   ferryTime: '2.5시간', description: '한적한 어촌',    position: LatLng(37.2589, 126.3083), color: Color(0xFF3B82F6)),
-  _Island(id: 'seungbong',  name: '승봉도',   ferryTime: '2시간', description: '작은 섬',          position: LatLng(37.1669, 126.1611), color: Color(0xFF3B82F6)),
-  _Island(id: 'daeijak',    name: '대이작도', ferryTime: '2시간', description: '큰 이작도',         position: LatLng(37.1667, 126.2833), color: Color(0xFF3B82F6)),
-  _Island(id: 'soijak',     name: '소이작도', ferryTime: '2시간', description: '작은 이작도',       position: LatLng(37.1500, 126.2917), color: Color(0xFF3B82F6)),
-  _Island(id: 'pungdo',     name: '풍도',     ferryTime: '2.5시간', description: '동백꽃의 섬',    position: LatLng(37.0647, 126.2636), color: Color(0xFF3B82F6)),
-  _Island(id: 'yukdo',      name: '육도',     ferryTime: '3시간', description: '작은 섬',          position: LatLng(37.0036, 126.3547), color: Color(0xFF3B82F6)),
+const _ports = [
+  _Island(id: 'incheon', name: '인천항',   ferryTime: '-', description: '인천 연안여객터미널', position: LatLng(37.4744, 126.6169), color: Color(0xFFEF4444), isPort: true),
+  _Island(id: 'daebu',   name: '대부도항', ferryTime: '-', description: '방아머리여객터미널',  position: LatLng(37.2173, 126.5589), color: Color(0xFFF97316), isPort: true),
 ];
 
 const _routes = [
@@ -44,6 +34,7 @@ const _routes = [
   ['daebu', 'jawol'],   ['daebu', 'seungbong'], ['daebu', 'daeijak'],
   ['daebu', 'soijak'],  ['daebu', 'deokjeok'],  ['daebu', 'pungdo'], ['daebu', 'yukdo'],
   ['deokjeok', 'jawol'], ['jawol', 'daeijak'],
+  ['incheon', 'yeonghung'], ['incheon', 'guleop'], ['yeonghung', 'seonjae'],
 ];
 
 class MapScreen extends StatefulWidget {
@@ -56,6 +47,39 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   _Island? _selected;
   bool _showRoutes = true;
+  List<_Island> _islands = _ports;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadIslands();
+  }
+
+  Future<void> _loadIslands() async {
+    try {
+      final data = await IslandService.getIslands();
+      final mapIslands = data
+          .where((i) => i.lat != null && i.lng != null)
+          .map((i) => _Island(
+                id: i.id,
+                name: i.name,
+                ferryTime: i.ferryTime,
+                description: i.description,
+                position: LatLng(i.lat!, i.lng!),
+                color: const Color(0xFF3B82F6),
+              ))
+          .toList();
+      if (mounted) {
+        setState(() {
+          _islands = [..._ports, ...mapIslands];
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   _Island? _getIsland(String id) {
     try { return _islands.firstWhere((i) => i.id == id); }
@@ -92,7 +116,7 @@ class _MapScreenState extends State<MapScreen> {
           _buildControls(),
           Expanded(child: _buildMap()),
           if (_selected != null) _buildInfoPanel(),
-          if (_selected == null) _buildIslandList(),
+          if (_selected == null && !_loading) _buildIslandList(),
         ],
       ),
     );
