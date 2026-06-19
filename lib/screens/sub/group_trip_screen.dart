@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/group_trip_service.dart';
 import '../../theme/app_colors.dart';
 
@@ -438,52 +439,75 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.gray50,
-      appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('그룹 여행', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('친구들과 함께 계획하세요', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
-          ],
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.gray900,
-        elevation: 0,
-        titleSpacing: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: TextButton.icon(
-              onPressed: _showJoinSheet,
-              icon: const Icon(Icons.login_rounded, size: 16, color: AppColors.blue600),
-              label: const Text('코드 참여', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue600)),
+      body: Column(
+        children: [
+          // Blue gradient header — matches FE design
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)]),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: _showCreateSheet,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: AppColors.blue600, borderRadius: BorderRadius.circular(8)),
-                child: const Row(children: [
-                  Icon(Icons.add, size: 16, color: Colors.white),
-                  SizedBox(width: 4),
-                  Text('새 그룹', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
-                ]),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 10, 24, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.go('/'),
+                      child: const Row(children: [
+                        Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 13),
+                        SizedBox(width: 4),
+                        Text('뒤로', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      ]),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('그룹 여행', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                            SizedBox(height: 2),
+                            Text('친구들과 함께 계획하세요', style: TextStyle(fontSize: 13, color: Colors.white70)),
+                          ],
+                        ),
+                        GestureDetector(
+                          onTap: _showJoinSheet,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(children: [
+                              Icon(Icons.login_rounded, size: 14, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text('코드 참여', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+                            ]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.blue600))
+                : _groups.isEmpty
+                    ? _buildEmptyState()
+                    : Column(children: [
+                        _buildGroupTabs(),
+                        Expanded(child: _activeGroup != null ? _buildGroupDetail(_activeGroup!) : const SizedBox()),
+                      ]),
+          ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.blue600))
-          : _groups.isEmpty
-              ? _buildEmptyState()
-              : Column(children: [
-                  _buildGroupTabs(),
-                  Expanded(child: _activeGroup != null ? _buildGroupDetail(_activeGroup!) : const SizedBox()),
-                ]),
     );
   }
 
@@ -551,6 +575,17 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                     ),
                   );
                 }),
+                GestureDetector(
+                  onTap: _showCreateSheet,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.gray300, width: 1.5, style: BorderStyle.solid),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text('+ 새 그룹', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray600)),
+                  ),
+                ),
               ],
             ),
           ),

@@ -59,6 +59,10 @@ class TripService {
     await _client.from('trips').update({'days': days}).eq('id', id);
   }
 
+  static Future<void> updateItinerary(String id, List<Map<String, dynamic>> days, int totalCost) async {
+    await _client.from('trips').update({'days': days, 'total_cost': totalCost}).eq('id', id);
+  }
+
   static Future<int> getTripCount() async {
     if (_userId == null) return 0;
     final res = await _client

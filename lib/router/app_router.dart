@@ -91,7 +91,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/itinerary/:id',
-      builder: (context, state) => ItineraryScreen(id: state.pathParameters['id']!),
+      builder: (context, state) => ItineraryScreen(
+        id: state.pathParameters['id']!,
+        startInEditMode: state.uri.queryParameters['edit'] == 'true',
+      ),
     ),
     GoRoute(
       path: '/checklist',

@@ -68,7 +68,7 @@ class _TravelScreenState extends State<TravelScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('여행 계획', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-            Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.85))),
+            Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
           ],
         ),
         titleSpacing: 24,
@@ -136,15 +136,24 @@ class _TravelScreenState extends State<TravelScreen> {
                           if (dday >= 0)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(50)),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(50)),
                               child: Text(dday == 0 ? '오늘 출발!' : 'D-$dday', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                             ),
                           const SizedBox(width: 8),
                           GestureDetector(
+                            onTap: () => context.push('/itinerary/$_currentItineraryId?edit=true'),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                              child: const Icon(Icons.edit_rounded, color: Colors.white, size: 16),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          GestureDetector(
                             onTap: _deleteItinerary,
                             child: Container(
                               padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
                               child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 16),
                             ),
                           ),
@@ -178,9 +187,9 @@ class _TravelScreenState extends State<TravelScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.white.withOpacity(0.5)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
                           ),
                           child: const Text('미확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
                         ),
