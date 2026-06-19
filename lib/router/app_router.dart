@@ -23,6 +23,7 @@ import '../screens/sub/coupons_screen.dart';
 import '../screens/sub/diary_screen.dart';
 import '../screens/sub/group_trip_screen.dart';
 import '../screens/sub/group_join_screen.dart';
+import '../screens/sub/community_write_screen.dart';
 import '../screens/sub/app_settings_screen.dart';
 import '../screens/sub/support_screen.dart';
 import '../screens/sub/experiences_screen.dart';
@@ -107,6 +108,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/community',
       builder: (context, state) => const CommunityScreen(),
+    ),
+    GoRoute(
+      path: '/community-write',
+      builder: (context, state) => CommunityWriteScreen(
+        type: state.uri.queryParameters['type'] ?? 'feed',
+      ),
     ),
     GoRoute(
       path: '/packages',
