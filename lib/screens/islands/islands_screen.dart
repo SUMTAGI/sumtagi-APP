@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../services/island_service.dart';
+import '../../services/congestion_service.dart';
 
 class IslandsScreen extends StatefulWidget {
   const IslandsScreen({super.key});
@@ -19,6 +20,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
   String _congestionFilter = 'all';
   String _searchQuery = '';
   final _searchCtrl = TextEditingController();
+  Map<String, IslandCongestionData> _congestionMap = {};
 
   @override
   void initState() {
@@ -39,11 +41,15 @@ class _IslandsScreenState extends State<IslandsScreen> {
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }
+    CongestionService.getAllIslandsCongestion()
+        .then((map) { if (mounted) setState(() => _congestionMap = map); })
+        .catchError((e, st) { print('[IslandsCongestion ERROR] $e\n$st'); });
   }
 
   List<IslandModel> get _filtered => _islands.where((island) {
     final portMatch = _portFilter == 'all' || island.ports.contains(_portFilter);
-    final congestionMatch = _congestionFilter == 'all' || island.congestion == _congestionFilter;
+    final effective = _congestionMap[island.id]?.todayLevel ?? island.congestion;
+    final congestionMatch = _congestionFilter == 'all' || effective == _congestionFilter;
     final searchMatch = _searchQuery.isEmpty ||
         island.name.contains(_searchQuery) ||
         island.description.contains(_searchQuery) ||
@@ -190,7 +196,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
         }
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: _IslandCard(island: filtered[i]),
+          child: _IslandCard(island: filtered[i], congestion: _congestionMap[filtered[i].id]),
         );
       },
     );
@@ -242,15 +248,18 @@ class _FilterBtn extends StatelessWidget {
 
 class _IslandCard extends StatelessWidget {
   final IslandModel island;
-  const _IslandCard({required this.island});
+  final IslandCongestionData? congestion;
+  const _IslandCard({required this.island, this.congestion});
 
-  String get _congestionLabel => switch (island.congestion) {
+  String get _effectiveCongestion => congestion?.todayLevel ?? island.congestion;
+
+  String get _congestionLabel => switch (_effectiveCongestion) {
     'low' => '여유',
     'medium' => '보통',
     _ => '혼잡',
   };
 
-  Color get _congestionBg => switch (island.congestion) {
+  Color get _congestionBg => switch (_effectiveCongestion) {
     'low' => AppColors.green500,
     'medium' => AppColors.yellow500,
     _ => AppColors.red500,

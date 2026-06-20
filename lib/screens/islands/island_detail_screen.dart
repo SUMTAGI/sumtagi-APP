@@ -5,6 +5,7 @@ import '../../theme/app_colors.dart';
 import '../../services/island_service.dart';
 import '../../services/favorite_service.dart';
 import '../../services/ferry_service.dart';
+import '../../services/congestion_service.dart';
 
 class IslandDetailScreen extends StatefulWidget {
   final String id;
@@ -22,6 +23,8 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
   String _activeTab = 'attractions';
   List<FerrySchedule> _ferrySchedule = [];
   bool _ferryLoading = true;
+  IslandCongestionData? _congestion;
+  bool _congestionLoading = true;
 
   @override
   void initState() {
@@ -50,8 +53,15 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               .catchError((_) {
                 if (mounted) setState(() => _ferryLoading = false);
               });
+          CongestionService.getIslandCongestion(widget.id)
+              .then((data) {
+                if (mounted) setState(() { _congestion = data; _congestionLoading = false; });
+              })
+              .catchError((_, __) {
+                if (mounted) setState(() => _congestionLoading = false);
+              });
         } else {
-          setState(() => _ferryLoading = false);
+          setState(() { _ferryLoading = false; _congestionLoading = false; });
         }
       }
     } catch (_) {
@@ -189,6 +199,9 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                   ),
                 ),
 
+                // Congestion forecast
+                _buildCongestionForecast(_congestion),
+
                 // Ferry schedule
                 _buildFerrySchedule(),
 
@@ -237,6 +250,96 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCongestionForecast(IslandCongestionData? data) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(children: [
+            Icon(Icons.people_rounded, size: 16, color: AppColors.blue600),
+            SizedBox(width: 6),
+            Text('향후 7일 혼잡도 예측', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+          ]),
+          const SizedBox(height: 12),
+          if (_congestionLoading)
+            const SizedBox(
+              height: 80,
+              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.blue200))),
+            )
+          else if (data == null)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: const Row(children: [
+                Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray400),
+                SizedBox(width: 6),
+                Text('이 섬은 혼잡도 예측 데이터가 없어요', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+              ]),
+            )
+          else ...[
+          Row(
+            children: data.forecast.map((f) {
+              final bg = switch (f.level) {
+                'high' => AppColors.red50,
+                'medium' => AppColors.yellow100,
+                _ => const Color(0xFFF0FDF4),
+              };
+              final barColor = switch (f.level) {
+                'high' => AppColors.red500,
+                'medium' => AppColors.yellow500,
+                _ => AppColors.green500,
+              };
+              final textColor = switch (f.level) {
+                'high' => AppColors.red700,
+                'medium' => AppColors.yellow700,
+                _ => const Color(0xFF15803D),
+              };
+              return Expanded(
+                child: Container(
+                  margin: const EdgeInsets.only(right: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                  decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+                  child: Column(
+                    children: [
+                      Text(f.dayLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: textColor)),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: SizedBox(
+                          width: 6,
+                          height: 40,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Expanded(flex: ((1 - f.rate) * 10).round(), child: Container(color: Colors.transparent)),
+                              Expanded(flex: (f.rate * 10).round().clamp(1, 10), child: Container(color: barColor)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text('${(f.rate * 100).round()}%', style: TextStyle(fontSize: 9, color: textColor, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 8),
+          Row(children: [
+            _CongestionDot(color: AppColors.green500, label: '여유'),
+            const SizedBox(width: 12),
+            _CongestionDot(color: AppColors.yellow500, label: '보통'),
+            const SizedBox(width: 12),
+            _CongestionDot(color: AppColors.red500, label: '혼잡'),
+          ]),
+          ],
         ],
       ),
     );
@@ -460,6 +563,21 @@ class _EmptyState extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       child: Text(message, style: const TextStyle(color: AppColors.gray500)),
     ));
+  }
+}
+
+class _CongestionDot extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _CongestionDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+      const SizedBox(width: 4),
+      Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+    ]);
   }
 }
 
