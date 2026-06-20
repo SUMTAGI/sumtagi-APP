@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/trip_service.dart';
 import '../../services/weather_service.dart';
 import '../../services/review_service.dart';
+import '../../services/ferry_service.dart';
 import '../../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _userName = '';
   WeatherResult? _weather;
   List<Map<String, dynamic>> _popularReviews = [];
+  List<FerryRouteStatus> _ferryStatus = [];
 
   @override
   void initState() {
@@ -35,9 +37,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ? meta['nickname'] as String
         : user?.email?.split('@')[0] ?? '';
     final results = await Future.wait([
-      TripService.getUpcomingTrip(),
-      WeatherService.getWeather(),
-      ReviewService.getPopularReviews(),
+      TripService.getUpcomingTrip().catchError((_) => null),
+      WeatherService.getWeather().catchError((_) => null),
+      ReviewService.getPopularReviews().catchError((_) => <Map<String, dynamic>>[]),
     ]);
     if (mounted) {
       setState(() {
@@ -50,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
               final island = r['islands'] as Map?;
               return {
                 'id': r['id'],
-                'author': (r['profiles'] as Map?)?['nickname'] ?? '여행자',
+                'author': r['author_name'] as String? ?? '여행자',
                 'location': island?['name'] ?? '',
                 'rating': r['rating'],
                 'preview': r['content'] ?? '',
@@ -62,6 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
             })
             .toList();
       });
+      FerryService.getHomeFerryStatus()
+          .then((status) { if (mounted) setState(() => _ferryStatus = status); })
+          .catchError((e, st) { print('[Home Ferry Error] $e\n$st'); });
     }
   }
 
@@ -93,6 +98,62 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(child: _buildQuickLinks()),
             SliverToBoxAdapter(child: _buildStatus()),
             SliverToBoxAdapter(child: _buildPopularReviews()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAllFerryStatus(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, controller) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('전체 운항 현황', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context), color: AppColors.gray400),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                controller: controller,
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                children: _ferryStatus.map((s) {
+                  final isCancelled = s.status == '결항';
+                  final isNone = s.status == '운항없음';
+                  final bgColor = isCancelled ? AppColors.red50 : isNone ? AppColors.gray100 : const Color(0xFFF0FDF4);
+                  final textColor = isCancelled ? AppColors.red700 : isNone ? AppColors.gray400 : const Color(0xFF15803D);
+                  final label = s.status == '정상' ? '정상 운항' : s.status;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(s.islandName, style: const TextStyle(fontSize: 15, color: AppColors.gray700)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
+                          child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor)),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ],
         ),
       ),
@@ -408,18 +469,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('실시간 운항 현황', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 15)),
-                    Container(
-                      width: 8, height: 8,
-                      decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
+                    Row(
+                      children: [
+                        Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle)),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => _showAllFerryStatus(context),
+                          child: const Text('전체보기', style: TextStyle(fontSize: 12, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _StatusRow(island: '백령도', status: '정상'),
-                const SizedBox(height: 8),
-                _StatusRow(island: '덕적도', status: '정상'),
-                const SizedBox(height: 8),
-                _StatusRow(island: '영흥도', status: '정상'),
+                ...(() {
+                  final display = _ferryStatus.isNotEmpty
+                      ? _ferryStatus.take(3).toList()
+                      : [
+                          FerryRouteStatus(islandName: '백령도', status: '확인중'),
+                          FerryRouteStatus(islandName: '덕적도', status: '확인중'),
+                          FerryRouteStatus(islandName: '영흥도', status: '확인중'),
+                        ];
+                  return display.expand((s) => [
+                    _StatusRow(island: s.islandName, status: s.status),
+                    const SizedBox(height: 8),
+                  ]).toList()..removeLast();
+                })(),
               ],
             ),
           ),
@@ -662,7 +737,14 @@ class _StatusRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(island, style: const TextStyle(fontSize: 14, color: AppColors.gray700)),
-        Text('$status 운항', style: const TextStyle(fontSize: 14, color: AppColors.green600, fontWeight: FontWeight.w500)),
+        Text(
+          status == '정상' ? '정상 운항' : status == '결항' ? '결항' : status == '운항없음' ? '운항없음' : '확인중...',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: status == '결항' ? AppColors.red700 : status == '운항없음' || status == '확인중' ? AppColors.gray400 : AppColors.green600,
+          ),
+        ),
       ],
     );
   }

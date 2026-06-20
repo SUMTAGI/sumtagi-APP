@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../services/island_service.dart';
 import '../../services/favorite_service.dart';
+import '../../services/ferry_service.dart';
 
 class IslandDetailScreen extends StatefulWidget {
   final String id;
@@ -19,6 +20,8 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
   bool _isFavorited = false;
   bool _favLoading = false;
   String _activeTab = 'attractions';
+  List<FerrySchedule> _ferrySchedule = [];
+  bool _ferryLoading = true;
 
   @override
   void initState() {
@@ -32,11 +35,25 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
         IslandService.getIslandById(widget.id),
         FavoriteService.isFavorited(widget.id),
       ]);
-      if (mounted) setState(() {
-        _island = results[0] as IslandDetailModel?;
-        _isFavorited = results[1] as bool;
-        _isLoading = false;
-      });
+      if (mounted) {
+        final islandData = results[0] as IslandDetailModel?;
+        setState(() {
+          _island = islandData;
+          _isFavorited = results[1] as bool;
+          _isLoading = false;
+        });
+        if (islandData != null) {
+          FerryService.getScheduleForIsland(widget.id)
+              .then((schedule) {
+                if (mounted) setState(() { _ferrySchedule = schedule; _ferryLoading = false; });
+              })
+              .catchError((_) {
+                if (mounted) setState(() => _ferryLoading = false);
+              });
+        } else {
+          setState(() => _ferryLoading = false);
+        }
+      }
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -172,6 +189,9 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                   ),
                 ),
 
+                // Ferry schedule
+                _buildFerrySchedule(),
+
                 // Tabs
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -217,6 +237,79 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFerrySchedule() {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 9));
+    final dateLabel = '${now.month}월 ${now.day}일';
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(children: [
+                Icon(Icons.directions_boat_rounded, size: 16, color: AppColors.blue600),
+                SizedBox(width: 6),
+                Text('오늘 출발 여객선', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+              ]),
+              Text(dateLabel, style: const TextStyle(fontSize: 12, color: AppColors.gray400)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_ferryLoading)
+            Row(children: List.generate(3, (_) => Container(
+              width: 96, height: 64, margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(12)),
+            )))
+          else if (_ferrySchedule.isEmpty)
+            const Text('오늘 운항 정보가 없어요', style: TextStyle(fontSize: 13, color: AppColors.gray400))
+          else
+            SizedBox(
+              height: 84,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _ferrySchedule.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, i) {
+                  final f = _ferrySchedule[i];
+                  final bg = f.isCancelled ? AppColors.red50 : f.isDone ? AppColors.gray100 : f.isActive ? const Color(0xFFF0FDF4) : AppColors.blue50;
+                  final borderColor = f.isCancelled ? AppColors.red100 : f.isDone ? AppColors.gray200 : f.isActive ? const Color(0xFFBBF7D0) : AppColors.blue100;
+                  final labelColor = f.isCancelled ? AppColors.red700 : f.isDone ? AppColors.gray400 : f.isActive ? const Color(0xFF16A34A) : AppColors.blue600;
+                  final timeColor = f.isCancelled ? AppColors.red500 : f.isDone ? AppColors.gray400 : AppColors.gray900;
+                  return Container(
+                    width: 96,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: borderColor),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(f.status,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: labelColor)),
+                        const SizedBox(height: 2),
+                        Text(f.departureTime,
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: timeColor,
+                                decoration: f.isCancelled ? TextDecoration.lineThrough : null)),
+                        const SizedBox(height: 2),
+                        Text(f.ferryName, style: const TextStyle(fontSize: 10, color: AppColors.gray500),
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );
