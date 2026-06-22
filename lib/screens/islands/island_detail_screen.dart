@@ -257,20 +257,36 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
 
   Widget _buildCongestionForecast(IslandCongestionData? data) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF8FAFC), Color(0xFFEFF6FF)],
+        ),
+        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(children: [
-            Icon(Icons.people_rounded, size: 16, color: AppColors.blue600),
-            SizedBox(width: 6),
-            Text('향후 7일 혼잡도 예측', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+          Row(children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: const Color(0xFFDBEAFE),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.people_rounded, size: 14, color: AppColors.blue600),
+            ),
+            const SizedBox(width: 10),
+            const Text('향후 7일 혼잡도 예측',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
           ]),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           if (_congestionLoading)
             const SizedBox(
-              height: 80,
+              height: 96,
               child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.blue200))),
             )
           else if (data == null)
@@ -279,66 +295,20 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               child: const Row(children: [
                 Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray400),
                 SizedBox(width: 6),
-                Text('이 섬은 혼잡도 예측 데이터가 없어요', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                Text('이 섬은 혼잡도 예측 데이터가 없어요',
+                    style: TextStyle(fontSize: 13, color: AppColors.gray400)),
               ]),
             )
           else ...[
-          Row(
-            children: data.forecast.map((f) {
-              final bg = switch (f.level) {
-                'high' => AppColors.red50,
-                'medium' => AppColors.yellow100,
-                _ => const Color(0xFFF0FDF4),
-              };
-              final barColor = switch (f.level) {
-                'high' => AppColors.red500,
-                'medium' => AppColors.yellow500,
-                _ => AppColors.green500,
-              };
-              final textColor = switch (f.level) {
-                'high' => AppColors.red700,
-                'medium' => AppColors.yellow700,
-                _ => const Color(0xFF15803D),
-              };
-              return Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(right: 4),
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                  decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
-                  child: Column(
-                    children: [
-                      Text(f.dayLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: textColor)),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: SizedBox(
-                          width: 6,
-                          height: 40,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Expanded(flex: ((1 - f.rate) * 10).round(), child: Container(color: Colors.transparent)),
-                              Expanded(flex: (f.rate * 10).round().clamp(1, 10), child: Container(color: barColor)),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text('${(f.rate * 100).round()}%', style: TextStyle(fontSize: 9, color: textColor, fontWeight: FontWeight.w500)),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 8),
-          Row(children: [
-            _CongestionDot(color: AppColors.green500, label: '여유'),
-            const SizedBox(width: 12),
-            _CongestionDot(color: AppColors.yellow500, label: '보통'),
-            const SizedBox(width: 12),
-            _CongestionDot(color: AppColors.red500, label: '혼잡'),
-          ]),
+            _CongestionLineChart(forecasts: data.forecast),
+            const SizedBox(height: 12),
+            Row(children: [
+              _CongestionPill(color: const Color(0xFF34D399), label: '여유'),
+              const SizedBox(width: 8),
+              _CongestionPill(color: const Color(0xFFF59E0B), label: '보통'),
+              const SizedBox(width: 8),
+              _CongestionPill(color: const Color(0xFFF87171), label: '혼잡'),
+            ]),
           ],
         ],
       ),
@@ -566,18 +536,135 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-class _CongestionDot extends StatelessWidget {
-  final Color color;
-  final String label;
-  const _CongestionDot({required this.color, required this.label});
+class _CongestionLineChart extends StatelessWidget {
+  final List<CongestionForecast> forecasts;
+  const _CongestionLineChart({required this.forecasts});
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-      const SizedBox(width: 4),
-      Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
-    ]);
+    return SizedBox(
+      height: 160,
+      child: CustomPaint(
+        painter: _ChartPainter(forecasts: forecasts),
+        size: Size.infinite,
+      ),
+    );
+  }
+}
+
+class _ChartPainter extends CustomPainter {
+  final List<CongestionForecast> forecasts;
+  _ChartPainter({required this.forecasts});
+
+  static Color _dotColor(String level) => switch (level) {
+    'high'   => const Color(0xFFF87171),
+    'medium' => const Color(0xFFF59E0B),
+    _        => const Color(0xFF34D399),
+  };
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (forecasts.isEmpty) return;
+
+    const pt = 12.0;
+    const pb = 28.0;
+    const pl = 8.0;
+    const pr = 8.0;
+
+    final n = forecasts.length;
+    final chartW = size.width - pl - pr;
+    final chartH = size.height - pt - pb;
+
+    final pts = List.generate(n, (i) {
+      final x = pl + (n == 1 ? chartW / 2 : (i / (n - 1)) * chartW);
+      final y = pt + (1.0 - forecasts[i].rate) * chartH;
+      return Offset(x, y);
+    });
+
+    // Smooth bezier path via midpoint technique
+    final path = Path()..moveTo(pts[0].dx, pts[0].dy);
+    for (int i = 0; i < n - 1; i++) {
+      final mid = Offset((pts[i].dx + pts[i + 1].dx) / 2, (pts[i].dy + pts[i + 1].dy) / 2);
+      path.quadraticBezierTo(pts[i].dx, pts[i].dy, mid.dx, mid.dy);
+    }
+    path.lineTo(pts.last.dx, pts.last.dy);
+
+    // Gradient fill
+    final fillPath = Path.from(path)
+      ..lineTo(pts.last.dx, pt + chartH)
+      ..lineTo(pts.first.dx, pt + chartH)
+      ..close();
+    canvas.drawPath(
+      fillPath,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: const [Color(0x3D3B82F6), Color(0x053B82F6)],
+        ).createShader(Rect.fromLTWH(0, pt, size.width, chartH)),
+    );
+
+    // Line stroke
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = const Color(0xFF3B82F6)
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+
+    // Dots + x-axis labels
+    for (int i = 0; i < n; i++) {
+      final p = pts[i];
+      final color = _dotColor(forecasts[i].level);
+
+      canvas.drawCircle(p, 7, Paint()..color = Colors.white);
+      canvas.drawCircle(p, 5.5, Paint()..color = color);
+      canvas.drawCircle(p, 5.5, Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2);
+
+      final tp = TextPainter(
+        text: TextSpan(
+          text: forecasts[i].dayLabel,
+          style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(p.dx - tp.width / 2, pt + chartH + 6));
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ChartPainter old) => old.forecasts != forecasts;
+}
+
+class _CongestionPill extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _CongestionPill({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          const SizedBox(width: 6),
+          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray500, fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
   }
 }
 

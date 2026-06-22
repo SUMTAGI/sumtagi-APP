@@ -143,9 +143,9 @@ class _IslandsScreenState extends State<IslandsScreen> {
           Row(children: [
             Expanded(child: _FilterBtn(label: '전체 ($total)', isActive: _portFilter == 'all', color: 'blue', onTap: () => setState(() => _portFilter = 'all'))),
             const SizedBox(width: 8),
-            Expanded(child: _FilterBtn(label: '인천항 ($incheon)', isActive: _portFilter == '인천항', color: 'red', onTap: () => setState(() => _portFilter = '인천항'))),
+            Expanded(child: _FilterBtn(label: '인천항 ($incheon)', isActive: _portFilter == '인천항', color: 'darkblue', onTap: () => setState(() => _portFilter = '인천항'))),
             const SizedBox(width: 8),
-            Expanded(child: _FilterBtn(label: '대부도 ($daebudo)', isActive: _portFilter == '대부도', color: 'orange', onTap: () => setState(() => _portFilter = '대부도'))),
+            Expanded(child: _FilterBtn(label: '대부도 ($daebudo)', isActive: _portFilter == '대부도', color: 'lightblue', onTap: () => setState(() => _portFilter = '대부도'))),
           ]),
           const SizedBox(height: 12),
           const Text('혼잡도', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.gray500)),
@@ -211,24 +211,18 @@ class _FilterBtn extends StatelessWidget {
   const _FilterBtn({required this.label, required this.isActive, required this.color, required this.onTap});
 
   Color get _activeColor => switch (color) {
-    'green' => AppColors.green500,
-    'yellow' => AppColors.yellow500,
-    'red' => AppColors.red500,
-    'orange' => AppColors.orange500,
+    'green'     => AppColors.green500,
+    'yellow'    => AppColors.yellow500,
+    'red'       => AppColors.red500,
+    'orange'    => AppColors.orange500,
+    'darkblue'  => AppColors.blue600,
+    'lightblue' => const Color(0xFF93C5FD),
     _ => AppColors.blue500,
   };
 
-  Color get _inactiveBg => switch (color) {
-    'green' => AppColors.green100,
-    'yellow' => AppColors.yellow100,
-    _ => AppColors.gray100,
-  };
+  Color get _inactiveBg => AppColors.gray100;
 
-  Color get _inactiveText => switch (color) {
-    'green' => AppColors.green700,
-    'yellow' => AppColors.yellow700,
-    _ => AppColors.gray700,
-  };
+  Color get _inactiveText => AppColors.gray700;
 
   @override
   Widget build(BuildContext context) {
@@ -299,19 +293,6 @@ class _IslandCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (island.popularityTrend == 'up')
-                  Positioned(
-                    top: 12, right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: AppColors.red500, borderRadius: BorderRadius.circular(50)),
-                      child: const Row(children: [
-                        Icon(Icons.trending_up, size: 12, color: Colors.white),
-                        SizedBox(width: 4),
-                        Text('인기상승', style: TextStyle(fontSize: 11, color: Colors.white)),
-                      ]),
-                    ),
-                  ),
                 Positioned(
                   bottom: 12, left: 12, right: 12,
                   child: Row(
@@ -372,10 +353,10 @@ class _IslandCard extends StatelessWidget {
                     children: island.ports.map((port) => Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: port == '인천항' ? AppColors.red100 : AppColors.orange100,
+                        color: port == '인천항' ? AppColors.blue600 : const Color(0xFF93C5FD),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(port, style: TextStyle(fontSize: 11, color: port == '인천항' ? AppColors.red700 : AppColors.orange600)),
+                      child: Text(port, style: const TextStyle(fontSize: 11, color: Colors.white)),
                     )).toList(),
                   ),
                 ],
