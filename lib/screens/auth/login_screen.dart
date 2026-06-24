@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
@@ -234,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: const Color(0xFFFEE500),
                       textColor: AppColors.gray900,
                       label: '카카오로 시작하기',
-                      dotColor: AppColors.gray900,
+                      leading: SvgPicture.asset('assets/images/kakao_logo.svg', width: 20, height: 20),
                       onTap: _isLoading ? () {} : _handleKakaoLogin,
                     ),
                     const SizedBox(height: 12),
@@ -243,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       textColor: AppColors.gray900,
                       label: '구글로 시작하기',
                       border: Border.all(color: AppColors.gray300, width: 2),
-                      useGoogleDot: true,
+                      leading: SvgPicture.asset('assets/images/google_logo.svg', width: 20, height: 20),
                       onTap: _isLoading ? () {} : _handleGoogleLogin,
                     ),
                     const SizedBox(height: 32),
@@ -299,6 +300,7 @@ class _SocialButton extends StatelessWidget {
   final String label;
   final Color? dotColor;
   final double dotRadius;
+  final Widget? leading;
   final Border? border;
   final bool useGoogleDot;
   final VoidCallback onTap;
@@ -307,6 +309,7 @@ class _SocialButton extends StatelessWidget {
     required this.color,
     required this.textColor,
     required this.label,
+    this.leading,
     this.dotColor,
     this.dotRadius = 10,
     this.border,
@@ -329,7 +332,9 @@ class _SocialButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (useGoogleDot)
+            if (leading != null)
+              SizedBox(width: 20, height: 20, child: Center(child: leading))
+            else if (useGoogleDot)
               Container(
                 width: 20,
                 height: 20,
