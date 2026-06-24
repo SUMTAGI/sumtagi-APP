@@ -17,6 +17,25 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPassword = false;
   bool _keepLoggedIn = false;
   bool _isLoading = false;
+  late final _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    if (data.session != null && mounted) {
+      context.go('/');
+    }
+  });
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription;
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
 
   void _handleSubmit() async {
     if (_emailCtrl.text.isEmpty || _passwordCtrl.text.isEmpty) {
@@ -39,8 +58,26 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleSocialLogin(String provider) {
-    context.go('/signup?method=$provider');
+  void _handleKakaoLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.signInWithKakao();
+    } catch (_) {
+      if (mounted) _showSnack('카카오 로그인 중 오류가 발생했어요');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _handleGoogleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.signInWithGoogle();
+    } catch (_) {
+      if (mounted) _showSnack('구글 로그인 중 오류가 발생했어요');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _showSnack(String msg) {
@@ -52,13 +89,6 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: AppColors.gray900,
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _passwordCtrl.dispose();
-    super.dispose();
   }
 
   @override
@@ -205,16 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       textColor: AppColors.gray900,
                       label: '카카오로 시작하기',
                       dotColor: AppColors.gray900,
-                      onTap: () => _handleSocialLogin('kakao'),
-                    ),
-                    const SizedBox(height: 12),
-                    _SocialButton(
-                      color: const Color(0xFF03C75A),
-                      textColor: Colors.white,
-                      label: '네이버로 시작하기',
-                      dotColor: Colors.white,
-                      dotRadius: 2,
-                      onTap: () => _handleSocialLogin('naver'),
+                      onTap: _isLoading ? () {} : _handleKakaoLogin,
                     ),
                     const SizedBox(height: 12),
                     _SocialButton(
@@ -223,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: '구글로 시작하기',
                       border: Border.all(color: AppColors.gray300, width: 2),
                       useGoogleDot: true,
-                      onTap: () => _handleSocialLogin('google'),
+                      onTap: _isLoading ? () {} : _handleGoogleLogin,
                     ),
                     const SizedBox(height: 32),
                   ],

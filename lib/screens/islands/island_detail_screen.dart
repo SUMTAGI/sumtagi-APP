@@ -7,6 +7,7 @@ import '../../services/favorite_service.dart';
 import '../../services/ferry_service.dart';
 import '../../services/congestion_service.dart';
 
+
 class IslandDetailScreen extends StatefulWidget {
   final String id;
   const IslandDetailScreen({super.key, required this.id});
