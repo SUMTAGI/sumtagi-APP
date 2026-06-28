@@ -139,11 +139,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.calendar_month_rounded, label: '내 여행 일정', onTap: () => context.go('/travel')),
                     _MenuItem(icon: Icons.people_rounded, label: '그룹 여행', onTap: () => context.push('/group-trip')),
-                    _MenuItem(icon: Icons.book_rounded, label: '여행 다이어리', onTap: () => context.push('/diary')),
-                    _MenuItem(icon: Icons.local_offer_rounded, label: '패키지 상품', onTap: () => context.push('/packages')),
                     _MenuItem(icon: Icons.credit_card_rounded, label: '경비 관리', onTap: () => context.push('/budget')),
-                    _MenuItem(icon: Icons.card_giftcard_rounded, label: '쿠폰함', onTap: () => context.push('/coupons')),
-                    _MenuItem(icon: Icons.location_on_rounded, label: '방문한 섬', onTap: () => context.push('/visited-islands')),
                     _MenuItem(icon: Icons.favorite_rounded, label: '찜한 여행지', onTap: () => context.push('/favorites'), showDivider: false),
                   ]),
                   const SizedBox(height: 20),
