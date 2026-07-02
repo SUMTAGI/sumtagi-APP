@@ -7,6 +7,7 @@ import '../../services/trip_service.dart';
 import '../../services/weather_service.dart';
 import '../../services/review_service.dart';
 import '../../services/ferry_service.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -28,6 +29,25 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadData();
+    NotificationService.subscribe(_handleNewNotification);
+  }
+
+  @override
+  void dispose() {
+    NotificationService.unsubscribe();
+    super.dispose();
+  }
+
+  void _handleNewNotification(Map<String, dynamic> notification) {
+    if (!mounted) return;
+    setState(() => _unreadNotifications++);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(notification['message'] as String? ?? '새 알림이 있어요'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _loadData() async {
@@ -40,12 +60,14 @@ class _HomeScreenState extends State<HomeScreen> {
       TripService.getUpcomingTrip().catchError((_) => null),
       WeatherService.getWeather().catchError((_) => null),
       ReviewService.getPopularReviews().catchError((_) => <Map<String, dynamic>>[]),
+      NotificationService.getUnreadCount().catchError((_) => 0),
     ]);
     if (mounted) {
       setState(() {
         _userName = name;
         _upcomingTrip = results[0] as Map<String, dynamic>?;
         _weather = results[1] as WeatherResult?;
+        _unreadNotifications = results[3] as int;
         _popularReviews = ((results[2] as List<Map<String, dynamic>>?) ?? [])
             .map((r) {
               final images = r['images'] as List?;
@@ -716,7 +738,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (context, i) => _ReviewCard(
                   review: _popularReviews[i],
-                  onTap: () => context.push('/community'),
+                  onTap: () => context.push('/review/${_popularReviews[i]['id']}'),
                 ),
               ),
             ),

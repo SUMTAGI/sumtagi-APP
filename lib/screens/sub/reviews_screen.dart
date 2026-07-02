@@ -117,7 +117,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                         final r = _filtered[i];
                         final rating = (r['rating'] as int?) ?? 0;
                         final islandName = _islandName(r);
-                        return Container(
+                        return GestureDetector(
+                          onTap: () => context.push('/review/${r['id']}'),
+                          child: Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -174,6 +176,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                               ),
                             ],
                           ),
+                        ),
                         );
                       },
                     ),

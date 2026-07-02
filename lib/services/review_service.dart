@@ -55,6 +55,19 @@ class ReviewService {
     });
   }
 
+  static Future<Map<String, dynamic>?> getReviewById(String id) async {
+    final data = await _client
+        .from('reviews')
+        .select('*, islands(name, image)')
+        .eq('id', id)
+        .maybeSingle();
+    return data as Map<String, dynamic>?;
+  }
+
+  static Future<void> updateLikesCount(String id, int count) async {
+    await _client.from('reviews').update({'likes_count': count}).eq('id', id);
+  }
+
   static Future<void> deleteReview(String id) async {
     await _client.from('reviews').delete().eq('id', id);
   }
