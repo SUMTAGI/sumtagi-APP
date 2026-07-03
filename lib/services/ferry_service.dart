@@ -37,6 +37,11 @@ const _routeKeywords = {
   'yeonghung': '영흥',
   'seonjae': '선재',
   'guleop': '굴업',
+  'sindo': '장봉',
+  'jangbongdo': '장봉',
+  'mungap': '덕적',
+  'baegado': '덕적',
+  'uldo': '울도',
 };
 
 class FerryRouteStatus {
@@ -60,6 +65,14 @@ const _allIslands = [
   {'id': 'yeonghung',   'name': '영흥도'},
   {'id': 'seonjae',     'name': '선재도'},
   {'id': 'guleop',      'name': '굴업도'},
+  {'id': 'sindo',       'name': '신도'},
+  {'id': 'sido',        'name': '시도'},
+  {'id': 'modo',        'name': '모도'},
+  {'id': 'jangbongdo',  'name': '장봉도'},
+  {'id': 'soya',        'name': '소야도'},
+  {'id': 'mungap',      'name': '문갑도'},
+  {'id': 'baegado',     'name': '백아도'},
+  {'id': 'uldo',        'name': '울도'},
 ];
 
 class FerryService {

@@ -161,7 +161,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                       _InfoCard(
                         icon: Icons.attach_money_rounded,
                         label: '여객선 요금',
-                        value: '${(island.ferryPrice / 10000).floor()}만원~',
+                        value: island.formattedFerryPrice,
                       ),
                       const SizedBox(width: 12),
                       _InfoCard(icon: Icons.wb_sunny_rounded, label: '최적 시기', value: island.bestSeason),

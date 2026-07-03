@@ -128,6 +128,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
     final total = _islands.length;
     final incheon = _islands.where((i) => i.ports.contains('인천항')).length;
     final daebudo = _islands.where((i) => i.ports.contains('대부도')).length;
+    final samok = _islands.where((i) => i.ports.contains('삼목선착장')).length;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
@@ -146,6 +147,8 @@ class _IslandsScreenState extends State<IslandsScreen> {
             Expanded(child: _FilterBtn(label: '인천항 ($incheon)', isActive: _portFilter == '인천항', color: 'darkblue', onTap: () => setState(() => _portFilter = '인천항'))),
             const SizedBox(width: 8),
             Expanded(child: _FilterBtn(label: '대부도 ($daebudo)', isActive: _portFilter == '대부도', color: 'lightblue', onTap: () => setState(() => _portFilter = '대부도'))),
+            const SizedBox(width: 8),
+            Expanded(child: _FilterBtn(label: '삼목항 ($samok)', isActive: _portFilter == '삼목선착장', color: 'darkblue', onTap: () => setState(() => _portFilter = '삼목선착장'))),
           ]),
           const SizedBox(height: 12),
           const Text('혼잡도', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.gray500)),
@@ -342,7 +345,7 @@ class _IslandCard extends StatelessWidget {
                     children: [
                       const Text('여객선 요금', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
                       Text(
-                        '${island.ferryPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
+                        island.formattedFerryPrice,
                         style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue500, fontSize: 14),
                       ),
                     ],

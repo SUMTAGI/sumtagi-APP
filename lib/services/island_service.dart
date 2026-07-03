@@ -3,7 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class IslandModel {
   final String id, name, description, ferryTime, bestSeason, image, popularityTrend, congestion;
   final List<String> features, ports;
-  final int ferryPrice;
+  // null = 여객선은 있지만 정확한 요금 미확인, 0 = 다리로 연결돼 배가 필요 없음
+  final int? ferryPrice;
   final double? lat;
   final double? lng;
 
@@ -15,12 +16,19 @@ class IslandModel {
     this.lat, this.lng,
   });
 
+  String get formattedFerryPrice {
+    final price = ferryPrice;
+    if (price == null) return '요금 확인 필요';
+    if (price > 0) return '${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원';
+    return '육로 연결';
+  }
+
   factory IslandModel.fromMap(Map<String, dynamic> map) => IslandModel(
     id: map['id'] as String,
     name: map['name'] as String,
     description: map['description'] as String? ?? '',
     ferryTime: map['ferry_time'] as String? ?? '',
-    ferryPrice: map['ferry_price'] as int? ?? 0,
+    ferryPrice: map['ferry_price'] as int?,
     popularityTrend: map['popularity_trend'] as String? ?? 'stable',
     congestion: map['congestion'] as String? ?? 'low',
     bestSeason: map['best_season'] as String? ?? '',
@@ -147,7 +155,7 @@ class IslandService {
       name: data['name'] as String,
       description: data['description'] as String? ?? '',
       ferryTime: data['ferry_time'] as String? ?? '',
-      ferryPrice: data['ferry_price'] as int? ?? 0,
+      ferryPrice: data['ferry_price'] as int?,
       popularityTrend: data['popularity_trend'] as String? ?? 'stable',
       congestion: data['congestion'] as String? ?? 'low',
       bestSeason: data['best_season'] as String? ?? '',
