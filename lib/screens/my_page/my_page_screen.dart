@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
 import '../../services/trip_service.dart';
-import '../../services/review_service.dart';
 import '../../theme/app_colors.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -17,7 +16,6 @@ class MyPageScreen extends StatefulWidget {
 class _MyPageScreenState extends State<MyPageScreen> {
   User? _user;
   int _tripCount = 0;
-  int _reviewCount = 0;
 
   @override
   void initState() {
@@ -27,14 +25,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   Future<void> _loadCounts() async {
-    final results = await Future.wait([
-      TripService.getTripCount(),
-      ReviewService.getMyReviewCount(),
-    ]);
+    final tripCount = await TripService.getTripCount();
     if (mounted) {
       setState(() {
-        _tripCount = results[0];
-        _reviewCount = results[1];
+        _tripCount = tripCount;
       });
     }
   }
@@ -139,10 +133,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.calendar_month_rounded, label: '내 여행 일정', onTap: () => context.go('/travel')),
                     _MenuItem(icon: Icons.people_rounded, label: '그룹 여행', onTap: () => context.push('/group-trip')),
-                    _MenuItem(icon: Icons.book_rounded, label: '여행 다이어리', onTap: () => context.push('/diary')),
-                    _MenuItem(icon: Icons.local_offer_rounded, label: '패키지 상품', onTap: () => context.push('/packages')),
                     _MenuItem(icon: Icons.credit_card_rounded, label: '경비 관리', onTap: () => context.push('/budget')),
-                    _MenuItem(icon: Icons.card_giftcard_rounded, label: '쿠폰함', onTap: () => context.push('/coupons')),
                     _MenuItem(icon: Icons.location_on_rounded, label: '방문한 섬', onTap: () => context.push('/visited-islands')),
                     _MenuItem(icon: Icons.favorite_rounded, label: '찜한 여행지', onTap: () => context.push('/favorites'), showDivider: false),
                   ]),
@@ -151,7 +142,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   _SectionTitle(label: '편의 기능'),
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.schedule_rounded, label: '교통 시간표', onTap: () => context.push('/schedule')),
-                    _MenuItem(icon: Icons.event_rounded, label: '이벤트 & 축제', onTap: () => context.push('/events')),
                     _MenuItem(icon: Icons.warning_amber_rounded, label: '긴급 연락처', onTap: () => context.push('/emergency'), showDivider: false),
                   ]),
                   const SizedBox(height: 20),
@@ -231,8 +221,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   Expanded(child: _StatCard(label: '가입일', value: '$_daysSinceJoin일전')),
                   const SizedBox(width: 8),
                   Expanded(child: _StatCard(label: '예약', value: '$_tripCount건')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _StatCard(label: '리뷰', value: '$_reviewCount개')),
                 ],
               ),
             ],

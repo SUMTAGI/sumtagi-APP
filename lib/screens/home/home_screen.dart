@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../services/trip_service.dart';
 import '../../services/weather_service.dart';
-import '../../services/review_service.dart';
 import '../../services/ferry_service.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
@@ -22,7 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _upcomingTrip;
   String _userName = '';
   WeatherResult? _weather;
-  List<Map<String, dynamic>> _popularReviews = [];
   List<FerryRouteStatus> _ferryStatus = [];
 
   @override
@@ -59,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final results = await Future.wait([
       TripService.getUpcomingTrip().catchError((_) => null),
       WeatherService.getWeather().catchError((_) => null),
-      ReviewService.getPopularReviews().catchError((_) => <Map<String, dynamic>>[]),
       NotificationService.getUnreadCount().catchError((_) => 0),
     ]);
     if (mounted) {
@@ -67,24 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _userName = name;
         _upcomingTrip = results[0] as Map<String, dynamic>?;
         _weather = results[1] as WeatherResult?;
-        _unreadNotifications = results[3] as int;
-        _popularReviews = ((results[2] as List<Map<String, dynamic>>?) ?? [])
-            .map((r) {
-              final images = r['images'] as List?;
-              final island = r['islands'] as Map?;
-              return {
-                'id': r['id'],
-                'author': r['author_name'] as String? ?? '여행자',
-                'location': island?['name'] ?? '',
-                'rating': r['rating'],
-                'preview': r['content'] ?? '',
-                'image': (images != null && images.isNotEmpty)
-                    ? images[0] as String
-                    : (island?['image'] as String? ?? ''),
-                'likes': r['likes_count'] ?? 0,
-              };
-            })
-            .toList();
+        _unreadNotifications = results[2] as int;
       });
       FerryService.getHomeFerryStatus()
           .then((status) { if (mounted) setState(() => _ferryStatus = status); })
@@ -119,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(child: _buildFerryRiskBanner()),
             SliverToBoxAdapter(child: _buildQuickLinks()),
             SliverToBoxAdapter(child: _buildStatus()),
-            SliverToBoxAdapter(child: _buildPopularReviews()),
           ],
         ),
       ),
@@ -428,7 +407,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildQuickLinks() {
     final links = [
-      {'icon': Icons.auto_awesome_rounded, 'title': '패키지', 'route': '/packages'},
       {'icon': Icons.photo_camera_rounded, 'title': '체험', 'route': '/experiences'},
       {'icon': Icons.people_rounded, 'title': '리뷰', 'route': '/community'},
       {'icon': Icons.security_rounded, 'title': '체크리스트', 'route': '/checklist'},
@@ -699,53 +677,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPopularReviews() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('인기 리뷰', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.gray900)),
-                GestureDetector(
-                  onTap: () => context.push('/community'),
-                  child: const Row(
-                    children: [
-                      Text('전체보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
-                      Icon(Icons.chevron_right, size: 16, color: AppColors.blue600),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (_popularReviews.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Text('아직 리뷰가 없어요.', style: TextStyle(fontSize: 14, color: AppColors.gray400)),
-            )
-          else
-            SizedBox(
-              height: 240,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: _popularReviews.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, i) => _ReviewCard(
-                  review: _popularReviews[i],
-                  onTap: () => context.push('/review/${_popularReviews[i]['id']}'),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 }
 
 class _StatusRow extends StatelessWidget {
@@ -772,109 +703,3 @@ class _StatusRow extends StatelessWidget {
   }
 }
 
-class _ReviewCard extends StatelessWidget {
-  final Map<String, dynamic> review;
-  final VoidCallback onTap;
-  const _ReviewCard({required this.review, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 240,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.gray100),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image
-              Stack(
-                children: [
-                  SizedBox(
-                    height: 128,
-                    width: double.infinity,
-                    child: CachedNetworkImage(
-                      imageUrl: review['image'] as String,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => Container(color: AppColors.gray100),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Color(0x99000000)],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 12, left: 12, right: 12,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: List.generate(5, (i) => Icon(
-                            Icons.star_rounded,
-                            size: 12,
-                            color: i < (review['rating'] as int) ? const Color(0xFFFBBF24) : Colors.white38,
-                          )),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_rounded, size: 12, color: Colors.white70),
-                            const SizedBox(width: 2),
-                            Text(review['location'] as String, style: const TextStyle(fontSize: 12, color: Colors.white70)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(review['author'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray900)),
-                        Row(
-                          children: [
-                            const Icon(Icons.favorite_rounded, size: 12, color: AppColors.gray500),
-                            const SizedBox(width: 4),
-                            Text('${review['likes']}', style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      review['preview'] as String,
-                      style: const TextStyle(fontSize: 12, color: AppColors.gray600, height: 1.4),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

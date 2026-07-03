@@ -15,12 +15,8 @@ import '../screens/sub/itinerary_screen.dart';
 import '../screens/sub/checklist_screen.dart';
 import '../screens/sub/budget_screen.dart';
 import '../screens/sub/community_screen.dart';
-import '../screens/sub/packages_screen.dart';
-import '../screens/sub/events_screen.dart';
 import '../screens/sub/emergency_screen.dart';
 import '../screens/sub/schedule_screen.dart';
-import '../screens/sub/coupons_screen.dart';
-import '../screens/sub/diary_screen.dart';
 import '../screens/sub/group_trip_screen.dart';
 import '../screens/sub/group_join_screen.dart';
 import '../screens/sub/community_write_screen.dart';
@@ -33,8 +29,6 @@ import '../screens/sub/payment_methods_screen.dart';
 import '../screens/sub/visited_islands_screen.dart';
 import '../screens/sub/favorites_screen.dart';
 import '../screens/sub/notifications_screen.dart';
-import '../screens/sub/reviews_screen.dart';
-import '../screens/sub/review_detail_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -116,28 +110,12 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/packages',
-      builder: (context, state) => const PackagesScreen(),
-    ),
-    GoRoute(
-      path: '/events',
-      builder: (context, state) => const EventsScreen(),
-    ),
-    GoRoute(
       path: '/emergency',
       builder: (context, state) => const EmergencyScreen(),
     ),
     GoRoute(
       path: '/schedule',
       builder: (context, state) => const ScheduleScreen(),
-    ),
-    GoRoute(
-      path: '/coupons',
-      builder: (context, state) => const CouponsScreen(),
-    ),
-    GoRoute(
-      path: '/diary',
-      builder: (context, state) => const DiaryScreen(),
     ),
     GoRoute(
       path: '/group-trip',
@@ -182,14 +160,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsScreen(),
-    ),
-    GoRoute(
-      path: '/reviews',
-      builder: (context, state) => const ReviewsScreen(),
-    ),
-    GoRoute(
-      path: '/review/:id',
-      builder: (context, state) => ReviewDetailScreen(id: state.pathParameters['id']!),
     ),
   ],
 );
