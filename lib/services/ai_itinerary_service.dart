@@ -9,6 +9,7 @@ class AIItineraryRequest {
   final int travelers;
   final String travelStyle;
   final String budget;
+  final String? specialRequests;
   final String provider;
 
   const AIItineraryRequest({
@@ -19,6 +20,7 @@ class AIItineraryRequest {
     required this.travelers,
     required this.travelStyle,
     required this.budget,
+    this.specialRequests,
     this.provider = 'gemini',
   });
 
@@ -30,6 +32,7 @@ class AIItineraryRequest {
     'travelers': travelers,
     'travelStyle': travelStyle,
     'budget': budget,
+    if (specialRequests != null && specialRequests!.isNotEmpty) 'specialRequests': specialRequests,
     'provider': provider,
   };
 }

@@ -20,6 +20,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   int _travelers = 2;
   String _travelType = '';
   String _budget = '보통';
+  final _specialRequestsCtrl = TextEditingController();
   bool _isSubmitting = false;
 
   static const _allIslands = [
@@ -43,6 +44,12 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _specialRequestsCtrl.dispose();
+    super.dispose();
+  }
+
   bool get _hasPreSelected => widget.preSelectedIsland != null;
   int get _totalSteps => _hasPreSelected ? 2 : 3;
 
@@ -62,6 +69,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           travelers: _travelers,
           travelStyle: _travelType,
           budget: _budget,
+          specialRequests: _specialRequestsCtrl.text.trim(),
         ),
         onFallback: (reason) {
           if (mounted) {
@@ -454,6 +462,26 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               ),
             );
           }).toList(),
+        ),
+        const SizedBox(height: 24),
+        const Text.rich(
+          TextSpan(children: [
+            TextSpan(text: 'AI에게 하고 싶은 말이 있나요? ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+            TextSpan(text: '(선택)', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+          ]),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _specialRequestsCtrl,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: '예: 아이랑 같이 가요, 낚시하고 싶어요, 걷는 건 최소화해주세요',
+            hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue500, width: 2)),
+            contentPadding: const EdgeInsets.all(14),
+          ),
         ),
         if (_travelType.isNotEmpty) ...[
           const SizedBox(height: 24),
