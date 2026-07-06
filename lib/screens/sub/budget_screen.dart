@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/budget_service.dart';
+import '../../services/trip_service.dart';
 import '../../theme/app_colors.dart';
 
 class BudgetScreen extends StatefulWidget {
@@ -12,6 +13,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
   List<Map<String, dynamic>> _expenses = [];
   bool _isLoading = true;
   bool _showAddForm = false;
+  String? _tripId;
+  String? _tripTitle;
 
   String _newCategory = '식사';
   final _amountCtrl = TextEditingController();
@@ -39,8 +42,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
-    final data = await BudgetService.getExpenses();
-    if (mounted) setState(() { _expenses = data; _isLoading = false; });
+    final trip = await TripService.getUpcomingTrip();
+    final data = await BudgetService.getExpenses(tripId: trip?['id'] as String?);
+    if (mounted) {
+      setState(() {
+        _tripId = trip?['id'] as String?;
+        _tripTitle = trip?['title'] as String?;
+        _expenses = data;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _addExpense() async {
@@ -52,6 +63,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       title: _descCtrl.text,
       amount: int.tryParse(_amountCtrl.text) ?? 0,
       category: _newCategory,
+      tripId: _tripId,
     );
     _amountCtrl.clear();
     _descCtrl.clear();
@@ -73,11 +85,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('여행 경비 관리', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('지출을 기록하고 예산을 관리하세요', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
+            const Text('여행 경비 관리', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+            Text(
+              _tripTitle != null ? '$_tripTitle 지출 관리' : '여행 중이 아닐 때의 지출을 기록하세요',
+              style: const TextStyle(fontSize: 11, color: AppColors.gray500),
+            ),
           ],
         ),
         backgroundColor: Colors.white,

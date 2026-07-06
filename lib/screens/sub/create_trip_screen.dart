@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/trip_service.dart';
+import '../../services/ai_itinerary_service.dart';
 import '../../theme/app_colors.dart';
 
 class CreateTripScreen extends StatefulWidget {
@@ -52,30 +53,42 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-      final days = [
-        {
-          'dayNumber': 1,
-          'date': _startDate!.toIso8601String().split('T')[0],
-          'activities': [
-            {'id': '1', 'type': 'ferry', 'time': '07:00', 'title': '$_computedPort 출발', 'description': '여객선 탑승', 'location': _computedPort, 'price': 45000},
-            {'id': '2', 'type': 'attraction', 'time': '11:00', 'title': '${_selectedIslands.first} 도착', 'description': '섬 탐방 시작', 'location': _selectedIslands.first, 'price': 0},
-            {'id': '3', 'type': 'meal', 'time': '13:00', 'title': '해산물 점심', 'description': '신선한 해산물 정식', 'location': _selectedIslands.first, 'price': 15000},
-            {'id': '4', 'type': 'accommodation', 'time': '18:00', 'title': '민박 체크인', 'description': '섬 민박 숙박', 'location': _selectedIslands.first, 'price': 60000},
-          ],
+      final result = await generateAIItinerary(
+        AIItineraryRequest(
+          departurePort: _computedPort,
+          islands: _selectedIslands,
+          startDate: _startDate!.toIso8601String().split('T')[0],
+          endDate: _endDate!.toIso8601String().split('T')[0],
+          travelers: _travelers,
+          travelStyle: _travelType,
+          budget: _budget,
+        ),
+        onFallback: (reason) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('AI 일정 생성에 실패했어요. 기본 일정으로 대체합니다.'),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                backgroundColor: AppColors.gray900,
+              ),
+            );
+          }
         },
-      ];
+      );
 
+      final itinerary = result.itinerary;
       final id = await TripService.createTrip(
-        title: '${_selectedIslands.join(', ')} 여행',
-        departurePort: _computedPort,
-        islands: _selectedIslands,
-        startDate: _startDate!.toIso8601String().split('T')[0],
-        endDate: _endDate!.toIso8601String().split('T')[0],
-        travelers: _travelers,
+        title: itinerary.title,
+        departurePort: itinerary.departurePort,
+        islands: itinerary.islands,
+        startDate: itinerary.startDate,
+        endDate: itinerary.endDate,
+        travelers: itinerary.travelers,
         travelType: _travelType,
         budget: _budget,
-        totalCost: 80000 * _travelers,
-        days: days,
+        totalCost: itinerary.totalCost,
+        days: itinerary.days.map((d) => d.toJson()).toList(),
       );
 
       if (mounted) context.pushReplacement('/itinerary/$id');
@@ -457,8 +470,15 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 elevation: 0,
               ),
               child: _isSubmitting
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('일정 생성하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                        SizedBox(width: 10),
+                        Text('AI가 일정을 만들고 있어요...', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                      ],
+                    )
+                  : const Text('AI 일정 생성하기 ✨', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
         ],

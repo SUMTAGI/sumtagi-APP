@@ -297,6 +297,25 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     }
 
     final days = (_itinerary!['days'] as List).cast<Map<String, dynamic>>();
+
+    if (days.isEmpty) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('아직 생성된 일정이 없어요', style: TextStyle(color: AppColors.gray600)),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('돌아가기'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final currentDay = days[_selectedDay];
 
     return Scaffold(

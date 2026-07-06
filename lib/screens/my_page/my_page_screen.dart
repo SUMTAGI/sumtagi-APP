@@ -123,9 +123,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 children: [
                   _SectionTitle(label: '계정 정보'),
                   _MenuCard(children: [
-                    _MenuItem(icon: Icons.person_outline_rounded, label: '프로필 수정', onTap: () => context.push('/profile-edit')),
-                    _MenuItem(icon: Icons.mail_outline_rounded, label: '이메일', value: _email, onTap: () => context.push('/profile-edit')),
-                    _MenuItem(icon: Icons.lock_outline_rounded, label: '비밀번호 변경', onTap: () => context.push('/profile-edit'), showDivider: false),
+                    _MenuItem(icon: Icons.person_outline_rounded, label: '프로필 수정', value: _email, onTap: () => context.push('/profile-edit'), showDivider: false),
                   ]),
                   const SizedBox(height: 20),
 
@@ -134,7 +132,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     _MenuItem(icon: Icons.calendar_month_rounded, label: '내 여행 일정', onTap: () => context.go('/travel')),
                     _MenuItem(icon: Icons.people_rounded, label: '그룹 여행', onTap: () => context.push('/group-trip')),
                     _MenuItem(icon: Icons.credit_card_rounded, label: '경비 관리', onTap: () => context.push('/budget')),
-                    _MenuItem(icon: Icons.location_on_rounded, label: '방문한 섬', onTap: () => context.push('/visited-islands')),
                     _MenuItem(icon: Icons.favorite_rounded, label: '찜한 여행지', onTap: () => context.push('/favorites'), showDivider: false),
                   ]),
                   const SizedBox(height: 20),

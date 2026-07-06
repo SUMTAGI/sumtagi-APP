@@ -8,7 +8,6 @@ import '../screens/home/home_screen.dart';
 import '../screens/travel/travel_screen.dart';
 import '../screens/islands/islands_screen.dart';
 import '../screens/islands/island_detail_screen.dart';
-import '../screens/map/map_screen.dart';
 import '../screens/my_page/my_page_screen.dart';
 import '../screens/sub/create_trip_screen.dart';
 import '../screens/sub/itinerary_screen.dart';
@@ -26,7 +25,6 @@ import '../screens/sub/experiences_screen.dart';
 import '../screens/sub/profile_edit_screen.dart';
 import '../screens/sub/notification_settings_screen.dart';
 import '../screens/sub/payment_methods_screen.dart';
-import '../screens/sub/visited_islands_screen.dart';
 import '../screens/sub/favorites_screen.dart';
 import '../screens/sub/notifications_screen.dart';
 
@@ -63,10 +61,6 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/islands',
           builder: (context, state) => const IslandsScreen(),
-        ),
-        GoRoute(
-          path: '/map',
-          builder: (context, state) => const MapScreen(),
         ),
         GoRoute(
           path: '/my',
@@ -148,10 +142,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/payment-methods',
       builder: (context, state) => const PaymentMethodsScreen(),
-    ),
-    GoRoute(
-      path: '/visited-islands',
-      builder: (context, state) => const VisitedIslandsScreen(),
     ),
     GoRoute(
       path: '/favorites',

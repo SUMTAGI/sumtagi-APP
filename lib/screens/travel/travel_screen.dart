@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/trip_service.dart';
+import '../../services/checklist_service.dart';
 import '../../theme/app_colors.dart';
 
 class TravelScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class _TravelScreenState extends State<TravelScreen> {
   int _tabIndex = 0;
   Map<String, dynamic>? _currentItinerary;
   String? _currentItineraryId;
-  final List<Map<String, dynamic>> _bookings = [];
+  List<Map<String, dynamic>> _visitedTrips = [];
   int _checklistProgress = 0;
 
   @override
@@ -25,15 +26,26 @@ class _TravelScreenState extends State<TravelScreen> {
   }
 
   Future<void> _loadData() async {
-    final trip = await TripService.getUpcomingTrip();
-    if (trip != null && mounted) {
-      setState(() {
+    final results = await Future.wait([
+      TripService.getUpcomingTrip(),
+      TripService.getVisitedTrips(),
+    ]);
+    final trip = results[0] as Map<String, dynamic>?;
+    final visited = results[1] as List<Map<String, dynamic>>;
+    if (!mounted) return;
+    setState(() {
+      if (trip != null) {
         _currentItinerary = {
           ...trip,
           'startDate': trip['start_date'],
         };
         _currentItineraryId = trip['id'] as String;
-      });
+      }
+      _visitedTrips = visited;
+    });
+    if (trip != null) {
+      final progress = await ChecklistService.getProgress(tripId: trip['id'] as String);
+      if (mounted) setState(() => _checklistProgress = progress);
     }
   }
 
@@ -45,8 +57,10 @@ class _TravelScreenState extends State<TravelScreen> {
     return start.difference(todayDate).inDays;
   }
 
-  List<Map<String, dynamic>> get _confirmedBookings =>
-      _bookings.where((b) => b['status'] == 'confirmed').toList();
+  Future<void> _deleteVisitedTrip(String id) async {
+    await TripService.deleteTrip(id);
+    setState(() => _visitedTrips.removeWhere((t) => t['id'] == id));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +91,7 @@ class _TravelScreenState extends State<TravelScreen> {
       body: Column(
         children: [
           _buildTabs(),
-          Expanded(child: _tabIndex == 0 ? _buildPlanTab() : _buildBookingsTab()),
+          Expanded(child: _tabIndex == 0 ? _buildPlanTab() : _buildVisitedTab()),
         ],
       ),
     );
@@ -99,9 +113,9 @@ class _TravelScreenState extends State<TravelScreen> {
           ),
           _TabButton(
             icon: Icons.directions_boat_rounded,
-            label: '예약 관리',
+            label: '지난 여행',
             isActive: _tabIndex == 1,
-            badge: _confirmedBookings.isNotEmpty ? '${_confirmedBookings.length}' : null,
+            badge: _visitedTrips.isNotEmpty ? '${_visitedTrips.length}' : null,
             onTap: () => setState(() => _tabIndex = 1),
           ),
         ],
@@ -346,48 +360,74 @@ class _TravelScreenState extends State<TravelScreen> {
     );
   }
 
-  Widget _buildBookingsTab() {
-    if (_bookings.isEmpty) {
-      return Center(
+  Widget _buildVisitedTab() {
+    if (_visitedTrips.isEmpty) {
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.directions_boat_rounded, size: 64, color: AppColors.gray300),
-            const SizedBox(height: 16),
-            const Text('예약 내역이 없어요', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-            const SizedBox(height: 8),
-            const Text('일정을 생성하고 예약해보세요', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+            Icon(Icons.directions_boat_rounded, size: 64, color: AppColors.gray300),
+            SizedBox(height: 16),
+            Text('지난 여행이 없어요', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.gray900)),
+            SizedBox(height: 8),
+            Text('여행을 다녀오면 여기에 기록돼요', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
           ],
         ),
       );
     }
 
-    return SingleChildScrollView(
+    return ListView.builder(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
+      itemCount: _visitedTrips.length,
+      itemBuilder: (context, i) {
+        final trip = _visitedTrips[i];
+        final islands = (trip['islands'] as List?)?.cast<String>() ?? [];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.gray200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _StatCard(label: '확정 예약', value: '${_confirmedBookings.length}'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(trip['title'] as String? ?? '여행', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 15)),
+                  ),
+                  GestureDetector(
+                    onTap: () => _deleteVisitedTrip(trip['id'] as String),
+                    child: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.gray400),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _StatCard(
-                  label: '총 금액',
-                  value: '${(_confirmedBookings.fold<int>(0, (sum, b) => sum + ((b['activity']?['price'] as num?)?.toInt() ?? 0)) / 10000).floor()}만',
-                ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray500),
+                  const SizedBox(width: 4),
+                  Expanded(child: Text(islands.isNotEmpty ? islands.join(', ') : '섬 정보 없음', style: const TextStyle(fontSize: 12, color: AppColors.gray600))),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${trip['start_date']} ~ ${trip['end_date']}', style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+                  GestureDetector(
+                    onTap: () => context.push('/itinerary/${trip['id']}'),
+                    child: const Text('일정보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w600)),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          ..._bookings.map((b) => _BookingCard(
-            booking: b,
-            onCancel: (id) => _cancelBooking(id),
-            onDelete: (id) => _deleteBooking(id),
-          )),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -412,18 +452,6 @@ class _TravelScreenState extends State<TravelScreen> {
       _currentItinerary = null;
       _currentItineraryId = null;
     });
-  }
-
-  void _cancelBooking(String id) {
-    setState(() {
-      for (final b in _bookings) {
-        if (b['id'] == id) b['status'] = 'cancelled';
-      }
-    });
-  }
-
-  void _deleteBooking(String id) {
-    setState(() => _bookings.removeWhere((b) => b['id'] == id));
   }
 }
 
@@ -482,142 +510,6 @@ class _QuickBtn extends StatelessWidget {
           decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8)),
           child: Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.blue700)),
         ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  const _StatCard({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.blue600)),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.blue700)),
-        ],
-      ),
-    );
-  }
-}
-
-class _BookingCard extends StatefulWidget {
-  final Map<String, dynamic> booking;
-  final Function(String) onCancel;
-  final Function(String) onDelete;
-  const _BookingCard({required this.booking, required this.onCancel, required this.onDelete});
-
-  @override
-  State<_BookingCard> createState() => _BookingCardState();
-}
-
-class _BookingCardState extends State<_BookingCard> {
-  bool _showActions = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final b = widget.booking;
-    final activity = b['activity'] as Map<String, dynamic>?;
-    final isConfirmed = b['status'] == 'confirmed';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.gray200),
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(activity?['title'] as String? ?? '', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray500),
-                        const SizedBox(width: 4),
-                        Text(activity?['location'] as String? ?? '', style: const TextStyle(fontSize: 12, color: AppColors.gray600)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isConfirmed ? AppColors.green100 : AppColors.red100,
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: Text(
-                  isConfirmed ? '확정' : '취소',
-                  style: TextStyle(fontSize: 11, color: isConfirmed ? AppColors.green700 : AppColors.red700, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${(activity?['price'] as num?)?.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},') ?? '0'}원',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue600, fontSize: 15),
-              ),
-              GestureDetector(
-                onTap: () => setState(() => _showActions = !_showActions),
-                child: Text(_showActions ? '닫기' : '관리', style: const TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
-              ),
-            ],
-          ),
-          if (_showActions) ...[
-            const SizedBox(height: 12),
-            const Divider(height: 1, color: AppColors.gray100),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                if (isConfirmed)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => widget.onCancel(b['id'] as String),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.red700,
-                        side: const BorderSide(color: AppColors.red500),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: const Text('취소'),
-                    ),
-                  ),
-                if (isConfirmed) const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => widget.onDelete(b['id'] as String),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.gray600,
-                      side: const BorderSide(color: AppColors.gray300),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text('삭제'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
       ),
     );
   }
