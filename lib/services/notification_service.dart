@@ -5,6 +5,13 @@ class NotificationService {
   static String? get _userId => _client.auth.currentUser?.id;
   static RealtimeChannel? _channel;
 
+  static Future<void> add(String title, String message, {String type = 'general'}) async {
+    if (_userId == null) return;
+    await _client.from('notifications').insert({
+      'user_id': _userId, 'title': title, 'message': message, 'type': type,
+    });
+  }
+
   static Future<List<Map<String, dynamic>>> getNotifications() async {
     if (_userId == null) return [];
     final data = await _client

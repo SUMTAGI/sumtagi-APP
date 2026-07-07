@@ -5,6 +5,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/trip_service.dart';
 import '../../services/trip_booking_service.dart';
+import '../../services/trip_risk_service.dart';
+import '../../services/ai_itinerary_service.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 
 // ── Island coordinates ─────────────────────────────────────────
@@ -60,6 +63,8 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   bool _isConfirmed = false;
   bool _isEditMode = false;
   List<Map<String, dynamic>> _bookings = [];
+  List<TripRisk> _risks = [];
+  bool _reconstructing = false;
 
   @override
   void initState() {
@@ -84,6 +89,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
         _isConfirmed = data['confirmed'] == true;
       });
       _loadBookingChecklist();
+      if (_isConfirmed) _checkRisks();
     }
   }
 
@@ -94,6 +100,53 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
       tripId: widget.id, islands: islands, departurePort: port,
     );
     if (mounted) setState(() => _bookings = bookings);
+  }
+
+  Future<void> _checkRisks() async {
+    final islands = (_itinerary!['islands'] as List?)?.cast<String>() ?? [];
+    final risks = await TripRiskService.checkTripRisks(
+      islands, _itinerary!['startDate'] as String? ?? '', _itinerary!['endDate'] as String? ?? '',
+    );
+    if (mounted) setState(() => _risks = risks);
+  }
+
+  Future<void> _handleReconstruct() async {
+    if (_itinerary == null || _risks.isEmpty) return;
+    setState(() => _reconstructing = true);
+    try {
+      final riskNote = _risks.map((r) => r.message).join(' / ');
+      final req = AIItineraryRequest(
+        departurePort: _itinerary!['departurePort'] as String? ?? '인천항',
+        islands: (_itinerary!['islands'] as List?)?.cast<String>() ?? [],
+        startDate: _itinerary!['startDate'] as String? ?? '',
+        endDate: _itinerary!['endDate'] as String? ?? '',
+        travelers: (_itinerary!['travelers'] as num?)?.toInt() ?? 1,
+        travelStyle: _itinerary!['travel_type'] as String? ?? '관광',
+        budget: _itinerary!['budget'] as String? ?? '보통',
+        specialRequests: '기상 악화·여객선 결항 위험이 감지됐어요: $riskNote. 이 위험을 피하거나 완화할 수 있도록 일정을 조정해줘(실내 활동으로 대체, 일정 순서 조정 등).',
+      );
+      final result = await generateAIItinerary(req);
+      final days = result.itinerary.days.map((d) => d.toJson()).toList();
+      await TripService.updateItinerary(widget.id, days, result.itinerary.totalCost);
+      await NotificationService.add('일정이 재구성됐어요', '$riskNote — 위험을 피하도록 일정을 다시 만들었어요.');
+      if (mounted) {
+        setState(() {
+          _itinerary = {..._itinerary!, 'days': days, 'totalCost': result.itinerary.totalCost};
+          _risks = [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('일정을 재구성했어요'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('일정 재구성 실패: $e'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _reconstructing = false);
+    }
   }
 
   void _toggleBooking(Map<String, dynamic> booking) {
@@ -366,6 +419,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
       body: Column(
         children: [
           _buildHeader(),
+          _buildRiskBanner(),
           _buildDayTabs(days),
           Expanded(
             child: SingleChildScrollView(
@@ -665,6 +719,55 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               const Divider(height: 16),
               _BudgetRow(label: '총 예산', amount: total, isTotal: true),
             ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiskBanner() {
+    if (_risks.isEmpty || _isEditMode) return const SizedBox.shrink();
+    final hasCancelled = _risks.any((r) => r.level == TripRiskLevel.cancelled);
+
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFFFFFBEB),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Icon(Icons.warning_amber_rounded, size: 20, color: Color(0xFFD97706)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasCancelled ? '여객선 결항이 확인됐어요' : '결항 가능성이 있어요',
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF92400E)),
+                  ),
+                  const SizedBox(height: 4),
+                  ..._risks.map((r) => Text(r.message, style: const TextStyle(fontSize: 12, color: Color(0xFF92400E)))),
+                ],
+              ),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _reconstructing ? null : _handleReconstruct,
+              icon: _reconstructing
+                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.refresh_rounded, size: 16),
+              label: Text(_reconstructing ? '재구성 중...' : '대체 일정 만들기'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD97706), foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0,
+              ),
+            ),
           ),
         ],
       ),
