@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/trip_service.dart';
+import '../../services/trip_booking_service.dart';
 import '../../theme/app_colors.dart';
 
 // ── Island coordinates ─────────────────────────────────────────
@@ -57,6 +59,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   int _selectedDay = 0;
   bool _isConfirmed = false;
   bool _isEditMode = false;
+  List<Map<String, dynamic>> _bookings = [];
 
   @override
   void initState() {
@@ -80,7 +83,35 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
         };
         _isConfirmed = data['confirmed'] == true;
       });
+      _loadBookingChecklist();
     }
+  }
+
+  Future<void> _loadBookingChecklist() async {
+    final islands = (_itinerary!['islands'] as List?)?.cast<String>() ?? [];
+    final port = _itinerary!['departurePort'] as String? ?? '인천항';
+    final bookings = await TripBookingService.getChecklist(
+      tripId: widget.id, islands: islands, departurePort: port,
+    );
+    if (mounted) setState(() => _bookings = bookings);
+  }
+
+  void _toggleBooking(Map<String, dynamic> booking) {
+    final current = booking['is_done'] == true;
+    setState(() {
+      _bookings = _bookings.map((b) => b['id'] == booking['id'] ? {...b, 'is_done': !current} : b).toList();
+    });
+    TripBookingService.toggle(booking['id'] as String, current);
+  }
+
+  void _callPhone(String phone) async {
+    final uri = Uri.parse('tel:$phone');
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
+
+  void _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   // ── persist ────────────────────────────────────────────────
@@ -345,6 +376,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                   if (!_isEditMode) ...[
                     _buildMap(),
                     _buildBudgetSummary(),
+                    _buildBookingChecklist(),
                     _buildConfirmArea(),
                   ],
                 ],
@@ -633,6 +665,111 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               const Divider(height: 16),
               _BudgetRow(label: '총 예산', amount: total, isTotal: true),
             ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _bookingCategoryLabel = {
+    'ferry': '여객선', 'accommodation': '숙박', 'restaurant': '식당', 'experience': '체험',
+  };
+
+  Widget _buildBookingChecklist() {
+    if (_bookings.isEmpty) return const SizedBox.shrink();
+    final doneCount = _bookings.where((b) => b['is_done'] == true).length;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Row(children: [
+              Icon(Icons.checklist_rounded, size: 18, color: AppColors.gray700),
+              SizedBox(width: 6),
+              Text('예약 준비 체크리스트', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 15)),
+            ]),
+            Text('$doneCount/${_bookings.length}', style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+          ]),
+          const SizedBox(height: 4),
+          const Text(
+            '여객선·숙박·식당 예약은 sumtagi가 대신 해주지 않아요. 연락처로 직접 예약한 뒤 완료로 체크하세요.',
+            style: TextStyle(fontSize: 11, color: AppColors.gray500),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+            child: Column(
+              children: _bookings.map((b) {
+                final isDone = b['is_done'] == true;
+                final phone = b['phone'] as String?;
+                final url = b['external_url'] as String?;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.gray100, width: b == _bookings.first ? 0 : 1))),
+                  child: Row(children: [
+                    GestureDetector(
+                      onTap: () => _toggleBooking(b),
+                      child: Container(
+                        width: 22, height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isDone ? AppColors.blue600 : Colors.transparent,
+                          border: Border.all(color: isDone ? AppColors.blue600 : AppColors.gray300, width: 2),
+                        ),
+                        child: isDone ? const Icon(Icons.check, size: 13, color: Colors.white) : null,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Row(children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(4)),
+                          child: Text(_bookingCategoryLabel[b['category']] ?? '', style: const TextStyle(fontSize: 9, color: AppColors.gray600, fontWeight: FontWeight.w500)),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            b['name'] as String? ?? '',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w500,
+                              color: isDone ? AppColors.gray400 : AppColors.gray900,
+                              decoration: isDone ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ),
+                    if (phone != null)
+                      GestureDetector(
+                        onTap: () => _callPhone(phone),
+                        child: Container(
+                          width: 30, height: 30,
+                          decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.blue100),
+                          child: const Icon(Icons.call_rounded, size: 15, color: AppColors.blue600),
+                        ),
+                      ),
+                    if (url != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: GestureDetector(
+                          onTap: () => _openUrl(url),
+                          child: Container(
+                            width: 30, height: 30,
+                            decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.blue100),
+                            child: const Icon(Icons.open_in_new_rounded, size: 14, color: AppColors.blue600),
+                          ),
+                        ),
+                      ),
+                  ]),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
