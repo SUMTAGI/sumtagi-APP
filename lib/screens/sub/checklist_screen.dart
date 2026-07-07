@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/checklist_service.dart';
+import '../../services/trip_service.dart';
 import '../../theme/app_colors.dart';
 
 class ChecklistScreen extends StatefulWidget {
@@ -11,6 +12,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   List<Map<String, dynamic>> _items = [];
   bool _isLoading = true;
   final _textCtrl = TextEditingController();
+  String? _tripId;
+  String? _tripTitle;
 
   @override
   void initState() {
@@ -20,8 +23,17 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
-    final data = await ChecklistService.getItems();
-    if (mounted) setState(() { _items = data; _isLoading = false; });
+    final trip = await TripService.getUpcomingTrip();
+    final tripId = trip?['id'] as String?;
+    final data = await ChecklistService.getItems(tripId: tripId);
+    if (mounted) {
+      setState(() {
+        _tripId = tripId;
+        _tripTitle = trip?['title'] as String?;
+        _items = data;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _toggle(Map<String, dynamic> item) async {
@@ -35,7 +47,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   Future<void> _addItem() async {
     if (_textCtrl.text.isEmpty) return;
-    await ChecklistService.addItem(title: _textCtrl.text);
+    await ChecklistService.addItem(title: _textCtrl.text, tripId: _tripId);
     _textCtrl.clear();
     _load();
   }
@@ -48,7 +60,10 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     return Scaffold(
       backgroundColor: AppColors.gray50,
       appBar: AppBar(
-        title: const Text('체크리스트', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          _tripTitle != null ? '$_tripTitle 체크리스트' : '체크리스트',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.gray900,
         elevation: 0,

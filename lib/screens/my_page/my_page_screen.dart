@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
 import '../../services/trip_service.dart';
-import '../../services/review_service.dart';
 import '../../theme/app_colors.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -17,7 +16,6 @@ class MyPageScreen extends StatefulWidget {
 class _MyPageScreenState extends State<MyPageScreen> {
   User? _user;
   int _tripCount = 0;
-  int _reviewCount = 0;
 
   @override
   void initState() {
@@ -27,14 +25,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   Future<void> _loadCounts() async {
-    final results = await Future.wait([
-      TripService.getTripCount(),
-      ReviewService.getMyReviewCount(),
-    ]);
+    final tripCount = await TripService.getTripCount();
     if (mounted) {
       setState(() {
-        _tripCount = results[0];
-        _reviewCount = results[1];
+        _tripCount = tripCount;
       });
     }
   }
@@ -129,9 +123,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 children: [
                   _SectionTitle(label: '계정 정보'),
                   _MenuCard(children: [
-                    _MenuItem(icon: Icons.person_outline_rounded, label: '프로필 수정', onTap: () => context.push('/profile-edit')),
-                    _MenuItem(icon: Icons.mail_outline_rounded, label: '이메일', value: _email, onTap: () => context.push('/profile-edit')),
-                    _MenuItem(icon: Icons.lock_outline_rounded, label: '비밀번호 변경', onTap: () => context.push('/profile-edit'), showDivider: false),
+                    _MenuItem(icon: Icons.person_outline_rounded, label: '프로필 수정', value: _email, onTap: () => context.push('/profile-edit'), showDivider: false),
                   ]),
                   const SizedBox(height: 20),
 
@@ -147,7 +139,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   _SectionTitle(label: '편의 기능'),
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.schedule_rounded, label: '교통 시간표', onTap: () => context.push('/schedule')),
-                    _MenuItem(icon: Icons.event_rounded, label: '이벤트 & 축제', onTap: () => context.push('/events')),
                     _MenuItem(icon: Icons.warning_amber_rounded, label: '긴급 연락처', onTap: () => context.push('/emergency'), showDivider: false),
                   ]),
                   const SizedBox(height: 20),
@@ -227,8 +218,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   Expanded(child: _StatCard(label: '가입일', value: '$_daysSinceJoin일전')),
                   const SizedBox(width: 8),
                   Expanded(child: _StatCard(label: '예약', value: '$_tripCount건')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _StatCard(label: '리뷰', value: '$_reviewCount개')),
                 ],
               ),
             ],

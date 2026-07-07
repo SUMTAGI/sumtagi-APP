@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../services/ferry_service.dart';
+import '../../services/island_service.dart';
 import '../../theme/app_colors.dart';
 
 class ScheduleScreen extends StatefulWidget {
@@ -9,19 +11,59 @@ class ScheduleScreen extends StatefulWidget {
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
   int _tab = 0;
-  String _selectedRoute = 'all';
   String _selectedIsland = '백령도';
 
-  static const _ferrySchedules = [
-    {'id': 'f1', 'route': '인천항 → 백령도', 'departure': '인천항', 'arrival': '백령도', 'departureTime': '08:00', 'arrivalTime': '12:00', 'duration': '4시간', 'price': 45000, 'vessel': '하모니플라워호', 'status': '정상'},
-    {'id': 'f2', 'route': '백령도 → 인천항', 'departure': '백령도', 'arrival': '인천항', 'departureTime': '14:00', 'arrivalTime': '18:00', 'duration': '4시간', 'price': 45000, 'vessel': '하모니플라워호', 'status': '정상'},
-    {'id': 'f3', 'route': '인천항 → 덕적도', 'departure': '인천항', 'arrival': '덕적도', 'departureTime': '09:00', 'arrivalTime': '11:30', 'duration': '2.5시간', 'price': 28000, 'vessel': '섬사랑2호', 'status': '정상'},
-    {'id': 'f4', 'route': '덕적도 → 인천항', 'departure': '덕적도', 'arrival': '인천항', 'departureTime': '15:00', 'arrivalTime': '17:30', 'duration': '2.5시간', 'price': 28000, 'vessel': '섬사랑2호', 'status': '정상'},
-    {'id': 'f5', 'route': '인천항 → 영흥도', 'departure': '인천항', 'arrival': '영흥도', 'departureTime': '10:00', 'arrivalTime': '11:00', 'duration': '1시간', 'price': 15000, 'vessel': '영흥페리호', 'status': '정상'},
-    {'id': 'f6', 'route': '영흥도 → 인천항', 'departure': '영흥도', 'arrival': '인천항', 'departureTime': '16:00', 'arrivalTime': '17:00', 'duration': '1시간', 'price': 15000, 'vessel': '영흥페리호', 'status': '정상'},
-    {'id': 'f7', 'route': '대부도 → 자월도', 'departure': '대부도', 'arrival': '자월도', 'departureTime': '09:30', 'arrivalTime': '11:30', 'duration': '2시간', 'price': 25000, 'vessel': '코리아킹호', 'status': '정상'},
-    {'id': 'f8', 'route': '자월도 → 대부도', 'departure': '자월도', 'arrival': '대부도', 'departureTime': '14:30', 'arrivalTime': '16:30', 'duration': '2시간', 'price': 25000, 'vessel': '코리아킹호', 'status': '정상'},
-  ];
+  List<IslandModel> _islands = [];
+  String _selectedFerryIslandId = 'baengnyeong';
+  List<Map<String, dynamic>> _ferrySchedules = [];
+  bool _isFerryLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadIslands();
+  }
+
+  Future<void> _loadIslands() async {
+    try {
+      final islands = await IslandService.getIslands();
+      if (mounted) setState(() => _islands = islands);
+    } catch (_) {
+      // 섬 목록 실패해도 여객선 시간표는 아래에서 계속 시도
+    }
+    _loadFerrySchedule();
+  }
+
+  Future<void> _loadFerrySchedule() async {
+    setState(() => _isFerryLoading = true);
+    try {
+      final live = await FerryService.getScheduleForIsland(_selectedFerryIslandId);
+      IslandModel? island;
+      for (final i in _islands) {
+        if (i.id == _selectedFerryIslandId) { island = i; break; }
+      }
+      final departurePort = (island != null && island.ports.isNotEmpty) ? island.ports.first : '인천항';
+      final schedules = live.map((s) => {
+        'id': '${s.ferryName}_${s.departureTime}',
+        'route': s.routeName,
+        'departure': departurePort,
+        'arrival': island?.name ?? '',
+        'departureTime': s.departureTime,
+        'duration': island?.ferryTime ?? '',
+        'price': island?.ferryPrice ?? 0,
+        'vessel': s.ferryName,
+        'status': s.status,
+      }).toList();
+      if (mounted) setState(() { _ferrySchedules = schedules; _isFerryLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _ferrySchedules = []; _isFerryLoading = false; });
+    }
+  }
+
+  void _selectFerryIsland(String islandId) {
+    setState(() => _selectedFerryIslandId = islandId);
+    _loadFerrySchedule();
+  }
 
   static const _localTransport = [
     {
@@ -76,10 +118,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final departures = ['all', ...{..._ferrySchedules.map((s) => s['departure'] as String)}];
-    final filtered = _selectedRoute == 'all'
-        ? _ferrySchedules
-        : _ferrySchedules.where((s) => s['departure'] == _selectedRoute).toList();
     final transport = _localTransport.firstWhere((t) => t['island'] == _selectedIsland, orElse: () => _localTransport.first);
 
     return Scaffold(
@@ -108,7 +146,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   ),
                   const SizedBox(height: 12),
                   const Text('교통 시간표', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const Text('여객선 및 섬 내부 교통 정보', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
+                  const Text('오늘의 실시간 여객선 운항 정보 및 섬 내부 교통 안내', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
                 ],
               ),
             ),
@@ -132,7 +170,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           Expanded(
             child: _tab == 0
-                ? _buildFerry(departures, filtered)
+                ? _buildFerry()
                 : _buildLocal(transport),
           ),
         ],
@@ -140,7 +178,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _buildFerry(List<String> departures, List<Map<String, dynamic>> filtered) {
+  Widget _buildFerry() {
     return Column(
       children: [
         Container(
@@ -149,15 +187,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('출발지', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+              const Text('섬 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray700)),
               const SizedBox(height: 8),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: departures.map((r) {
-                    final selected = r == _selectedRoute;
+                  children: _islands.map((island) {
+                    final selected = island.id == _selectedFerryIslandId;
                     return GestureDetector(
-                      onTap: () => setState(() => _selectedRoute = r),
+                      onTap: () => _selectFerryIsland(island.id),
                       child: Container(
                         margin: const EdgeInsets.only(right: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
@@ -166,7 +204,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: selected ? AppColors.blue600 : AppColors.gray200),
                         ),
-                        child: Text(r == 'all' ? '전체' : r, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
+                        child: Text(island.name, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
                       ),
                     );
                   }).toList(),
@@ -176,10 +214,26 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         Expanded(
-          child: ListView(
+          child: _isFerryLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              ...filtered.map((s) => _FerryCard(schedule: s)),
+              if (_ferrySchedules.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    children: const [
+                      Icon(Icons.directions_boat_filled_rounded, size: 64, color: AppColors.gray300),
+                      SizedBox(height: 16),
+                      Text('오늘 예정된 운항이 없어요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
+                      SizedBox(height: 4),
+                      Text('다른 섬을 선택해보세요', style: TextStyle(fontSize: 12, color: AppColors.gray400)),
+                    ],
+                  ),
+                )
+              else
+                ..._ferrySchedules.map((s) => _FerryCard(schedule: s)),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(color: const Color(0xFFFEFCE8), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFEF08A))),
@@ -317,16 +371,16 @@ class _FerryCard extends StatelessWidget {
 
   Color _statusColor() {
     final s = schedule['status'] as String;
-    if (s == '정상') return AppColors.blue100;
-    if (s == '지연') return const Color(0xFFFFEDD5);
-    return const Color(0xFFFEE2E2);
+    if (s.contains('결항')) return const Color(0xFFFEE2E2);
+    if (s.contains('지연')) return const Color(0xFFFFEDD5);
+    return AppColors.blue100;
   }
 
   Color _statusTextColor() {
     final s = schedule['status'] as String;
-    if (s == '정상') return AppColors.blue700;
-    if (s == '지연') return const Color(0xFFEA580C);
-    return const Color(0xFFDC2626);
+    if (s.contains('결항')) return const Color(0xFFDC2626);
+    if (s.contains('지연')) return const Color(0xFFEA580C);
+    return AppColors.blue700;
   }
 
   @override
@@ -372,23 +426,23 @@ class _FerryCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(8)),
-                child: Text(schedule['duration'] as String, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.gray600)),
-              ),
+              if ((schedule['duration'] as String).isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(8)),
+                  child: Text('소요 ${schedule['duration']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.gray600)),
+                ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text('도착', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
+                    const Text('도착지', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
                     const SizedBox(height: 4),
                     Row(children: [
-                      const Icon(Icons.access_time_rounded, size: 14, color: AppColors.gray400),
+                      const Icon(Icons.place_rounded, size: 14, color: AppColors.gray400),
                       const SizedBox(width: 4),
-                      Text(schedule['arrivalTime'] as String, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+                      Text(schedule['arrival'] as String, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                     ]),
-                    Text(schedule['arrival'] as String, style: const TextStyle(fontSize: 11, color: AppColors.gray600)),
                   ],
                 ),
               ),
@@ -404,7 +458,12 @@ class _FerryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('편도 요금', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
-                  Text('${(schedule['price'] as int).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.blue600)),
+                  Text(
+                    (schedule['price'] as int) > 0
+                        ? '${(schedule['price'] as int).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원'
+                        : '정보 없음',
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.blue600),
+                  ),
                 ],
               ),
               GestureDetector(

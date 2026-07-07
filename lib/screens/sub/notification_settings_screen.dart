@@ -81,7 +81,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             _NotifItem(
               icon: Icons.local_offer_rounded,
               label: '이벤트 및 혜택',
-              subtitle: '쿠폰, 할인 정보 알림',
+              subtitle: '할인 정보 알림',
               value: _promotionAlert,
               onChanged: (v) => setState(() => _promotionAlert = v),
             ),
