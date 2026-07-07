@@ -9,6 +9,7 @@ import '../../theme/app_colors.dart';
 const _coords = {
   '인천항':   LatLng(37.4744, 126.6169),
   '대부도':   LatLng(37.2173, 126.5589),
+  '삼목항':   LatLng(37.4986, 126.4532),
   '백령도':   LatLng(37.9685, 124.6902),
   '대청도':   LatLng(37.8371, 124.7182),
   '소청도':   LatLng(37.7625, 124.7431),
@@ -20,6 +21,18 @@ const _coords = {
   '소이작도': LatLng(37.1500, 126.2917),
   '풍도':     LatLng(37.0647, 126.2636),
   '육도':     LatLng(37.0036, 126.3547),
+  '신도':     LatLng(37.527931, 126.457237),
+  '장봉도':   LatLng(37.53102257, 126.3679055429),
+  '영흥도':   LatLng(37.2397, 126.4921),
+  '선재도':   LatLng(37.2508, 126.4731),
+  '굴업도':   LatLng(37.1917, 126.2186),
+  '시도':     LatLng(37.5446026512, 126.431177159),
+  '소야도':   LatLng(37.2126756954, 126.175942845),
+  '울도':     LatLng(37.0257233193983, 125.997020937643),
+  // 모도·문갑도·백아도는 관광공사 API에 데이터가 없어 OSM Nominatim으로 실측 좌표 확보(2026-07-07)
+  '모도':     LatLng(37.5331998, 126.4080697),
+  '문갑도':   LatLng(37.1769151, 126.0982694),
+  '백아도':   LatLng(37.0802720, 125.9468352),
 };
 
 const _typeLabels = {
@@ -396,7 +409,12 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                   style: TextStyle(fontSize: 12, color: Colors.white70))
               else
                 Row(children: [
-                  const Icon(Icons.directions_boat_rounded, size: 13, color: Colors.white70),
+                  Icon(
+                    _itinerary!['departurePort'] == '육로 이동'
+                        ? Icons.directions_car_rounded
+                        : Icons.directions_boat_rounded,
+                    size: 13, color: Colors.white70,
+                  ),
                   const SizedBox(width: 4),
                   Text(_itinerary!['departurePort'] as String? ?? '인천항',
                     style: const TextStyle(fontSize: 12, color: Colors.white70)),
@@ -516,10 +534,12 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     final port = _itinerary!['departurePort'] as String? ?? '인천항';
     final portCoord = _coords[port];
     final stopCoords = islands.map((n) => _coords[n]).whereType<LatLng>().toList();
-    if (portCoord == null || stopCoords.isEmpty) return const SizedBox.shrink();
+    if (stopCoords.isEmpty) return const SizedBox.shrink();
 
-    final route = [portCoord, ...stopCoords, portCoord];
-    final routeText = [port, ...islands, port].join(' → ');
+    // 다리로 연결된 섬("육로 이동")은 고정 출발항 좌표가 없어 섬간 경로만 표시
+    final route = portCoord != null ? [portCoord, ...stopCoords, portCoord] : stopCoords;
+    final routeText = portCoord != null ? [port, ...islands, port].join(' → ') : islands.join(' → ');
+    final mapCenter = portCoord ?? stopCoords.first;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
@@ -534,7 +554,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               height: 200,
               child: FlutterMap(
                 options: MapOptions(
-                  initialCenter: portCoord,
+                  initialCenter: mapCenter,
                   initialZoom: 8,
                   interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
                 ),
@@ -548,6 +568,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                     ),
                   ]),
                   MarkerLayer(markers: [
+                    if (portCoord != null)
                     Marker(
                       point: portCoord,
                       width: 28, height: 28,
