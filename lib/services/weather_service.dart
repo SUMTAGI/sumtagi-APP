@@ -115,10 +115,9 @@ class WeatherService {
     if (windSpeed >= 36 || waveHeight >= 1.5) return FerryRisk.caution;
     return FerryRisk.safe;
   }
-  static const _cacheKey = 'incheon_weather_v1';
   static const _cacheDuration = Duration(minutes: 30);
-  static const _lat = 37.4563;
-  static const _lon = 126.7052;
+  static const _incheonLat = 37.4563;
+  static const _incheonLon = 126.7052;
   static const _weekdays = ['', '월', '화', '수', '목', '금', '토', '일'];
 
   static String _wmoToCondition(int code) {
@@ -132,11 +131,24 @@ class WeatherService {
     return '비';
   }
 
-  static Future<WeatherResult?> getWeather() async {
+  static Future<WeatherResult?> getWeather() =>
+      _getWeatherForLocation(_incheonLat, _incheonLon, 'incheon_weather_v1');
+
+  /// 섬 좌표 기준 날씨 조회. 좌표 없는 섬은 인천 대표 좌표로 대체
+  static Future<WeatherResult?> getWeatherForIsland(String islandId, {double? lat, double? lng}) {
+    final hasCoords = lat != null && lng != null;
+    return _getWeatherForLocation(
+      hasCoords ? lat : _incheonLat,
+      hasCoords ? lng : _incheonLon,
+      'island_weather_v1_$islandId',
+    );
+  }
+
+  static Future<WeatherResult?> _getWeatherForLocation(double lat, double lon, String cacheKey) async {
     final prefs = await SharedPreferences.getInstance();
 
     // 캐시 유효하면 반환
-    final cached = prefs.getString(_cacheKey);
+    final cached = prefs.getString(cacheKey);
     if (cached != null) {
       try {
         final result = WeatherResult.fromJson(jsonDecode(cached));
@@ -149,14 +161,14 @@ class WeatherService {
     try {
       final forecastUri = Uri.parse(
         'https://api.open-meteo.com/v1/forecast'
-        '?latitude=$_lat&longitude=$_lon'
+        '?latitude=$lat&longitude=$lon'
         '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m'
         '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max'
         '&timezone=Asia%2FSeoul&forecast_days=6',
       );
       final marineUri = Uri.parse(
         'https://marine-api.open-meteo.com/v1/marine'
-        '?latitude=$_lat&longitude=$_lon'
+        '?latitude=$lat&longitude=$lon'
         '&hourly=wave_height&timezone=Asia%2FSeoul&forecast_days=1',
       );
 
@@ -165,7 +177,7 @@ class WeatherService {
         http.get(marineUri).timeout(const Duration(seconds: 10)),
       ]);
 
-      if (responses[0].statusCode != 200) return _cachedOrNull(prefs);
+      if (responses[0].statusCode != 200) return _cachedOrNull(prefs, cacheKey);
 
       final forecastJson = jsonDecode(responses[0].body) as Map<String, dynamic>;
       final currentJson = forecastJson['current'] as Map<String, dynamic>;
@@ -205,15 +217,15 @@ class WeatherService {
         fetchedAt: DateTime.now(),
       );
 
-      await prefs.setString(_cacheKey, jsonEncode(result.toJson()));
+      await prefs.setString(cacheKey, jsonEncode(result.toJson()));
       return result;
     } catch (_) {
-      return _cachedOrNull(prefs);
+      return _cachedOrNull(prefs, cacheKey);
     }
   }
 
-  static WeatherResult? _cachedOrNull(SharedPreferences prefs) {
-    final cached = prefs.getString(_cacheKey);
+  static WeatherResult? _cachedOrNull(SharedPreferences prefs, String cacheKey) {
+    final cached = prefs.getString(cacheKey);
     if (cached == null) return null;
     try {
       return WeatherResult.fromJson(jsonDecode(cached));

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/trip_service.dart';
+import '../../services/ai_itinerary_service.dart';
 import '../../theme/app_colors.dart';
 
 class CreateTripScreen extends StatefulWidget {
@@ -19,18 +20,29 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   int _travelers = 2;
   String _travelType = '';
   String _budget = '보통';
+  final _specialRequestsCtrl = TextEditingController();
   bool _isSubmitting = false;
 
   static const _allIslands = [
     '백령도', '대청도', '소청도', '연평도',
     '덕적도', '자월도', '승봉도', '대이작도',
-    '소이작도', '풍도', '육도',
+    '소이작도', '풍도', '육도', '신도', '장봉도',
+    '영흥도', '선재도', '굴업도', '시도', '모도', '소야도',
+    '문갑도', '백아도', '울도',
   ];
 
   static const _islandPortMap = {
     '백령도': '인천항', '대청도': '인천항', '소청도': '인천항', '연평도': '인천항',
     '덕적도': '인천항', '자월도': '인천항', '승봉도': '인천항', '대이작도': '인천항',
     '소이작도': '대부도', '풍도': '대부도', '육도': '대부도',
+    '신도': '삼목항', '장봉도': '삼목항',
+    // 다리로 연결돼 여객선이 필요 없는 섬 (자동차로 이동)
+    '영흥도': '육로 이동', '선재도': '육로 이동', '시도': '육로 이동',
+    '모도': '육로 이동', '소야도': '육로 이동',
+    // 덕적도 경유 환승 항로 (인천항 → 덕적도 → 굴업도)
+    '굴업도': '덕적도',
+    // 인천-덕적 완행선 경유지 (별도 직항 없음)
+    '문갑도': '인천항', '백아도': '인천항', '울도': '인천항',
   };
 
   @override
@@ -39,6 +51,12 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     if (widget.preSelectedIsland != null) {
       _selectedIslands = [widget.preSelectedIsland!];
     }
+  }
+
+  @override
+  void dispose() {
+    _specialRequestsCtrl.dispose();
+    super.dispose();
   }
 
   bool get _hasPreSelected => widget.preSelectedIsland != null;
@@ -51,30 +69,43 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-      final days = [
-        {
-          'dayNumber': 1,
-          'date': _startDate!.toIso8601String().split('T')[0],
-          'activities': [
-            {'id': '1', 'type': 'ferry', 'time': '07:00', 'title': '$_computedPort 출발', 'description': '여객선 탑승', 'location': _computedPort, 'price': 45000},
-            {'id': '2', 'type': 'attraction', 'time': '11:00', 'title': '${_selectedIslands.first} 도착', 'description': '섬 탐방 시작', 'location': _selectedIslands.first, 'price': 0},
-            {'id': '3', 'type': 'meal', 'time': '13:00', 'title': '해산물 점심', 'description': '신선한 해산물 정식', 'location': _selectedIslands.first, 'price': 15000},
-            {'id': '4', 'type': 'accommodation', 'time': '18:00', 'title': '민박 체크인', 'description': '섬 민박 숙박', 'location': _selectedIslands.first, 'price': 60000},
-          ],
+      final result = await generateAIItinerary(
+        AIItineraryRequest(
+          departurePort: _computedPort,
+          islands: _selectedIslands,
+          startDate: _startDate!.toIso8601String().split('T')[0],
+          endDate: _endDate!.toIso8601String().split('T')[0],
+          travelers: _travelers,
+          travelStyle: _travelType,
+          budget: _budget,
+          specialRequests: _specialRequestsCtrl.text.trim(),
+        ),
+        onFallback: (reason) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('AI 일정 생성에 실패했어요. 기본 일정으로 대체합니다.'),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                backgroundColor: AppColors.gray900,
+              ),
+            );
+          }
         },
-      ];
+      );
 
+      final itinerary = result.itinerary;
       final id = await TripService.createTrip(
-        title: '${_selectedIslands.join(', ')} 여행',
-        departurePort: _computedPort,
-        islands: _selectedIslands,
-        startDate: _startDate!.toIso8601String().split('T')[0],
-        endDate: _endDate!.toIso8601String().split('T')[0],
-        travelers: _travelers,
+        title: itinerary.title,
+        departurePort: itinerary.departurePort,
+        islands: itinerary.islands,
+        startDate: itinerary.startDate,
+        endDate: itinerary.endDate,
+        travelers: itinerary.travelers,
         travelType: _travelType,
         budget: _budget,
-        totalCost: 80000 * _travelers,
-        days: days,
+        totalCost: itinerary.totalCost,
+        days: itinerary.days.map((d) => d.toJson()).toList(),
       );
 
       if (mounted) context.pushReplacement('/itinerary/$id');
@@ -441,6 +472,26 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             );
           }).toList(),
         ),
+        const SizedBox(height: 24),
+        const Text.rich(
+          TextSpan(children: [
+            TextSpan(text: 'AI에게 하고 싶은 말이 있나요? ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+            TextSpan(text: '(선택)', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+          ]),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _specialRequestsCtrl,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: '예: 아이랑 같이 가요, 낚시하고 싶어요, 걷는 건 최소화해주세요',
+            hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue500, width: 2)),
+            contentPadding: const EdgeInsets.all(14),
+          ),
+        ),
         if (_travelType.isNotEmpty) ...[
           const SizedBox(height: 24),
           SizedBox(
@@ -456,8 +507,15 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 elevation: 0,
               ),
               child: _isSubmitting
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('일정 생성하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                        SizedBox(width: 10),
+                        Text('AI가 일정을 만들고 있어요...', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                      ],
+                    )
+                  : const Text('AI 일정 생성하기 ✨', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
         ],

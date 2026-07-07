@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/trip_service.dart';
+import '../../services/trip_booking_service.dart';
+import '../../services/trip_risk_service.dart';
+import '../../services/ai_itinerary_service.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 
 // ── Island coordinates ─────────────────────────────────────────
 const _coords = {
   '인천항':   LatLng(37.4744, 126.6169),
   '대부도':   LatLng(37.2173, 126.5589),
+  '삼목항':   LatLng(37.4986, 126.4532),
   '백령도':   LatLng(37.9685, 124.6902),
   '대청도':   LatLng(37.8371, 124.7182),
   '소청도':   LatLng(37.7625, 124.7431),
@@ -20,6 +26,18 @@ const _coords = {
   '소이작도': LatLng(37.1500, 126.2917),
   '풍도':     LatLng(37.0647, 126.2636),
   '육도':     LatLng(37.0036, 126.3547),
+  '신도':     LatLng(37.527931, 126.457237),
+  '장봉도':   LatLng(37.53102257, 126.3679055429),
+  '영흥도':   LatLng(37.2397, 126.4921),
+  '선재도':   LatLng(37.2508, 126.4731),
+  '굴업도':   LatLng(37.1917, 126.2186),
+  '시도':     LatLng(37.5446026512, 126.431177159),
+  '소야도':   LatLng(37.2126756954, 126.175942845),
+  '울도':     LatLng(37.0257233193983, 125.997020937643),
+  // 모도·문갑도·백아도는 관광공사 API에 데이터가 없어 OSM Nominatim으로 실측 좌표 확보(2026-07-07)
+  '모도':     LatLng(37.5331998, 126.4080697),
+  '문갑도':   LatLng(37.1769151, 126.0982694),
+  '백아도':   LatLng(37.0802720, 125.9468352),
 };
 
 const _typeLabels = {
@@ -44,6 +62,9 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   int _selectedDay = 0;
   bool _isConfirmed = false;
   bool _isEditMode = false;
+  List<Map<String, dynamic>> _bookings = [];
+  List<TripRisk> _risks = [];
+  bool _reconstructing = false;
 
   @override
   void initState() {
@@ -67,7 +88,83 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
         };
         _isConfirmed = data['confirmed'] == true;
       });
+      _loadBookingChecklist();
+      if (_isConfirmed) _checkRisks();
     }
+  }
+
+  Future<void> _loadBookingChecklist() async {
+    final islands = (_itinerary!['islands'] as List?)?.cast<String>() ?? [];
+    final port = _itinerary!['departurePort'] as String? ?? '인천항';
+    final bookings = await TripBookingService.getChecklist(
+      tripId: widget.id, islands: islands, departurePort: port,
+    );
+    if (mounted) setState(() => _bookings = bookings);
+  }
+
+  Future<void> _checkRisks() async {
+    final islands = (_itinerary!['islands'] as List?)?.cast<String>() ?? [];
+    final risks = await TripRiskService.checkTripRisks(
+      islands, _itinerary!['startDate'] as String? ?? '', _itinerary!['endDate'] as String? ?? '',
+    );
+    if (mounted) setState(() => _risks = risks);
+  }
+
+  Future<void> _handleReconstruct() async {
+    if (_itinerary == null || _risks.isEmpty) return;
+    setState(() => _reconstructing = true);
+    try {
+      final riskNote = _risks.map((r) => r.message).join(' / ');
+      final req = AIItineraryRequest(
+        departurePort: _itinerary!['departurePort'] as String? ?? '인천항',
+        islands: (_itinerary!['islands'] as List?)?.cast<String>() ?? [],
+        startDate: _itinerary!['startDate'] as String? ?? '',
+        endDate: _itinerary!['endDate'] as String? ?? '',
+        travelers: (_itinerary!['travelers'] as num?)?.toInt() ?? 1,
+        travelStyle: _itinerary!['travel_type'] as String? ?? '관광',
+        budget: _itinerary!['budget'] as String? ?? '보통',
+        specialRequests: '기상 악화·여객선 결항 위험이 감지됐어요: $riskNote. 이 위험을 피하거나 완화할 수 있도록 일정을 조정해줘(실내 활동으로 대체, 일정 순서 조정 등).',
+      );
+      final result = await generateAIItinerary(req);
+      final days = result.itinerary.days.map((d) => d.toJson()).toList();
+      await TripService.updateItinerary(widget.id, days, result.itinerary.totalCost);
+      await NotificationService.add('일정이 재구성됐어요', '$riskNote — 위험을 피하도록 일정을 다시 만들었어요.');
+      if (mounted) {
+        setState(() {
+          _itinerary = {..._itinerary!, 'days': days, 'totalCost': result.itinerary.totalCost};
+          _risks = [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('일정을 재구성했어요'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('일정 재구성 실패: $e'), backgroundColor: AppColors.gray900, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _reconstructing = false);
+    }
+  }
+
+  void _toggleBooking(Map<String, dynamic> booking) {
+    final current = booking['is_done'] == true;
+    setState(() {
+      _bookings = _bookings.map((b) => b['id'] == booking['id'] ? {...b, 'is_done': !current} : b).toList();
+    });
+    TripBookingService.toggle(booking['id'] as String, current);
+  }
+
+  void _callPhone(String phone) async {
+    final uri = Uri.parse('tel:$phone');
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
+
+  void _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   // ── persist ────────────────────────────────────────────────
@@ -297,12 +394,32 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     }
 
     final days = (_itinerary!['days'] as List).cast<Map<String, dynamic>>();
+
+    if (days.isEmpty) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('아직 생성된 일정이 없어요', style: TextStyle(color: AppColors.gray600)),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('돌아가기'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final currentDay = days[_selectedDay];
 
     return Scaffold(
       body: Column(
         children: [
           _buildHeader(),
+          _buildRiskBanner(),
           _buildDayTabs(days),
           Expanded(
             child: SingleChildScrollView(
@@ -313,6 +430,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                   if (!_isEditMode) ...[
                     _buildMap(),
                     _buildBudgetSummary(),
+                    _buildBookingChecklist(),
                     _buildConfirmArea(),
                   ],
                 ],
@@ -377,7 +495,12 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                   style: TextStyle(fontSize: 12, color: Colors.white70))
               else
                 Row(children: [
-                  const Icon(Icons.directions_boat_rounded, size: 13, color: Colors.white70),
+                  Icon(
+                    _itinerary!['departurePort'] == '육로 이동'
+                        ? Icons.directions_car_rounded
+                        : Icons.directions_boat_rounded,
+                    size: 13, color: Colors.white70,
+                  ),
                   const SizedBox(width: 4),
                   Text(_itinerary!['departurePort'] as String? ?? '인천항',
                     style: const TextStyle(fontSize: 12, color: Colors.white70)),
@@ -497,10 +620,12 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     final port = _itinerary!['departurePort'] as String? ?? '인천항';
     final portCoord = _coords[port];
     final stopCoords = islands.map((n) => _coords[n]).whereType<LatLng>().toList();
-    if (portCoord == null || stopCoords.isEmpty) return const SizedBox.shrink();
+    if (stopCoords.isEmpty) return const SizedBox.shrink();
 
-    final route = [portCoord, ...stopCoords, portCoord];
-    final routeText = [port, ...islands, port].join(' → ');
+    // 다리로 연결된 섬("육로 이동")은 고정 출발항 좌표가 없어 섬간 경로만 표시
+    final route = portCoord != null ? [portCoord, ...stopCoords, portCoord] : stopCoords;
+    final routeText = portCoord != null ? [port, ...islands, port].join(' → ') : islands.join(' → ');
+    final mapCenter = portCoord ?? stopCoords.first;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
@@ -515,7 +640,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               height: 200,
               child: FlutterMap(
                 options: MapOptions(
-                  initialCenter: portCoord,
+                  initialCenter: mapCenter,
                   initialZoom: 8,
                   interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
                 ),
@@ -529,6 +654,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                     ),
                   ]),
                   MarkerLayer(markers: [
+                    if (portCoord != null)
                     Marker(
                       point: portCoord,
                       width: 28, height: 28,
@@ -593,6 +719,160 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               const Divider(height: 16),
               _BudgetRow(label: '총 예산', amount: total, isTotal: true),
             ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiskBanner() {
+    if (_risks.isEmpty || _isEditMode) return const SizedBox.shrink();
+    final hasCancelled = _risks.any((r) => r.level == TripRiskLevel.cancelled);
+
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFFFFFBEB),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Icon(Icons.warning_amber_rounded, size: 20, color: Color(0xFFD97706)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasCancelled ? '여객선 결항이 확인됐어요' : '결항 가능성이 있어요',
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF92400E)),
+                  ),
+                  const SizedBox(height: 4),
+                  ..._risks.map((r) => Text(r.message, style: const TextStyle(fontSize: 12, color: Color(0xFF92400E)))),
+                ],
+              ),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _reconstructing ? null : _handleReconstruct,
+              icon: _reconstructing
+                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.refresh_rounded, size: 16),
+              label: Text(_reconstructing ? '재구성 중...' : '대체 일정 만들기'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD97706), foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _bookingCategoryLabel = {
+    'ferry': '여객선', 'accommodation': '숙박', 'restaurant': '식당', 'experience': '체험',
+  };
+
+  Widget _buildBookingChecklist() {
+    if (_bookings.isEmpty) return const SizedBox.shrink();
+    final doneCount = _bookings.where((b) => b['is_done'] == true).length;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Row(children: [
+              Icon(Icons.checklist_rounded, size: 18, color: AppColors.gray700),
+              SizedBox(width: 6),
+              Text('예약 준비 체크리스트', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 15)),
+            ]),
+            Text('$doneCount/${_bookings.length}', style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+          ]),
+          const SizedBox(height: 4),
+          const Text(
+            '여객선·숙박·식당 예약은 sumtagi가 대신 해주지 않아요. 연락처로 직접 예약한 뒤 완료로 체크하세요.',
+            style: TextStyle(fontSize: 11, color: AppColors.gray500),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+            child: Column(
+              children: _bookings.map((b) {
+                final isDone = b['is_done'] == true;
+                final phone = b['phone'] as String?;
+                final url = b['external_url'] as String?;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.gray100, width: b == _bookings.first ? 0 : 1))),
+                  child: Row(children: [
+                    GestureDetector(
+                      onTap: () => _toggleBooking(b),
+                      child: Container(
+                        width: 22, height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isDone ? AppColors.blue600 : Colors.transparent,
+                          border: Border.all(color: isDone ? AppColors.blue600 : AppColors.gray300, width: 2),
+                        ),
+                        child: isDone ? const Icon(Icons.check, size: 13, color: Colors.white) : null,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Row(children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(4)),
+                          child: Text(_bookingCategoryLabel[b['category']] ?? '', style: const TextStyle(fontSize: 9, color: AppColors.gray600, fontWeight: FontWeight.w500)),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            b['name'] as String? ?? '',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w500,
+                              color: isDone ? AppColors.gray400 : AppColors.gray900,
+                              decoration: isDone ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ),
+                    if (phone != null)
+                      GestureDetector(
+                        onTap: () => _callPhone(phone),
+                        child: Container(
+                          width: 30, height: 30,
+                          decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.blue100),
+                          child: const Icon(Icons.call_rounded, size: 15, color: AppColors.blue600),
+                        ),
+                      ),
+                    if (url != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: GestureDetector(
+                          onTap: () => _openUrl(url),
+                          child: Container(
+                            width: 30, height: 30,
+                            decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.blue100),
+                            child: const Icon(Icons.open_in_new_rounded, size: 14, color: AppColors.blue600),
+                          ),
+                        ),
+                      ),
+                  ]),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),

@@ -3,7 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class IslandModel {
   final String id, name, description, ferryTime, bestSeason, image, popularityTrend, congestion;
   final List<String> features, ports;
-  final int ferryPrice;
+  // null = 여객선은 있지만 정확한 요금 미확인, 0 = 다리로 연결돼 배가 필요 없음
+  final int? ferryPrice;
   final double? lat;
   final double? lng;
 
@@ -15,12 +16,19 @@ class IslandModel {
     this.lat, this.lng,
   });
 
+  String get formattedFerryPrice {
+    final price = ferryPrice;
+    if (price == null) return '요금 확인 필요';
+    if (price > 0) return '${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원';
+    return '육로 연결';
+  }
+
   factory IslandModel.fromMap(Map<String, dynamic> map) => IslandModel(
     id: map['id'] as String,
     name: map['name'] as String,
     description: map['description'] as String? ?? '',
     ferryTime: map['ferry_time'] as String? ?? '',
-    ferryPrice: map['ferry_price'] as int? ?? 0,
+    ferryPrice: map['ferry_price'] as int?,
     popularityTrend: map['popularity_trend'] as String? ?? 'stable',
     congestion: map['congestion'] as String? ?? 'low',
     bestSeason: map['best_season'] as String? ?? '',
@@ -34,7 +42,8 @@ class IslandModel {
 
 class AttractionModel {
   final String id, name, category, description, image, duration;
-  final double rating;
+  // null = 평점 데이터 없음(관광공사 API/수동조사 모두 확인 안 된 곳이 많음) — 0점으로 뭉개지 말 것
+  final double? rating;
 
   const AttractionModel({
     required this.id, required this.name, required this.category,
@@ -49,18 +58,19 @@ class AttractionModel {
     description: map['description'] as String? ?? '',
     image: map['image'] as String? ?? '',
     duration: map['duration'] as String? ?? '',
-    rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+    rating: (map['rating'] as num?)?.toDouble(),
   );
 }
 
 class RestaurantModel {
   final String id, name, cuisine, priceLevel, specialty, image;
-  final double rating;
+  final String? phone;
+  final double? rating;
 
   const RestaurantModel({
     required this.id, required this.name, required this.cuisine,
     required this.priceLevel, required this.specialty, required this.image,
-    required this.rating,
+    required this.rating, this.phone,
   });
 
   factory RestaurantModel.fromMap(Map<String, dynamic> map) => RestaurantModel(
@@ -70,27 +80,38 @@ class RestaurantModel {
     priceLevel: map['price_level'] as String? ?? '',
     specialty: map['specialty'] as String? ?? '',
     image: map['image'] as String? ?? '',
-    rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+    phone: map['phone'] as String?,
+    rating: (map['rating'] as num?)?.toDouble(),
   );
 }
 
 class AccommodationModel {
   final String id, name, type, image;
-  final int pricePerNight;
-  final double rating;
+  final String? phone;
+  // null = 가격 미확인(목록 API에 없는 정보라 못 채운 경우가 대부분) — 0원으로 뭉개지 말 것
+  final int? pricePerNight;
+  final double? rating;
 
   const AccommodationModel({
     required this.id, required this.name, required this.type,
     required this.image, required this.pricePerNight, required this.rating,
+    this.phone,
   });
+
+  String get formattedPrice {
+    final price = pricePerNight;
+    if (price == null) return '요금 문의';
+    return '${(price / 10000).floor()}만원/박';
+  }
 
   factory AccommodationModel.fromMap(Map<String, dynamic> map) => AccommodationModel(
     id: map['id'] as String,
     name: map['name'] as String,
     type: map['type'] as String? ?? '',
     image: map['image'] as String? ?? '',
-    pricePerNight: map['price_per_night'] as int? ?? 0,
-    rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+    phone: map['phone'] as String?,
+    pricePerNight: map['price_per_night'] as int?,
+    rating: (map['rating'] as num?)?.toDouble(),
   );
 }
 
@@ -147,7 +168,7 @@ class IslandService {
       name: data['name'] as String,
       description: data['description'] as String? ?? '',
       ferryTime: data['ferry_time'] as String? ?? '',
-      ferryPrice: data['ferry_price'] as int? ?? 0,
+      ferryPrice: data['ferry_price'] as int?,
       popularityTrend: data['popularity_trend'] as String? ?? 'stable',
       congestion: data['congestion'] as String? ?? 'low',
       bestSeason: data['best_season'] as String? ?? '',

@@ -88,4 +88,17 @@ class TripService {
         .limit(1)
         .maybeSingle();
   }
+
+  static Future<List<Map<String, dynamic>>> getVisitedTrips() async {
+    if (_userId == null) return [];
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final data = await _client
+        .from('trips')
+        .select()
+        .eq('user_id', _userId!)
+        .eq('confirmed', true)
+        .lt('end_date', today)
+        .order('end_date', ascending: false);
+    return List<Map<String, dynamic>>.from(data as List);
+  }
 }

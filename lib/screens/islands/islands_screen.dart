@@ -1,10 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../services/island_service.dart';
 import '../../services/congestion_service.dart';
+
+enum _ViewMode { list, map }
+
+class _Marker {
+  final String id, name, ferryTime, description;
+  final LatLng position;
+  final Color color;
+  final bool isPort;
+  final List<String> ports;
+  final String congestion;
+  final int? ferryPrice;
+  final List<String> features;
+  final String? image;
+
+  const _Marker({
+    required this.id,
+    required this.name,
+    required this.ferryTime,
+    required this.description,
+    required this.position,
+    required this.color,
+    this.isPort = false,
+    this.ports = const [],
+    this.congestion = 'low',
+    this.ferryPrice,
+    this.features = const [],
+    this.image,
+  });
+
+  String get formattedFerryPrice {
+    final price = ferryPrice;
+    if (price == null) return '요금 확인 필요';
+    if (price > 0) return '${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원';
+    return '육로 연결';
+  }
+}
+
+const _ports = [
+  _Marker(id: 'incheon', name: '인천항',   ferryTime: '-', description: '인천 연안여객터미널', position: LatLng(37.4744, 126.6169), color: Color(0xFFEF4444), isPort: true),
+  _Marker(id: 'daebu',   name: '대부도항', ferryTime: '-', description: '방아머리여객터미널',  position: LatLng(37.2173, 126.5589), color: Color(0xFFF97316), isPort: true),
+];
+
+const _routes = [
+  ['incheon', 'baengnyeong'], ['incheon', 'daecheong'], ['incheon', 'socheong'],
+  ['incheon', 'yeonpyeong'],  ['incheon', 'deokjeok'],  ['incheon', 'jawol'],
+  ['incheon', 'seungbong'],   ['incheon', 'daeijak'],
+  ['daebu', 'jawol'],   ['daebu', 'seungbong'], ['daebu', 'daeijak'],
+  ['daebu', 'soijak'],  ['daebu', 'deokjeok'],  ['daebu', 'pungdo'], ['daebu', 'yukdo'],
+  ['deokjeok', 'jawol'], ['jawol', 'daeijak'],
+  ['incheon', 'yeonghung'], ['incheon', 'guleop'], ['yeonghung', 'seonjae'],
+];
+
+const _congestionLabels = {'low': '여유', 'medium': '보통', 'high': '혼잡'};
+const _congestionColors = {
+  'low': AppColors.green500, 'medium': AppColors.yellow500, 'high': AppColors.red500,
+};
 
 class IslandsScreen extends StatefulWidget {
   const IslandsScreen({super.key});
@@ -15,12 +73,16 @@ class IslandsScreen extends StatefulWidget {
 
 class _IslandsScreenState extends State<IslandsScreen> {
   List<IslandModel> _islands = [];
-  bool _isLoading = true;
+  Map<String, IslandCongestionData> _congestionMap = {};
+  bool _loading = true;
+
+  _ViewMode _viewMode = _ViewMode.list;
+  _Marker? _selected;
+  bool _showRoutes = true;
   String _portFilter = 'all';
   String _congestionFilter = 'all';
   String _searchQuery = '';
   final _searchCtrl = TextEditingController();
-  Map<String, IslandCongestionData> _congestionMap = {};
 
   @override
   void initState() {
@@ -37,25 +99,51 @@ class _IslandsScreenState extends State<IslandsScreen> {
   Future<void> _loadIslands() async {
     try {
       final islands = await IslandService.getIslands();
-      if (mounted) setState(() { _islands = islands; _isLoading = false; });
+      if (mounted) setState(() { _islands = islands; _loading = false; });
     } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _loading = false);
     }
     CongestionService.getAllIslandsCongestion()
         .then((map) { if (mounted) setState(() => _congestionMap = map); })
-        .catchError((e, st) { print('[IslandsCongestion ERROR] $e\n$st'); });
+        .catchError((e, st) { debugPrint('[IslandsCongestion ERROR] $e\n$st'); });
   }
+
+  String _effectiveCongestion(IslandModel island) =>
+      _congestionMap[island.id]?.todayLevel ?? island.congestion;
 
   List<IslandModel> get _filtered => _islands.where((island) {
     final portMatch = _portFilter == 'all' || island.ports.contains(_portFilter);
-    final effective = _congestionMap[island.id]?.todayLevel ?? island.congestion;
-    final congestionMatch = _congestionFilter == 'all' || effective == _congestionFilter;
+    final congestionMatch = _congestionFilter == 'all' || _effectiveCongestion(island) == _congestionFilter;
     final searchMatch = _searchQuery.isEmpty ||
         island.name.contains(_searchQuery) ||
         island.description.contains(_searchQuery) ||
         island.features.any((f) => f.contains(_searchQuery));
     return portMatch && congestionMatch && searchMatch;
   }).toList();
+
+  List<IslandModel> get _mappable => _filtered.where((i) => i.lat != null && i.lng != null).toList();
+
+  List<_Marker> get _markers => [
+    ..._ports,
+    ..._mappable.map((i) => _Marker(
+          id: i.id,
+          name: i.name,
+          ferryTime: i.ferryTime,
+          description: i.description,
+          position: LatLng(i.lat!, i.lng!),
+          color: const Color(0xFF3B82F6),
+          ports: i.ports,
+          congestion: _effectiveCongestion(i),
+          ferryPrice: i.ferryPrice,
+          features: i.features,
+          image: i.image,
+        )),
+  ];
+
+  _Marker? _getMarker(String id) {
+    try { return _markers.firstWhere((i) => i.id == id); }
+    catch (_) { return null; }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,23 +160,34 @@ class _IslandsScreenState extends State<IslandsScreen> {
             gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF3B82F6)]),
           ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('섬 둘러보기', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-            Text('인천의 아름다운 섬들을 탐색해보세요', style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.85))),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('섬 둘러보기', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text('인천의 아름다운 섬들을 탐색해보세요', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
+              ],
+            ),
+            _ViewToggle(
+              mode: _viewMode,
+              onChanged: (m) => setState(() => _viewMode = m),
+            ),
           ],
         ),
         titleSpacing: 24,
       ),
-      body: _isLoading
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 _buildSearchBar(),
                 _buildFilters(),
-                Expanded(child: _buildIslandList()),
+                Expanded(
+                  child: _viewMode == _ViewMode.list ? _buildIslandList() : _buildMapView(),
+                ),
               ],
             ),
     );
@@ -128,6 +227,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
     final total = _islands.length;
     final incheon = _islands.where((i) => i.ports.contains('인천항')).length;
     final daebudo = _islands.where((i) => i.ports.contains('대부도')).length;
+    final samok = _islands.where((i) => i.ports.contains('삼목선착장')).length;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
@@ -146,6 +246,8 @@ class _IslandsScreenState extends State<IslandsScreen> {
             Expanded(child: _FilterBtn(label: '인천항 ($incheon)', isActive: _portFilter == '인천항', color: 'darkblue', onTap: () => setState(() => _portFilter = '인천항'))),
             const SizedBox(width: 8),
             Expanded(child: _FilterBtn(label: '대부도 ($daebudo)', isActive: _portFilter == '대부도', color: 'lightblue', onTap: () => setState(() => _portFilter = '대부도'))),
+            const SizedBox(width: 8),
+            Expanded(child: _FilterBtn(label: '삼목항 ($samok)', isActive: _portFilter == '삼목선착장', color: 'darkblue', onTap: () => setState(() => _portFilter = '삼목선착장'))),
           ]),
           const SizedBox(height: 12),
           const Text('혼잡도', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.gray500)),
@@ -159,6 +261,28 @@ class _IslandsScreenState extends State<IslandsScreen> {
             const SizedBox(width: 8),
             Expanded(child: _FilterBtn(label: '혼잡', isActive: _congestionFilter == 'high', color: 'red', onTap: () => setState(() => _congestionFilter = 'high'))),
           ]),
+          if (_viewMode == _ViewMode.map) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => setState(() => _showRoutes = !_showRoutes),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: _showRoutes ? AppColors.blue100 : AppColors.gray100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.directions_boat_rounded, size: 15, color: _showRoutes ? AppColors.blue700 : AppColors.gray700),
+                    const SizedBox(width: 6),
+                    Text('항로 ${_showRoutes ? "숨기기" : "보기"}',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _showRoutes ? AppColors.blue700 : AppColors.gray700)),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -199,6 +323,283 @@ class _IslandsScreenState extends State<IslandsScreen> {
           child: _IslandCard(island: filtered[i], congestion: _congestionMap[filtered[i].id]),
         );
       },
+    );
+  }
+
+  Widget _buildMapView() {
+    return Column(
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              FlutterMap(
+                options: const MapOptions(
+                  initialCenter: LatLng(37.5, 125.8),
+                  initialZoom: 7.5,
+                  minZoom: 6,
+                  maxZoom: 14,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.sumtagi.app',
+                  ),
+                  if (_showRoutes) _buildRouteLayer(),
+                  _buildMarkerLayer(),
+                  RichAttributionWidget(
+                    attributions: [
+                      TextSourceAttribution('OpenStreetMap contributors'),
+                    ],
+                  ),
+                ],
+              ),
+              _buildLegend(),
+            ],
+          ),
+        ),
+        if (_selected != null) _buildInfoPanel(),
+      ],
+    );
+  }
+
+  Widget _buildRouteLayer() {
+    final lines = <Polyline>[];
+    for (final route in _routes) {
+      final from = _getMarker(route[0]);
+      final to   = _getMarker(route[1]);
+      if (from == null || to == null) continue;
+
+      final isHighlighted = _selected?.id == route[0] || _selected?.id == route[1];
+      lines.add(Polyline(
+        points: [from.position, to.position],
+        color: AppColors.blue500.withValues(alpha: isHighlighted ? 1.0 : 0.4),
+        strokeWidth: isHighlighted ? 2.5 : 1.2,
+        pattern: StrokePattern.dashed(segments: const [8, 6]),
+      ));
+    }
+    return PolylineLayer(polylines: lines);
+  }
+
+  Widget _buildMarkerLayer() {
+    return MarkerLayer(
+      markers: _markers.map((marker) {
+        final isSelected = _selected?.id == marker.id;
+        final size = marker.isPort ? 14.0 : isSelected ? 13.0 : 10.0;
+
+        return Marker(
+          point: marker.position,
+          width: size + 8,
+          height: size + 8,
+          child: GestureDetector(
+            onTap: () => setState(() => _selected = marker),
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: marker.color,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4),
+                  if (isSelected)
+                    BoxShadow(color: marker.color.withValues(alpha: 0.4), blurRadius: 8, spreadRadius: 2),
+                ],
+              ),
+              child: marker.isPort
+                  ? const Icon(Icons.anchor_rounded, size: 8, color: Colors.white)
+                  : null,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildLegend() {
+    return Align(
+      alignment: Alignment.topRight,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 6)],
+          ),
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _LegendItem(color: Color(0xFFEF4444), label: '인천항'),
+              SizedBox(height: 4),
+              _LegendItem(color: Color(0xFFF97316), label: '대부도항'),
+              SizedBox(height: 4),
+              _LegendItem(color: Color(0xFF3B82F6), label: '섬'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoPanel() {
+    final marker = _selected!;
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: AppColors.gray200)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!marker.isPort && marker.image != null && marker.image!.isNotEmpty)
+            SizedBox(
+              height: 110,
+              width: double.infinity,
+              child: CachedNetworkImage(
+                imageUrl: marker.image!,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => Container(color: AppColors.gray100),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (marker.isPort || marker.image == null || marker.image!.isEmpty)
+                      Container(
+                        width: 48, height: 48,
+                        decoration: BoxDecoration(
+                          color: marker.isPort
+                              ? (marker.id == 'incheon' ? AppColors.red50 : AppColors.orange50)
+                              : AppColors.blue50,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          marker.isPort ? Icons.anchor_rounded : Icons.location_on_rounded,
+                          size: 24,
+                          color: marker.isPort
+                              ? (marker.id == 'incheon' ? AppColors.red700 : AppColors.orange600)
+                              : AppColors.blue600,
+                        ),
+                      ),
+                    if (marker.isPort || marker.image == null || marker.image!.isEmpty)
+                      const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(marker.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+                          const SizedBox(height: 2),
+                          Text(marker.description, style: const TextStyle(fontSize: 12, color: AppColors.gray600)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppColors.gray400),
+                      onPressed: () => setState(() => _selected = null),
+                    ),
+                  ],
+                ),
+                if (!marker.isPort) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.directions_boat_rounded, size: 14, color: AppColors.gray500),
+                      const SizedBox(width: 4),
+                      Text(marker.ferryTime, style: const TextStyle(fontSize: 13, color: AppColors.gray700)),
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: _congestionColors[marker.congestion], borderRadius: BorderRadius.circular(6)),
+                        child: Text(_congestionLabels[marker.congestion] ?? '', style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500)),
+                      ),
+                      const Spacer(),
+                      Text(marker.formattedFerryPrice, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.blue600)),
+                    ],
+                  ),
+                  if (marker.features.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6, runSpacing: 6,
+                      children: marker.features.take(4).map((f) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(12)),
+                        child: Text(f, style: const TextStyle(fontSize: 11, color: AppColors.gray700)),
+                      )).toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => context.push('/island/${marker.id}'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.blue600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('섬 상세 보기', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ViewToggle extends StatelessWidget {
+  final _ViewMode mode;
+  final ValueChanged<_ViewMode> onChanged;
+  const _ViewToggle({required this.mode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _segment(Icons.grid_view_rounded, '리스트', _ViewMode.list),
+          _segment(Icons.map_rounded, '지도', _ViewMode.map),
+        ],
+      ),
+    );
+  }
+
+  Widget _segment(IconData icon, String label, _ViewMode value) {
+    final active = mode == value;
+    return GestureDetector(
+      onTap: () => onChanged(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: active ? Colors.white.withValues(alpha: 0.28) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: Colors.white),
+            const SizedBox(width: 4),
+            Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white)),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -268,7 +669,7 @@ class _IslandCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.gray200),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)],
         ),
         clipBehavior: Clip.hardEdge,
         child: Column(
@@ -342,7 +743,7 @@ class _IslandCard extends StatelessWidget {
                     children: [
                       const Text('여객선 요금', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
                       Text(
-                        '${island.ferryPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
+                        island.formattedFerryPrice,
                         style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue500, fontSize: 14),
                       ),
                     ],
@@ -365,6 +766,24 @@ class _IslandCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _LegendItem({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray700)),
+      ],
     );
   }
 }

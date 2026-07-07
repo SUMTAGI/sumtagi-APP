@@ -18,8 +18,7 @@ class _MainNavigationState extends State<MainNavigation> {
     if (location == '/') return 0;
     if (location.startsWith('/travel')) return 1;
     if (location.startsWith('/islands') || location.startsWith('/island')) return 2;
-    if (location.startsWith('/map')) return 3;
-    if (location.startsWith('/my')) return 4;
+    if (location.startsWith('/my')) return 3;
     return 0;
   }
 
@@ -31,8 +30,7 @@ class _MainNavigationState extends State<MainNavigation> {
       case 0: context.go('/'); break;
       case 1: context.go('/travel'); break;
       case 2: context.go('/islands'); break;
-      case 3: context.go('/map'); break;
-      case 4: context.go('/my'); break;
+      case 3: context.go('/my'); break;
     }
   }
 
@@ -95,16 +93,10 @@ class _MainNavigationState extends State<MainNavigation> {
                   onTap: () => _onTabTap(context, 2),
                 ),
                 _NavItem(
-                  icon: Icons.explore_rounded,
-                  label: '지도',
-                  isActive: currentIndex == 3,
-                  onTap: () => _onTabTap(context, 3),
-                ),
-                _NavItem(
                   icon: Icons.person_rounded,
                   label: '마이',
-                  isActive: currentIndex == 4,
-                  onTap: () => _onTabTap(context, 4),
+                  isActive: currentIndex == 3,
+                  onTap: () => _onTabTap(context, 3),
                 ),
               ],
             ),
