@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_colors.dart';
 import '../../services/island_service.dart';
 import '../../services/favorite_service.dart';
@@ -404,7 +405,12 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
         return Column(
           children: island.restaurants.map((r) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _PlaceCard(name: r.name, subtitle: '${r.cuisine} · ${r.priceLevel}', description: r.specialty, image: r.image, rating: r.rating),
+            child: _PlaceCard(
+              name: r.name,
+              subtitle: [r.cuisine, r.priceLevel].where((s) => s.isNotEmpty).join(' · '),
+              description: r.specialty.isNotEmpty ? r.specialty : null,
+              image: r.image, rating: r.rating, phone: r.phone,
+            ),
           )).toList(),
         );
       case 'accommodations':
@@ -414,7 +420,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
             padding: const EdgeInsets.only(bottom: 12),
             child: _PlaceCard(
               name: a.name, subtitle: a.type, image: a.image, rating: a.rating,
-              extra: '${(a.pricePerNight / 10000).floor()}만원/박',
+              extra: a.formattedPrice, phone: a.phone,
             ),
           )).toList(),
         );
@@ -471,9 +477,14 @@ class _TabBtn extends StatelessWidget {
 
 class _PlaceCard extends StatelessWidget {
   final String name, subtitle, image;
-  final String? description, extra;
-  final double rating;
-  const _PlaceCard({required this.name, required this.subtitle, required this.image, required this.rating, this.description, this.extra});
+  final String? description, extra, phone;
+  final double? rating;
+  const _PlaceCard({required this.name, required this.subtitle, required this.image, required this.rating, this.description, this.extra, this.phone});
+
+  void _call() async {
+    final uri = Uri.parse('tel:$phone');
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -499,11 +510,12 @@ class _PlaceCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.gray900))),
-                    Row(children: [
-                      const Icon(Icons.star_rounded, size: 14, color: Color(0xFFF59E0B)),
-                      const SizedBox(width: 2),
-                      Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray700)),
-                    ]),
+                    if (rating != null)
+                      Row(children: [
+                        const Icon(Icons.star_rounded, size: 14, color: Color(0xFFF59E0B)),
+                        const SizedBox(width: 2),
+                        Text(rating!.toStringAsFixed(1), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+                      ]),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -515,6 +527,13 @@ class _PlaceCard extends StatelessWidget {
                 if (extra != null) ...[
                   const SizedBox(height: 4),
                   Text(extra!, style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+                ],
+                if (phone != null) ...[
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: _call,
+                    child: Text('📞 $phone', style: const TextStyle(fontSize: 12, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                  ),
                 ],
               ],
             ),
