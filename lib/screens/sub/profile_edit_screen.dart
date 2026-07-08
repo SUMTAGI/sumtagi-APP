@@ -122,7 +122,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           const Icon(Icons.mail_outline_rounded, size: 20, color: AppColors.gray500),
                           const SizedBox(width: 12),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            const Text('이메일', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
+                            const Text('이메일', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
                             const SizedBox(height: 4),
                             Text(email, style: const TextStyle(fontSize: 15, color: AppColors.gray600)),
                           ])),
@@ -229,7 +229,7 @@ class _FormField extends StatelessWidget {
         Icon(icon, size: 20, color: AppColors.gray500),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
           const SizedBox(height: 4),
           TextField(
             controller: controller,

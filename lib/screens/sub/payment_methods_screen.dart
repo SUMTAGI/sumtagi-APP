@@ -46,7 +46,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                          child: const Text('기본 카드', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white)),
+                          child: const Text('기본 카드', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
                         ),
                     ],
                   ),
@@ -59,14 +59,14 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('카드 소유자', style: TextStyle(fontSize: 10, color: Colors.white60)),
+                          const Text('카드 소유자', style: TextStyle(fontSize: 13, color: Colors.white60)),
                           Text(card['holder'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('유효기간', style: TextStyle(fontSize: 10, color: Colors.white60)),
+                          const Text('유효기간', style: TextStyle(fontSize: 13, color: Colors.white60)),
                           Text(card['expiry'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
                         ],
                       ),
@@ -126,7 +126,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               children: [
                 Icon(Icons.lock_rounded, size: 16, color: AppColors.gray500),
                 SizedBox(width: 8),
-                Expanded(child: Text('결제 정보는 암호화되어 안전하게 보관됩니다.', style: TextStyle(fontSize: 12, color: AppColors.gray600, height: 1.4))),
+                Expanded(child: Text('결제 정보는 암호화되어 안전하게 보관됩니다.', style: TextStyle(fontSize: 13, color: AppColors.gray600, height: 1.4))),
               ],
             ),
           ),

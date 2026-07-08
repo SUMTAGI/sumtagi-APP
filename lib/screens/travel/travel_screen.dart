@@ -151,7 +151,7 @@ class _TravelScreenState extends State<TravelScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(50)),
-                              child: Text(dday == 0 ? '오늘 출발!' : 'D-$dday', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                              child: Text(dday == 0 ? '오늘 출발!' : 'D-$dday', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                             ),
                           const SizedBox(width: 8),
                           GestureDetector(
@@ -410,14 +410,14 @@ class _TravelScreenState extends State<TravelScreen> {
                 children: [
                   const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray500),
                   const SizedBox(width: 4),
-                  Expanded(child: Text(islands.isNotEmpty ? islands.join(', ') : '섬 정보 없음', style: const TextStyle(fontSize: 12, color: AppColors.gray600))),
+                  Expanded(child: Text(islands.isNotEmpty ? islands.join(', ') : '섬 정보 없음', style: const TextStyle(fontSize: 13, color: AppColors.gray600))),
                 ],
               ),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${trip['start_date']} ~ ${trip['end_date']}', style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+                  Text('${trip['start_date']} ~ ${trip['end_date']}', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                   GestureDetector(
                     onTap: () => context.push('/itinerary/${trip['id']}'),
                     child: const Text('일정보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w600)),
@@ -484,7 +484,7 @@ class _TabButton extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(color: AppColors.blue600, borderRadius: BorderRadius.circular(50)),
-                  child: Text(badge!, style: const TextStyle(color: Colors.white, fontSize: 11)),
+                  child: Text(badge!, style: const TextStyle(color: Colors.white, fontSize: 13)),
                 ),
               ],
             ],
@@ -508,7 +508,7 @@ class _QuickBtn extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8)),
-          child: Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.blue700)),
+          child: Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.blue700)),
         ),
       ),
     );

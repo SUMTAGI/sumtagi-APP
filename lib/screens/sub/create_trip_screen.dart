@@ -177,7 +177,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               ),
               Text(
                 'Step ${_step + 1} / $_totalSteps',
-                style: const TextStyle(fontSize: 12, color: AppColors.gray500),
+                style: const TextStyle(fontSize: 13, color: AppColors.gray500),
               ),
             ],
           ),
@@ -290,7 +290,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('선택된 섬', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.blue700)),
+                const Text('선택된 섬', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue700)),
                 const SizedBox(height: 4),
                 Text(
                   widget.preSelectedIsland!,
@@ -359,7 +359,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('총 여행 기간', style: TextStyle(fontSize: 11, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                    const Text('총 여행 기간', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 4),
                     Text(
                       '${_endDate!.difference(_startDate!).inDays}박 ${_endDate!.difference(_startDate!).inDays + 1}일',

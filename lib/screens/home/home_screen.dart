@@ -147,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
-                          child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor)),
+                          child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor)),
                         ),
                       ],
                     ),
@@ -196,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 2),
                 Text(
                   '${risk.description} (풍속 ${_weather!.current.windSpeed.toStringAsFixed(1)} km/h · 파고 ${_weather!.current.waveHeight.toStringAsFixed(1)} m)',
-                  style: TextStyle(fontSize: 12, color: textColor),
+                  style: TextStyle(fontSize: 13, color: textColor),
                 ),
               ],
             ),
@@ -332,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Text(
                         dday == 0 ? 'D-Day' : 'D-$dday',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
                 ],
@@ -373,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 4),
                 Text(
                   '여객선 정보 기반으로 자동 일정을 생성해드려요',
-                  style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+                  style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -437,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 6),
                 Text(
                   link['title'] as String,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.gray700),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray700),
                 ),
               ],
             ),
@@ -475,7 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _showAllFerryStatus(context),
-                          child: const Text('전체보기', style: TextStyle(fontSize: 12, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                          child: const Text('전체보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
                         ),
                       ],
                     ),
@@ -532,14 +532,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('인천 앞바다', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                        const Text('인천 앞바다', style: TextStyle(color: Colors.white70, fontSize: 13)),
                         Text(
                           _weather?.current.condition ?? '맑음',
                           style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           '파고: ${(_weather?.current.waveHeight ?? 0.5).toStringAsFixed(1)}m • 풍속: ${(_weather?.current.windSpeed ?? 3).toStringAsFixed(0)}m/s',
-                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
                         ),
                       ],
                     ),
@@ -552,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         Text(
                           '체감 ${(_weather?.current.apparentTemperature ?? 20).round()}°C',
-                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
                         ),
                       ],
                     ),
@@ -637,7 +637,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(day['day'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray900)),
-                        Text(day['date'] as String, style: const TextStyle(fontSize: 10, color: AppColors.gray500)),
+                        Text(day['date'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                       ],
                     ),
                   ),
@@ -666,7 +666,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 8),
                   SizedBox(
                     width: 36,
-                    child: Text('${day['rainChance']}%', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: (day['rainChance'] as int) >= 50 ? AppColors.blue600 : AppColors.gray500, fontWeight: FontWeight.w500)),
+                    child: Text('${day['rainChance']}%', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, color: (day['rainChance'] as int) >= 50 ? AppColors.blue600 : AppColors.gray500, fontWeight: FontWeight.w500)),
                   ),
                 ],
               ),

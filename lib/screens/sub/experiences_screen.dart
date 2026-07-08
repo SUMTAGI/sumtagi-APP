@@ -118,7 +118,7 @@ class _ExperiencesScreenState extends State<ExperiencesScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(color: AppColors.blue100, borderRadius: BorderRadius.circular(4)),
-                                  child: Text(exp['category'] as String, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.blue700)),
+                                  child: Text(exp['category'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue700)),
                                 ),
                               ],
                             ),
@@ -126,14 +126,14 @@ class _ExperiencesScreenState extends State<ExperiencesScreen> {
                             Row(children: [
                               const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray400),
                               const SizedBox(width: 2),
-                              Text(exp['island'] as String, style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
-                              const Text(' • ', style: TextStyle(color: AppColors.gray400, fontSize: 12)),
+                              Text(exp['island'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                              const Text(' • ', style: TextStyle(color: AppColors.gray400, fontSize: 13)),
                               const Icon(Icons.access_time_rounded, size: 12, color: AppColors.gray400),
                               const SizedBox(width: 2),
-                              Text(exp['duration'] as String, style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+                              Text(exp['duration'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                             ]),
                             const SizedBox(height: 4),
-                            Text(exp['description'] as String, style: const TextStyle(fontSize: 12, color: AppColors.gray600, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
+                            Text(exp['description'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray600, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
                             const SizedBox(height: 8),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -144,7 +144,7 @@ class _ExperiencesScreenState extends State<ExperiencesScreen> {
                                     Row(children: [
                                       const Icon(Icons.star_rounded, size: 12, color: Color(0xFFEAB308)),
                                       const SizedBox(width: 2),
-                                      Text('${exp['rating']} (${exp['reviewCount']})', style: const TextStyle(fontSize: 11, color: AppColors.gray600)),
+                                      Text('${exp['rating']} (${exp['reviewCount']})', style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
                                     ]),
                                     const SizedBox(height: 2),
                                     Text('${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.blue600)),

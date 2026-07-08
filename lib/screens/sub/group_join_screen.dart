@@ -132,7 +132,7 @@ class _GroupJoinScreenState extends State<GroupJoinScreen> {
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: AppColors.gray200,
-                    child: Text('+${members.length - 5}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.gray600)),
+                    child: Text('+${members.length - 5}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray600)),
                   ),
               ],
             ),

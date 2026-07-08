@@ -46,7 +46,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('찜한 여행지', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('${_favorites.length}개의 즐겨찾기', style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+            Text('${_favorites.length}개의 즐겨찾기', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -98,17 +98,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                     children: [
                                       Text(island.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                                       const SizedBox(height: 4),
-                                      Text(island.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+                                      Text(island.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                                       const SizedBox(height: 8),
                                       Row(children: [
                                         const Icon(Icons.directions_boat_rounded, size: 12, color: AppColors.gray400),
                                         const SizedBox(width: 3),
-                                        Text(island.ferryTime, style: const TextStyle(fontSize: 11, color: AppColors.gray600)),
+                                        Text(island.ferryTime, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
                                         const SizedBox(width: 8),
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(color: _congestionBg(island.congestion), borderRadius: BorderRadius.circular(4)),
-                                          child: Text(_congestionLabel(island.congestion), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _congestionText(island.congestion))),
+                                          child: Text(_congestionLabel(island.congestion), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _congestionText(island.congestion))),
                                         ),
                                       ]),
                                     ],
