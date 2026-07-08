@@ -87,11 +87,15 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/checklist',
-      builder: (context, state) => const ChecklistScreen(),
+      builder: (context, state) => ChecklistScreen(
+        tripId: state.uri.queryParameters['tripId'],
+      ),
     ),
     GoRoute(
       path: '/budget',
-      builder: (context, state) => const BudgetScreen(),
+      builder: (context, state) => BudgetScreen(
+        tripId: state.uri.queryParameters['tripId'],
+      ),
     ),
     GoRoute(
       path: '/community',

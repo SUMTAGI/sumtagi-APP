@@ -45,6 +45,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     '문갑도': '인천항', '백아도': '인천항', '울도': '인천항',
   };
 
+  // 굴업도는 실제로는 인천항에서 출발해 덕적도에서 배를 갈아타고 들어가는 섬이라
+  // _islandPortMap상 표기('덕적도')와 달리 인천항 권역 섬들과 함께 선택할 수 있어야 한다.
+  static const _transferIslands = {'굴업도'};
+
+  String _portGroupOf(String island) =>
+      _transferIslands.contains(island) ? '인천항' : (_islandPortMap[island] ?? '인천항');
+
   @override
   void initState() {
     super.initState();
@@ -62,11 +69,24 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   bool get _hasPreSelected => widget.preSelectedIsland != null;
   int get _totalSteps => _hasPreSelected ? 2 : 3;
 
-  String get _computedPort =>
-      _islandPortMap[_selectedIslands.firstOrNull ?? ''] ?? '인천항';
+  Set<String> get _selectedPortGroups =>
+      _selectedIslands.map(_portGroupOf).toSet();
+
+  bool get _hasPortConflict => _selectedPortGroups.length > 1;
+
+  bool get _requiresGulupTransfer => _selectedIslands.contains('굴업도');
+
+  String get _computedPort {
+    if (_selectedIslands.isEmpty) return '인천항';
+    // 굴업도만(단독) 선택된 경우 기존처럼 "덕적도 경유" 표기를 유지한다.
+    if (_selectedIslands.every(_transferIslands.contains)) {
+      return _islandPortMap[_selectedIslands.first] ?? '인천항';
+    }
+    return _portGroupOf(_selectedIslands.first);
+  }
 
   Future<void> _handleSubmit() async {
-    if (_isSubmitting) return;
+    if (_isSubmitting || _hasPortConflict) return;
     setState(() => _isSubmitting = true);
     try {
       final result = await generateAIItinerary(
@@ -95,6 +115,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       );
 
       final itinerary = result.itinerary;
+      // DB에 generated_by 컬럼이 없어도 저장할 수 있도록, days의 첫 번째 날에 생성 방식을 함께 기록한다.
+      final days = itinerary.days.map((d) => d.toJson()).toList();
+      if (days.isNotEmpty) {
+        days[0] = {...days[0], 'generatedBy': result.generatedBy};
+      }
       final id = await TripService.createTrip(
         title: itinerary.title,
         departurePort: itinerary.departurePort,
@@ -105,7 +130,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         travelType: _travelType,
         budget: _budget,
         totalCost: itinerary.totalCost,
-        days: itinerary.days.map((d) => d.toJson()).toList(),
+        days: days,
       );
 
       if (mounted) context.pushReplacement('/itinerary/$id');
@@ -255,23 +280,95 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               style: const TextStyle(fontSize: 13, color: AppColors.blue700),
             ),
           ),
+          if (_hasPortConflict) ...[
+            const SizedBox(height: 12),
+            _buildPortConflictWarning(),
+          ] else if (_requiresGulupTransfer) ...[
+            const SizedBox(height: 12),
+            _buildTransferNotice(),
+          ],
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => setState(() => _step = 1),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.blue600,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
+          if (!_hasPortConflict)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => setState(() => _step = 1),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.blue600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                child: const Text('다음: 날짜 선택'),
               ),
-              child: const Text('다음: 날짜 선택'),
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPortConflictWarning() {
+    final groups = <String, List<String>>{};
+    for (final island in _selectedIslands) {
+      groups.putIfAbsent(_portGroupOf(island), () => []).add(island);
+    }
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.red50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.red100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.error_outline_rounded, size: 16, color: AppColors.red700),
+              SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '출발항이 다른 섬은 함께 선택할 수 없어요',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.red700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ...groups.entries.map(
+            (e) => Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text('${e.key} 출발: ${e.value.join(', ')}', style: const TextStyle(fontSize: 12, color: AppColors.red700)),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text('같은 출발항의 섬끼리만 함께 선택해주세요.', style: TextStyle(fontSize: 12, color: AppColors.red700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransferNotice() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.blue50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.blue100),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.blue700),
+          SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              '굴업도는 인천항에서 덕적도를 거쳐 배를 갈아타고 들어가요.',
+              style: TextStyle(fontSize: 12, color: AppColors.blue700),
             ),
           ),
         ],
-      ],
+      ),
     );
   }
 

@@ -60,7 +60,7 @@ class TripRiskService {
         final matches = statuses.where((x) => x.islandName == island);
         final s = matches.isEmpty ? null : matches.first;
         if (s?.status == '결항') {
-          risks.add(TripRisk(island: island, date: today, level: TripRiskLevel.cancelled, message: '$island 여객선이 오늘 결항됐어요'));
+          risks.add(TripRisk(island: island, date: today, level: TripRiskLevel.cancelled, message: '$island 여객선이 오늘 결항 확정됐어요'));
         }
       }
     }
@@ -86,14 +86,29 @@ class TripRiskService {
       for (final offset in forecastOffsets) {
         if (offset - 1 >= weather.forecast.length) continue;
         final forecastDay = weather.forecast[offset - 1];
-        if (forecastDay.rainChance >= 70 || forecastDay.condition == '비') {
-          final island = islandIdToKor[islandId]!;
-          final date = DateTime.parse(today).add(Duration(days: offset));
+        final island = islandIdToKor[islandId]!;
+        final date = DateTime.parse(today).add(Duration(days: offset));
+        final dateStr = date.toIso8601String().substring(0, 10);
+
+        // 파고·풍속 데이터가 있으면 강수확률보다 우선 반영한다(결항의 직접 원인이므로).
+        final wave = forecastDay.waveHeight;
+        final wind = forecastDay.windSpeed;
+        if (wave != null && wind != null && WeatherService.assessFerryRisk(wind, wave) == FerryRisk.danger) {
           risks.add(TripRisk(
             island: island,
-            date: date.toIso8601String().substring(0, 10),
+            date: dateStr,
             level: TripRiskLevel.forecast,
-            message: '$island ${forecastDay.date} 강수확률 ${forecastDay.rainChance}%로 결항 가능성이 있어요',
+            message: '$island ${forecastDay.date} 파고 ${wave.toStringAsFixed(1)}m·풍속 ${wind.round()}km/h로 결항 가능성이 있어요(확정 아님)',
+          ));
+          continue;
+        }
+
+        if (forecastDay.rainChance >= 70 || forecastDay.condition == '비') {
+          risks.add(TripRisk(
+            island: island,
+            date: dateStr,
+            level: TripRiskLevel.forecast,
+            message: '$island ${forecastDay.date} 강수확률 ${forecastDay.rainChance}%로 결항 가능성이 있어요(확정 아님)',
           ));
         }
       }

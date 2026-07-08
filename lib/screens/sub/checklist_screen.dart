@@ -4,7 +4,8 @@ import '../../services/trip_service.dart';
 import '../../theme/app_colors.dart';
 
 class ChecklistScreen extends StatefulWidget {
-  const ChecklistScreen({super.key});
+  final String? tripId;
+  const ChecklistScreen({super.key, this.tripId});
   @override State<ChecklistScreen> createState() => _ChecklistScreenState();
 }
 
@@ -23,8 +24,10 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
-    final trip = await TripService.getUpcomingTrip();
-    final tripId = trip?['id'] as String?;
+    final trip = widget.tripId != null
+        ? await TripService.getTripById(widget.tripId!)
+        : await TripService.getUpcomingTrip();
+    final tripId = trip?['id'] as String? ?? widget.tripId;
     final data = await ChecklistService.getItems(tripId: tripId);
     if (mounted) {
       setState(() {

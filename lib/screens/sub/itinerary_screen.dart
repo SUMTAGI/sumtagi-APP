@@ -127,6 +127,9 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
       );
       final result = await generateAIItinerary(req);
       final days = result.itinerary.days.map((d) => d.toJson()).toList();
+      if (days.isNotEmpty) {
+        days[0] = {...days[0], 'generatedBy': result.generatedBy};
+      }
       await TripService.updateItinerary(widget.id, days, result.itinerary.totalCost);
       await NotificationService.add('일정이 재구성됐어요', '$riskNote — 위험을 피하도록 일정을 다시 만들었어요.');
       if (mounted) {
@@ -147,6 +150,12 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     } finally {
       if (mounted) setState(() => _reconstructing = false);
     }
+  }
+
+  bool get _isFallbackGenerated {
+    final days = (_itinerary?['days'] as List?) ?? [];
+    if (days.isEmpty) return false;
+    return (days.first as Map<String, dynamic>)['generatedBy'] == 'fallback';
   }
 
   void _toggleBooking(Map<String, dynamic> booking) {
@@ -419,6 +428,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
       body: Column(
         children: [
           _buildHeader(),
+          _buildFallbackNotice(),
           _buildRiskBanner(),
           _buildDayTabs(days),
           Expanded(
@@ -720,6 +730,22 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               _BudgetRow(label: '총 예산', amount: total, isTotal: true),
             ]),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackNotice() {
+    if (!_isFallbackGenerated || _isEditMode) return const SizedBox.shrink();
+    return Container(
+      width: double.infinity,
+      color: AppColors.gray100,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: const Row(
+        children: [
+          Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray600),
+          SizedBox(width: 6),
+          Text('AI 응답에 실패해 기본 일정으로 생성됐어요', style: TextStyle(fontSize: 12, color: AppColors.gray600)),
         ],
       ),
     );

@@ -48,19 +48,23 @@ class TripService {
   }
 
   static Future<Map<String, dynamic>?> getTripById(String id) async {
-    return await _client.from('trips').select().eq('id', id).maybeSingle();
+    if (_userId == null) return null;
+    return await _client.from('trips').select().eq('id', id).eq('user_id', _userId!).maybeSingle();
   }
 
   static Future<void> confirmTrip(String id) async {
-    await _client.from('trips').update({'confirmed': true}).eq('id', id);
+    if (_userId == null) return;
+    await _client.from('trips').update({'confirmed': true}).eq('id', id).eq('user_id', _userId!);
   }
 
   static Future<void> updateDays(String id, List<Map<String, dynamic>> days) async {
-    await _client.from('trips').update({'days': days}).eq('id', id);
+    if (_userId == null) return;
+    await _client.from('trips').update({'days': days}).eq('id', id).eq('user_id', _userId!);
   }
 
   static Future<void> updateItinerary(String id, List<Map<String, dynamic>> days, int totalCost) async {
-    await _client.from('trips').update({'days': days, 'total_cost': totalCost}).eq('id', id);
+    if (_userId == null) return;
+    await _client.from('trips').update({'days': days, 'total_cost': totalCost}).eq('id', id).eq('user_id', _userId!);
   }
 
   static Future<int> getTripCount() async {
@@ -74,7 +78,8 @@ class TripService {
   }
 
   static Future<void> deleteTrip(String id) async {
-    await _client.from('trips').delete().eq('id', id);
+    if (_userId == null) return;
+    await _client.from('trips').delete().eq('id', id).eq('user_id', _userId!);
   }
 
   static Future<Map<String, dynamic>?> getLatestConfirmedTrip() async {

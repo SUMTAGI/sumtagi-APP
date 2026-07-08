@@ -4,7 +4,8 @@ import '../../services/trip_service.dart';
 import '../../theme/app_colors.dart';
 
 class BudgetScreen extends StatefulWidget {
-  const BudgetScreen({super.key});
+  final String? tripId;
+  const BudgetScreen({super.key, this.tripId});
   @override State<BudgetScreen> createState() => _BudgetScreenState();
 }
 
@@ -42,11 +43,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
-    final trip = await TripService.getUpcomingTrip();
-    final data = await BudgetService.getExpenses(tripId: trip?['id'] as String?);
+    final trip = widget.tripId != null
+        ? await TripService.getTripById(widget.tripId!)
+        : await TripService.getUpcomingTrip();
+    final tripId = trip?['id'] as String? ?? widget.tripId;
+    final data = await BudgetService.getExpenses(tripId: tripId);
     if (mounted) {
       setState(() {
-        _tripId = trip?['id'] as String?;
+        _tripId = tripId;
         _tripTitle = trip?['title'] as String?;
         _expenses = data;
         _isLoading = false;

@@ -41,6 +41,8 @@ class WeatherForecastDay {
   final int high;
   final int low;
   final int rainChance;
+  final double? waveHeight; // 해당 일자 최고 파고(m). 확보 실패 시 null
+  final double? windSpeed; // 해당 일자 최고 풍속(km/h). 확보 실패 시 null
 
   const WeatherForecastDay({
     required this.day,
@@ -49,6 +51,8 @@ class WeatherForecastDay {
     required this.high,
     required this.low,
     required this.rainChance,
+    this.waveHeight,
+    this.windSpeed,
   });
 
   factory WeatherForecastDay.fromJson(Map<String, dynamic> j) => WeatherForecastDay(
@@ -58,6 +62,8 @@ class WeatherForecastDay {
     high: j['high'] as int,
     low: j['low'] as int,
     rainChance: j['rainChance'] as int,
+    waveHeight: (j['waveHeight'] as num?)?.toDouble(),
+    windSpeed: (j['windSpeed'] as num?)?.toDouble(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -67,6 +73,8 @@ class WeatherForecastDay {
     'high': high,
     'low': low,
     'rainChance': rainChance,
+    'waveHeight': waveHeight,
+    'windSpeed': windSpeed,
   };
 }
 
@@ -163,13 +171,13 @@ class WeatherService {
         'https://api.open-meteo.com/v1/forecast'
         '?latitude=$lat&longitude=$lon'
         '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m'
-        '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max'
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max'
         '&timezone=Asia%2FSeoul&forecast_days=6',
       );
       final marineUri = Uri.parse(
         'https://marine-api.open-meteo.com/v1/marine'
         '?latitude=$lat&longitude=$lon'
-        '&hourly=wave_height&timezone=Asia%2FSeoul&forecast_days=1',
+        '&hourly=wave_height&timezone=Asia%2FSeoul&forecast_days=6',
       );
 
       final responses = await Future.wait([
@@ -183,15 +191,34 @@ class WeatherService {
       final currentJson = forecastJson['current'] as Map<String, dynamic>;
       final dailyJson = forecastJson['daily'] as Map<String, dynamic>;
 
-      double waveHeight = 0.5;
+      // 시간별 파고 데이터: 오늘의 현재 파고 조회 + 날짜별 최고 파고 산출에 사용
+      List<String> waveTimes = [];
+      List<double> waveHeights = [];
       if (responses[1].statusCode == 200) {
         final marineJson = jsonDecode(responses[1].body) as Map<String, dynamic>;
-        final waves = (marineJson['hourly']['wave_height'] as List);
+        final hourly = marineJson['hourly'] as Map<String, dynamic>;
+        waveTimes = (hourly['time'] as List).cast<String>();
+        waveHeights = (hourly['wave_height'] as List).map((e) => (e as num?)?.toDouble() ?? 0.5).toList();
+      }
+
+      double waveHeight = 0.5;
+      if (waveHeights.isNotEmpty) {
         final hour = DateTime.now().hour;
-        waveHeight = (waves[hour] as num?)?.toDouble() ?? 0.5;
+        if (hour < waveHeights.length) waveHeight = waveHeights[hour];
+      }
+
+      double? maxWaveForDate(String date) {
+        double? maxV;
+        for (var i = 0; i < waveTimes.length; i++) {
+          if (waveTimes[i].startsWith(date) && (maxV == null || waveHeights[i] > maxV)) {
+            maxV = waveHeights[i];
+          }
+        }
+        return maxV;
       }
 
       final dates = (dailyJson['time'] as List).cast<String>();
+      final windMaxList = dailyJson['wind_speed_10m_max'] as List?;
       final forecast = List.generate(5, (i) {
         final idx = i + 1;
         final date = DateTime.parse(dates[idx]);
@@ -202,6 +229,8 @@ class WeatherService {
           high: ((dailyJson['temperature_2m_max'] as List)[idx] as num).round(),
           low: ((dailyJson['temperature_2m_min'] as List)[idx] as num).round(),
           rainChance: ((dailyJson['precipitation_probability_max'] as List)[idx] as num?)?.round() ?? 0,
+          waveHeight: maxWaveForDate(dates[idx]),
+          windSpeed: (windMaxList?[idx] as num?)?.toDouble(),
         );
       });
 

@@ -281,9 +281,9 @@ class _TravelScreenState extends State<TravelScreen> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      _QuickBtn(label: '체크리스트', onTap: () => context.push('/checklist')),
+                      _QuickBtn(label: '체크리스트', onTap: () => context.push('/checklist?tripId=$_currentItineraryId')),
                       const SizedBox(width: 8),
-                      _QuickBtn(label: '경비관리', onTap: () => context.push('/budget')),
+                      _QuickBtn(label: '경비관리', onTap: () => context.push('/budget?tripId=$_currentItineraryId')),
                       const SizedBox(width: 8),
                       _QuickBtn(label: '시간표', onTap: () => context.push('/schedule')),
                     ],
