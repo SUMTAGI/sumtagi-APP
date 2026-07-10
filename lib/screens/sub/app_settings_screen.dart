@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_colors.dart';
+
+Future<void> _openUrl(String url) async {
+  final uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+}
 
 class AppSettingsScreen extends StatefulWidget {
   const AppSettingsScreen({super.key});
@@ -7,10 +13,7 @@ class AppSettingsScreen extends StatefulWidget {
 }
 
 class _AppSettingsScreenState extends State<AppSettingsScreen> {
-  bool _darkMode = false;
-  bool _locationAccess = true;
   String _language = '한국어';
-  String _fontSize = '보통';
 
   @override
   Widget build(BuildContext context) {
@@ -25,27 +28,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          _SectionTitle('화면'),
-          _SettingCard(children: [
-            SwitchListTile(
-              title: const Text('다크 모드', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              subtitle: const Text('어두운 테마로 전환합니다', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
-              value: _darkMode,
-              onChanged: (v) => setState(() => _darkMode = v),
-              activeColor: AppColors.blue600,
-            ),
-            const Divider(height: 1, indent: 16, color: AppColors.gray100),
-            ListTile(
-              title: const Text('글자 크기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              trailing: DropdownButton<String>(
-                value: _fontSize,
-                underline: const SizedBox(),
-                items: ['작게', '보통', '크게'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
-                onChanged: (v) => setState(() => _fontSize = v!),
-              ),
-            ),
-          ]),
-          const SizedBox(height: 16),
           _SectionTitle('언어 및 지역'),
           _SettingCard(children: [
             ListTile(
@@ -59,14 +41,18 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
             ),
           ]),
           const SizedBox(height: 16),
-          _SectionTitle('권한'),
+          _SectionTitle('약관 및 정책'),
           _SettingCard(children: [
-            SwitchListTile(
-              title: const Text('위치 접근', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              subtitle: const Text('지도 및 주변 정보에 활용됩니다', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
-              value: _locationAccess,
-              onChanged: (v) => setState(() => _locationAccess = v),
-              activeColor: AppColors.blue600,
+            ListTile(
+              title: const Text('이용약관', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
+              onTap: () => _openUrl('https://sumtagi-web.vercel.app/terms'),
+            ),
+            const Divider(height: 1, indent: 16, color: AppColors.gray100),
+            ListTile(
+              title: const Text('개인정보 처리방침', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
+              onTap: () => _openUrl('https://sumtagi-web.vercel.app/privacy'),
             ),
           ]),
           const SizedBox(height: 16),

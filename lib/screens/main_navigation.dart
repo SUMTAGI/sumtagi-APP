@@ -62,45 +62,85 @@ class _MainNavigationState extends State<MainNavigation> {
           child: widget.child,
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.gray200, width: 1)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavItem(
-                  icon: Icons.home_rounded,
-                  label: '홈',
-                  isActive: currentIndex == 0,
-                  onTap: () => _onTabTap(context, 0),
-                ),
-                _NavItem(
-                  icon: Icons.calendar_month_rounded,
-                  label: '여행',
-                  isActive: currentIndex == 1,
-                  onTap: () => _onTabTap(context, 1),
-                ),
-                _NavItem(
-                  icon: Icons.location_on_rounded,
-                  label: '섬',
-                  isActive: currentIndex == 2,
-                  onTap: () => _onTabTap(context, 2),
-                ),
-                _NavItem(
-                  icon: Icons.person_rounded,
-                  label: '마이',
-                  isActive: currentIndex == 3,
-                  onTap: () => _onTabTap(context, 3),
-                ),
-              ],
-            ),
-          ),
+      extendBody: true,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const itemCount = 4;
+            const barHeight = 76.0;
+            const indicatorSize = 58.0;
+            final itemWidth = constraints.maxWidth / itemCount;
+            return Container(
+              height: barHeight,
+              decoration: BoxDecoration(
+                color: AppColors.gray100,
+                borderRadius: BorderRadius.circular(38),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, 8)),
+                ],
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    left: itemWidth * currentIndex + (itemWidth - indicatorSize) / 2,
+                    top: (barHeight - indicatorSize) / 2,
+                    width: indicatorSize,
+                    height: indicatorSize,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 2)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _NavItem(
+                          icon: Icons.home_rounded,
+                          label: '홈',
+                          isActive: currentIndex == 0,
+                          onTap: () => _onTabTap(context, 0),
+                        ),
+                      ),
+                      Expanded(
+                        child: _NavItem(
+                          icon: Icons.calendar_month_rounded,
+                          label: '여행',
+                          isActive: currentIndex == 1,
+                          onTap: () => _onTabTap(context, 1),
+                        ),
+                      ),
+                      Expanded(
+                        child: _NavItem(
+                          icon: Icons.location_on_rounded,
+                          label: '섬',
+                          isActive: currentIndex == 2,
+                          onTap: () => _onTabTap(context, 2),
+                        ),
+                      ),
+                      Expanded(
+                        child: _NavItem(
+                          icon: Icons.person_rounded,
+                          label: '마이',
+                          isActive: currentIndex == 3,
+                          onTap: () => _onTabTap(context, 3),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -122,31 +162,20 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = isActive ? AppColors.blue600 : AppColors.gray500;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: AnimatedContainer(
+      child: AnimatedDefaultTextStyle(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isActive ? AppColors.blue600 : AppColors.gray500,
-            ),
+            Icon(icon, size: 26, color: color),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: isActive ? AppColors.blue600 : AppColors.gray500,
-              ),
-            ),
+            Text(label),
           ],
         ),
       ),

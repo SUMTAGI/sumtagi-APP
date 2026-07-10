@@ -457,62 +457,6 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
-          // Ferry status
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.gray100),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('실시간 운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
-                    GestureDetector(
-                      onTap: () => _showAllFerryStatus(context),
-                      child: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                ...(() {
-                  final display = _ferryStatus.isNotEmpty
-                      ? _ferryStatus.take(3).toList()
-                      : [
-                          FerryRouteStatus(islandName: '백령도', status: '확인중'),
-                          FerryRouteStatus(islandName: '덕적도', status: '확인중'),
-                          FerryRouteStatus(islandName: '영흥도', status: '확인중'),
-                        ];
-                  final rows = <Widget>[];
-                  for (var i = 0; i < display.length; i++) {
-                    rows.add(_StatusRow(island: display[i].islandName, status: display[i].status));
-                    if (i != display.length - 1) {
-                      rows.add(const SizedBox(height: 10));
-                      rows.add(Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Container(
-                          height: 1.5,
-                          decoration: BoxDecoration(
-                            color: AppColors.gray200,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                        ),
-                      ));
-                      rows.add(const SizedBox(height: 10));
-                    }
-                  }
-                  return rows;
-                })(),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
           // Weather widget
           Container(
             padding: const EdgeInsets.all(20),
@@ -581,6 +525,62 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Weekly forecast
           _buildWeeklyForecast(),
+          const SizedBox(height: 16),
+
+          // Ferry status
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.gray100),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('실시간 운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
+                    GestureDetector(
+                      onTap: () => _showAllFerryStatus(context),
+                      child: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ...(() {
+                  final display = _ferryStatus.isNotEmpty
+                      ? _ferryStatus.take(3).toList()
+                      : [
+                          FerryRouteStatus(islandName: '백령도', status: '확인중'),
+                          FerryRouteStatus(islandName: '덕적도', status: '확인중'),
+                          FerryRouteStatus(islandName: '영흥도', status: '확인중'),
+                        ];
+                  final rows = <Widget>[];
+                  for (var i = 0; i < display.length; i++) {
+                    rows.add(_StatusRow(island: display[i].islandName, status: display[i].status));
+                    if (i != display.length - 1) {
+                      rows.add(const SizedBox(height: 10));
+                      rows.add(Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Container(
+                          height: 1.5,
+                          decoration: BoxDecoration(
+                            color: AppColors.gray200,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ));
+                      rows.add(const SizedBox(height: 10));
+                    }
+                  }
+                  return rows;
+                })(),
+              ],
+            ),
+          ),
         ],
       ),
     );
