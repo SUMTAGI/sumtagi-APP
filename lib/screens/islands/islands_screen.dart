@@ -333,7 +333,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
   Widget _buildIslandList() {
     final filtered = _filtered;
     if (filtered.isEmpty) {
-      return const Center(child: Text('검색 결과가 없어요', style: TextStyle(color: AppColors.gray500)));
+      return const Center(child: Text('다른 키워드로 검색해보세요', style: TextStyle(color: AppColors.gray500)));
     }
     return ListView.builder(
       padding: const EdgeInsets.all(24),

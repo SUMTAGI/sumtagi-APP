@@ -368,7 +368,7 @@ class _TravelScreenState extends State<TravelScreen> {
           children: [
             Icon(Icons.directions_boat_rounded, size: 64, color: AppColors.gray300),
             SizedBox(height: 16),
-            Text('지난 여행이 없어요', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.gray900)),
+            Text('첫 여행을 계획해보세요', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.gray900)),
             SizedBox(height: 8),
             Text('여행을 다녀오면 여기에 기록돼요', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
           ],

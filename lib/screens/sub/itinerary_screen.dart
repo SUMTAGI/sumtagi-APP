@@ -401,7 +401,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('아직 생성된 일정이 없어요', style: TextStyle(color: AppColors.gray600)),
+              const Text('새로운 일정을 만들어보세요', style: TextStyle(color: AppColors.gray600)),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => context.pop(),

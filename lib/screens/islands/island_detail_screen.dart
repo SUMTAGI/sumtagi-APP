@@ -297,7 +297,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               child: const Row(children: [
                 Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray400),
                 SizedBox(width: 6),
-                Text('이 섬은 혼잡도 예측 데이터가 없어요',
+                Text('혼잡도 예측 정보를 수집중이에요',
                     style: TextStyle(fontSize: 13, color: AppColors.gray400)),
               ]),
             )
@@ -345,7 +345,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(12)),
             )))
           else if (_ferrySchedule.isEmpty)
-            const Text('오늘 운항 정보가 없어요', style: TextStyle(fontSize: 13, color: AppColors.gray400))
+            const Text('오늘 운항 정보를 확인하고 있어요', style: TextStyle(fontSize: 13, color: AppColors.gray400))
           else
             SizedBox(
               height: 84,
@@ -393,7 +393,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
   Widget _buildTabContent(IslandDetailModel island) {
     switch (_activeTab) {
       case 'attractions':
-        if (island.attractions.isEmpty) return const _EmptyState(message: '등록된 관광지가 없어요');
+        if (island.attractions.isEmpty) return const _EmptyState(message: '관광지 정보를 준비중이에요');
         return Column(
           children: island.attractions.map((a) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -401,7 +401,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
           )).toList(),
         );
       case 'restaurants':
-        if (island.restaurants.isEmpty) return const _EmptyState(message: '등록된 맛집이 없어요');
+        if (island.restaurants.isEmpty) return const _EmptyState(message: '맛집 정보를 준비중이에요');
         return Column(
           children: island.restaurants.map((r) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -414,7 +414,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
           )).toList(),
         );
       case 'accommodations':
-        if (island.accommodations.isEmpty) return const _EmptyState(message: '등록된 숙박시설이 없어요');
+        if (island.accommodations.isEmpty) return const _EmptyState(message: '숙박시설 정보를 준비중이에요');
         return Column(
           children: island.accommodations.map((a) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -425,7 +425,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
           )).toList(),
         );
       case 'photo_spots':
-        if (island.photoSpots.isEmpty) return const _EmptyState(message: '등록된 포토스팟이 없어요');
+        if (island.photoSpots.isEmpty) return const _EmptyState(message: '포토스팟 정보를 준비중이에요');
         return GridView.count(
           crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12,
           childAspectRatio: 0.85, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),

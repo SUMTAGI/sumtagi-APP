@@ -520,7 +520,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
           children: [
             const Icon(Icons.group_outlined, size: 64, color: AppColors.gray300),
             const SizedBox(height: 16),
-            const Text('아직 참여한 그룹이 없어요', style: TextStyle(fontSize: 15, color: AppColors.gray500)),
+            const Text('새로운 그룹 여행을 만들어보세요', style: TextStyle(fontSize: 15, color: AppColors.gray500)),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -774,7 +774,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
             )),
           ] else ...[
             const SizedBox(height: 16),
-            Center(child: Text('아직 지출 내역이 없어요', style: TextStyle(fontSize: 13, color: AppColors.gray400))),
+            Center(child: Text('지출 내역을 기록해보세요', style: TextStyle(fontSize: 13, color: AppColors.gray400))),
           ],
         ],
       ),
@@ -804,7 +804,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
           ),
           const SizedBox(height: 14),
           if (polls.isEmpty)
-            Center(child: Text('아직 투표가 없어요', style: TextStyle(fontSize: 13, color: AppColors.gray400)))
+            Center(child: Text('새로운 투표를 만들어보세요', style: TextStyle(fontSize: 13, color: AppColors.gray400)))
           else
             ...polls.map((poll) => _buildPollCard(poll, me, group['id'] as String)),
         ],

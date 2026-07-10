@@ -8,6 +8,7 @@ import '../../services/weather_service.dart';
 import '../../services/ferry_service.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/ocean_scene.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -245,6 +246,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          const Positioned.fill(
+            child: OceanScene(waveColor: Colors.white, waveHeight: 28),
+          ),
           SafeArea(
             bottom: false,
             child: Padding(
@@ -302,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final itin = _upcomingTrip!;
     final dday = _getDDay((itin['start_date'] ?? itin['startDate']) as String);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -318,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Icon(Icons.directions_boat_rounded, color: Colors.white, size: 18),
                   SizedBox(width: 6),
-                  Text('오늘의 여행', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+                  Text('오늘의 여행', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
                 ],
               ),
               Row(
@@ -358,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
@@ -455,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Ferry status
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -468,20 +472,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('실시간 운항 현황', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 15)),
-                    Row(
-                      children: [
-                        Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle)),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => _showAllFerryStatus(context),
-                          child: const Text('전체보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
-                        ),
-                      ],
+                    const Text('실시간 운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
+                    GestureDetector(
+                      onTap: () => _showAllFerryStatus(context),
+                      child: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 ...(() {
                   final display = _ferryStatus.isNotEmpty
                       ? _ferryStatus.take(3).toList()
@@ -490,10 +488,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           FerryRouteStatus(islandName: '덕적도', status: '확인중'),
                           FerryRouteStatus(islandName: '영흥도', status: '확인중'),
                         ];
-                  return display.expand((s) => [
-                    _StatusRow(island: s.islandName, status: s.status),
-                    const SizedBox(height: 8),
-                  ]).toList()..removeLast();
+                  final rows = <Widget>[];
+                  for (var i = 0; i < display.length; i++) {
+                    rows.add(_StatusRow(island: display[i].islandName, status: display[i].status));
+                    if (i != display.length - 1) {
+                      rows.add(const SizedBox(height: 10));
+                      rows.add(Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Container(
+                          height: 1.5,
+                          decoration: BoxDecoration(
+                            color: AppColors.gray200,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ));
+                      rows.add(const SizedBox(height: 10));
+                    }
+                  }
+                  return rows;
                 })(),
               ],
             ),
@@ -502,12 +515,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Weather widget
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF60A5FA), Color(0xFF3B82F6)],
+                colors: _weatherGradientColors(_weather?.current.condition ?? '맑음'),
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -515,48 +528,51 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: [
-                    Icon(
-                      _weatherIcon(_weather?.current.condition ?? '맑음'),
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('오늘의 날씨', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('인천 앞바다', style: TextStyle(color: Colors.white70, fontSize: 13)),
-                        Text(
-                          _weather?.current.condition ?? '맑음',
-                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '파고: ${(_weather?.current.waveHeight ?? 0.5).toStringAsFixed(1)}m • 풍속: ${(_weather?.current.windSpeed ?? 3).toStringAsFixed(0)}m/s',
-                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
-                        ),
-                      ],
+                    const Expanded(
+                      child: Text('인천 앞바다', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${(_weather?.current.temperature ?? 22).round()}°C',
-                          style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+                    Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Colors.white.withValues(alpha: 0.35), Colors.white.withValues(alpha: 0.1)],
                         ),
-                        Text(
-                          '체감 ${(_weather?.current.apparentTemperature ?? 20).round()}°C',
-                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
-                        ),
-                      ],
+                        boxShadow: [
+                          BoxShadow(color: Colors.white.withValues(alpha: 0.18), blurRadius: 24, spreadRadius: 2),
+                        ],
+                      ),
+                      child: Icon(
+                        _weatherIcon(_weather?.current.condition ?? '맑음'),
+                        color: Colors.white,
+                        size: 42,
+                      ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '${(_weather?.current.temperature ?? 22).round()}°C',
+                  style: const TextStyle(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold, height: 1.0),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '체감 ${(_weather?.current.apparentTemperature ?? 20).round()}°C',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11),
+                ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '파고 ${(_weather?.current.waveHeight ?? 0.5).toStringAsFixed(1)}m · 풍속 ${(_weather?.current.windSpeed ?? 3).toStringAsFixed(0)}m/s',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11),
+                  ),
                 ),
               ],
             ),
@@ -590,6 +606,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  List<Color> _weatherGradientColors(String condition) {
+    switch (condition) {
+      case '맑음': return const [Color(0xFF60A5FA), Color(0xFF3B82F6)];
+      case '구름조금': return const [Color(0xFF93C5FD), Color(0xFF64748B)];
+      case '흐림': return const [Color(0xFF9CA3AF), Color(0xFF4B5563)];
+      case '비': return const [Color(0xFF64748B), Color(0xFF1E3A8A)];
+      default: return const [Color(0xFF60A5FA), Color(0xFF3B82F6)];
+    }
+  }
+
   Widget _buildWeeklyForecast() {
     final days = _weather?.forecast.map((f) => {
       'day': f.day,
@@ -611,7 +637,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -621,7 +647,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('주간 날씨', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 15)),
+          const Text('주간 날씨', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
           const SizedBox(height: 12),
           ...days.asMap().entries.map((e) {
             final i = e.key;
@@ -647,7 +673,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: Row(
                       children: [
-                        Text('${day['high']}°', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray900)),
+                        Text('${day['low']}°', style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Container(
@@ -659,7 +685,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text('${day['low']}°', style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+                        Text('${day['high']}°', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray900)),
                       ],
                     ),
                   ),
@@ -686,19 +712,22 @@ class _StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(island, style: const TextStyle(fontSize: 14, color: AppColors.gray700)),
-        Text(
-          status == '정상' ? '정상 운항' : status == '결항' ? '결항' : status == '운항없음' ? '운항없음' : '확인중...',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: status == '결항' ? AppColors.red700 : status == '운항없음' || status == '확인중' ? AppColors.gray400 : AppColors.green600,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(island, style: const TextStyle(fontSize: 14, color: AppColors.gray700)),
+          Text(
+            status == '정상' ? '정상 운항' : status == '결항' ? '결항' : status == '운항없음' ? '운항없음' : '확인중...',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: status == '결항' ? AppColors.red700 : status == '운항없음' || status == '확인중' ? AppColors.gray400 : AppColors.green600,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

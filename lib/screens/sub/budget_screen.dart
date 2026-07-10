@@ -205,7 +205,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           const SizedBox(height: 48),
                           const Icon(Icons.attach_money_rounded, size: 48, color: AppColors.gray300),
                           const SizedBox(height: 12),
-                          const Text('아직 지출 내역이 없어요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
+                          const Text('지출 내역을 기록해보세요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
                           const SizedBox(height: 12),
                           TextButton(onPressed: () => setState(() => _showAddForm = true), child: const Text('첫 지출 추가하기', style: TextStyle(color: AppColors.blue600, fontWeight: FontWeight.w600))),
                         ])

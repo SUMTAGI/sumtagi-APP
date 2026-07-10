@@ -110,7 +110,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     children: [
                       Icon(Icons.notifications_none_rounded, size: 64, color: AppColors.gray300),
                       SizedBox(height: 16),
-                      Text('알림이 없어요', style: TextStyle(fontSize: 16, color: AppColors.gray500)),
+                      Text('새로운 소식이 오면 알려드릴게요', style: TextStyle(fontSize: 16, color: AppColors.gray500)),
                     ],
                   ),
                 )

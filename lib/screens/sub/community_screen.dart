@@ -154,7 +154,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           size: 64, color: AppColors.gray200),
                       const SizedBox(height: 16),
                       Text(
-                        _tab == 0 ? '아직 리뷰가 없어요' : '아직 질문이 없어요',
+                        _tab == 0 ? '첫 리뷰를 남겨보세요' : '첫 질문을 남겨보세요',
                         style: const TextStyle(fontSize: 16, color: AppColors.gray500),
                       ),
                       const SizedBox(height: 8),
@@ -511,8 +511,8 @@ class _PostCardState extends State<_PostCard> {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text(
                           widget.isQna
-                              ? '아직 답변이 없어요'
-                              : '아직 댓글이 없어요',
+                              ? '첫 답변을 남겨보세요'
+                              : '첫 댓글을 남겨보세요',
                           style: const TextStyle(
                               fontSize: 13, color: AppColors.gray400),
                         ),

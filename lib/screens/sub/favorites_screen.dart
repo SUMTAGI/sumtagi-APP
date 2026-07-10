@@ -63,7 +63,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     children: [
                       Icon(Icons.favorite_border, size: 64, color: AppColors.gray300),
                       SizedBox(height: 16),
-                      Text('찜한 여행지가 없어요', style: TextStyle(fontSize: 16, color: AppColors.gray500)),
+                      Text('나만의 찜 목록을 만들어보세요', style: TextStyle(fontSize: 16, color: AppColors.gray500)),
                       SizedBox(height: 8),
                       Text('마음에 드는 섬을 찜해보세요!', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
                     ],
