@@ -43,7 +43,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
       _groups.where((g) => g['id'] == _activeGroupId).firstOrNull;
 
   void _copyInviteLink(String code) {
-    Clipboard.setData(ClipboardData(text: 'https://sumtagi.app/group-join/$code'));
+    Clipboard.setData(ClipboardData(text: 'https://sumtagi-web.vercel.app/group-join/$code'));
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('초대 링크가 복사됐어요')));
   }
 

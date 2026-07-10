@@ -50,7 +50,6 @@ class AppColors {
   static const Color black = Colors.black;
 
   static const Color kakao = Color(0xFFFEE500);
-  static const Color naver = Color(0xFF03C75A);
 }
 
 class AppGradients {
