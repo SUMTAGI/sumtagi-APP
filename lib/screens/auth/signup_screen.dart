@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 
@@ -31,7 +32,7 @@ class _SignupScreenState extends State<SignupScreen> {
   void initState() {
     super.initState();
     if (widget.method != null &&
-        ['kakao', 'google', 'naver'].contains(widget.method)) {
+        ['kakao', 'google', 'apple'].contains(widget.method)) {
       _signupMethod = widget.method;
       _step = 2;
     }
@@ -284,12 +285,14 @@ class _SignupScreenState extends State<SignupScreen> {
           value: _agreeTerms,
           onChanged: (v) => setState(() => _agreeTerms = v!),
           label: '[필수] 이용약관에 동의합니다',
+          url: 'https://sumtagi-web.vercel.app/terms',
         ),
         const SizedBox(height: 12),
         _AgreementRow(
           value: _agreePrivacy,
           onChanged: (v) => setState(() => _agreePrivacy = v!),
           label: '[필수] 개인정보 처리방침에 동의합니다',
+          url: 'https://sumtagi-web.vercel.app/privacy',
         ),
         const SizedBox(height: 24),
         SizedBox(
@@ -418,7 +421,14 @@ class _AgreementRow extends StatelessWidget {
   final bool value;
   final ValueChanged<bool?> onChanged;
   final String label;
-  const _AgreementRow({required this.value, required this.onChanged, required this.label});
+  final String? url;
+  const _AgreementRow({required this.value, required this.onChanged, required this.label, this.url});
+
+  Future<void> _openUrl() async {
+    if (url == null) return;
+    final uri = Uri.parse(url!);
+    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -438,6 +448,14 @@ class _AgreementRow extends StatelessWidget {
         Expanded(
           child: Text(label, style: const TextStyle(fontSize: 14, color: AppColors.gray700)),
         ),
+        if (url != null)
+          GestureDetector(
+            onTap: _openUrl,
+            child: const Text(
+              '보기',
+              style: TextStyle(fontSize: 13, color: AppColors.blue600, decoration: TextDecoration.underline),
+            ),
+          ),
       ],
     );
   }
