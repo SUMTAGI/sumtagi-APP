@@ -81,7 +81,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('알림', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text(unread > 0 ? '읽지 않은 알림 $unread개' : '모두 읽었어요', style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+            Text(unread > 0 ? '읽지 않은 알림 $unread개' : '모두 읽었어요', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -110,7 +110,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     children: [
                       Icon(Icons.notifications_none_rounded, size: 64, color: AppColors.gray300),
                       SizedBox(height: 16),
-                      Text('알림이 없어요', style: TextStyle(fontSize: 16, color: AppColors.gray500)),
+                      Text('새로운 소식이 오면 알려드릴게요', style: TextStyle(fontSize: 16, color: AppColors.gray500)),
                     ],
                   ),
                 )
@@ -145,7 +145,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     const SizedBox(height: 4),
                                     Text(n['message'] as String? ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray600, height: 1.4)),
                                     const SizedBox(height: 6),
-                                    Text(_timeAgo(n['created_at'] as String? ?? ''), style: const TextStyle(fontSize: 11, color: AppColors.gray400)),
+                                    Text(_timeAgo(n['created_at'] as String? ?? ''), style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
                                   ],
                                 ),
                               ),

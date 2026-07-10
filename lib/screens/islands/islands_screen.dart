@@ -160,21 +160,12 @@ class _IslandsScreenState extends State<IslandsScreen> {
             gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF3B82F6)]),
           ),
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('섬 둘러보기', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                Text('인천의 아름다운 섬들을 탐색해보세요', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
-              ],
-            ),
-            _ViewToggle(
-              mode: _viewMode,
-              onChanged: (m) => setState(() => _viewMode = m),
-            ),
+            const Text('섬 둘러보기', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('인천의 아름다운 섬들을 탐색해보세요', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
           ],
         ),
         titleSpacing: 24,
@@ -184,6 +175,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
           : Column(
               children: [
                 _buildSearchBar(),
+                _buildViewTabBar(),
                 _buildFilters(),
                 Expanded(
                   child: _viewMode == _ViewMode.list ? _buildIslandList() : _buildMapView(),
@@ -214,11 +206,40 @@ class _IslandsScreenState extends State<IslandsScreen> {
               : null,
           filled: true,
           fillColor: AppColors.gray50,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200)),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200)),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.gray200)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.gray200)),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
+      ),
+    );
+  }
+
+  Widget _buildViewTabBar() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppColors.gray200)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _ViewTab(
+              icon: Icons.grid_view_rounded,
+              label: '리스트',
+              active: _viewMode == _ViewMode.list,
+              onTap: () => setState(() => _viewMode = _ViewMode.list),
+            ),
+          ),
+          Expanded(
+            child: _ViewTab(
+              icon: Icons.map_rounded,
+              label: '지도',
+              active: _viewMode == _ViewMode.map,
+              onTap: () => setState(() => _viewMode = _ViewMode.map),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -238,29 +259,50 @@ class _IslandsScreenState extends State<IslandsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('출발 항구', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.gray500)),
-          const SizedBox(height: 8),
-          Row(children: [
-            Expanded(child: _FilterBtn(label: '전체 ($total)', isActive: _portFilter == 'all', color: 'blue', onTap: () => setState(() => _portFilter = 'all'))),
-            const SizedBox(width: 8),
-            Expanded(child: _FilterBtn(label: '인천항 ($incheon)', isActive: _portFilter == '인천항', color: 'darkblue', onTap: () => setState(() => _portFilter = '인천항'))),
-            const SizedBox(width: 8),
-            Expanded(child: _FilterBtn(label: '대부도 ($daebudo)', isActive: _portFilter == '대부도', color: 'lightblue', onTap: () => setState(() => _portFilter = '대부도'))),
-            const SizedBox(width: 8),
-            Expanded(child: _FilterBtn(label: '삼목항 ($samok)', isActive: _portFilter == '삼목선착장', color: 'darkblue', onTap: () => setState(() => _portFilter = '삼목선착장'))),
-          ]),
-          const SizedBox(height: 12),
-          const Text('혼잡도', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.gray500)),
-          const SizedBox(height: 8),
-          Row(children: [
-            Expanded(child: _FilterBtn(label: '전체', isActive: _congestionFilter == 'all', color: 'blue', onTap: () => setState(() => _congestionFilter = 'all'))),
-            const SizedBox(width: 8),
-            Expanded(child: _FilterBtn(label: '여유', isActive: _congestionFilter == 'low', color: 'green', onTap: () => setState(() => _congestionFilter = 'low'))),
-            const SizedBox(width: 8),
-            Expanded(child: _FilterBtn(label: '보통', isActive: _congestionFilter == 'medium', color: 'yellow', onTap: () => setState(() => _congestionFilter = 'medium'))),
-            const SizedBox(width: 8),
-            Expanded(child: _FilterBtn(label: '혼잡', isActive: _congestionFilter == 'high', color: 'red', onTap: () => setState(() => _congestionFilter = 'high'))),
-          ]),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('출발 항구', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray500)),
+                    const SizedBox(height: 8),
+                    _FilterDropdown(
+                      value: _portFilter,
+                      items: [
+                        ('all', '전체 ($total)'),
+                        ('인천항', '인천항 ($incheon)'),
+                        ('대부도', '대부도 ($daebudo)'),
+                        ('삼목선착장', '삼목항 ($samok)'),
+                      ],
+                      onChanged: (v) => setState(() => _portFilter = v),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('혼잡도', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray500)),
+                    const SizedBox(height: 8),
+                    _FilterDropdown(
+                      value: _congestionFilter,
+                      items: const [
+                        ('all', '전체'),
+                        ('low', '여유'),
+                        ('medium', '보통'),
+                        ('high', '혼잡'),
+                      ],
+                      onChanged: (v) => setState(() => _congestionFilter = v),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           if (_viewMode == _ViewMode.map) ...[
             const SizedBox(height: 12),
             GestureDetector(
@@ -269,7 +311,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: _showRoutes ? AppColors.blue100 : AppColors.gray100,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -277,7 +319,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                     Icon(Icons.directions_boat_rounded, size: 15, color: _showRoutes ? AppColors.blue700 : AppColors.gray700),
                     const SizedBox(width: 6),
                     Text('항로 ${_showRoutes ? "숨기기" : "보기"}',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _showRoutes ? AppColors.blue700 : AppColors.gray700)),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _showRoutes ? AppColors.blue700 : AppColors.gray700)),
                   ],
                 ),
               ),
@@ -291,7 +333,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
   Widget _buildIslandList() {
     final filtered = _filtered;
     if (filtered.isEmpty) {
-      return const Center(child: Text('검색 결과가 없어요', style: TextStyle(color: AppColors.gray500)));
+      return const Center(child: Text('다른 키워드로 검색해보세요', style: TextStyle(color: AppColors.gray500)));
     }
     return ListView.builder(
       padding: const EdgeInsets.all(24),
@@ -303,7 +345,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.blue100,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.blue200),
             ),
             child: const Column(
@@ -424,7 +466,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.92),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 6)],
           ),
           child: const Column(
@@ -496,7 +538,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                         children: [
                           Text(marker.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                           const SizedBox(height: 2),
-                          Text(marker.description, style: const TextStyle(fontSize: 12, color: AppColors.gray600)),
+                          Text(marker.description, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
                         ],
                       ),
                     ),
@@ -516,8 +558,8 @@ class _IslandsScreenState extends State<IslandsScreen> {
                       const SizedBox(width: 16),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(color: _congestionColors[marker.congestion], borderRadius: BorderRadius.circular(6)),
-                        child: Text(_congestionLabels[marker.congestion] ?? '', style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500)),
+                        decoration: BoxDecoration(color: _congestionColors[marker.congestion], borderRadius: BorderRadius.circular(10)),
+                        child: Text(_congestionLabels[marker.congestion] ?? '', style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500)),
                       ),
                       const Spacer(),
                       Text(marker.formattedFerryPrice, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.blue600)),
@@ -529,8 +571,8 @@ class _IslandsScreenState extends State<IslandsScreen> {
                       spacing: 6, runSpacing: 6,
                       children: marker.features.take(4).map((f) => Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(12)),
-                        child: Text(f, style: const TextStyle(fontSize: 11, color: AppColors.gray700)),
+                        decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(16)),
+                        child: Text(f, style: const TextStyle(fontSize: 13, color: AppColors.gray700)),
                       )).toList(),
                     ),
                   ],
@@ -543,7 +585,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                         backgroundColor: AppColors.blue600,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       child: const Text('섬 상세 보기', style: TextStyle(fontWeight: FontWeight.w600)),
                     ),
@@ -558,45 +600,29 @@ class _IslandsScreenState extends State<IslandsScreen> {
   }
 }
 
-class _ViewToggle extends StatelessWidget {
-  final _ViewMode mode;
-  final ValueChanged<_ViewMode> onChanged;
-  const _ViewToggle({required this.mode, required this.onChanged});
+class _ViewTab extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+  const _ViewTab({required this.icon, required this.label, required this.active, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _segment(Icons.grid_view_rounded, '리스트', _ViewMode.list),
-          _segment(Icons.map_rounded, '지도', _ViewMode.map),
-        ],
-      ),
-    );
-  }
-
-  Widget _segment(IconData icon, String label, _ViewMode value) {
-    final active = mode == value;
-    return GestureDetector(
-      onTap: () => onChanged(value),
+    final color = active ? AppColors.blue600 : AppColors.gray500;
+    return InkWell(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: active ? Colors.white.withValues(alpha: 0.28) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          border: Border(bottom: BorderSide(color: active ? AppColors.blue600 : Colors.transparent, width: 2)),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 14, color: Colors.white),
-            const SizedBox(width: 4),
-            Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white)),
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
           ],
         ),
       ),
@@ -604,38 +630,32 @@ class _ViewToggle extends StatelessWidget {
   }
 }
 
-class _FilterBtn extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final String color;
-  final VoidCallback onTap;
-  const _FilterBtn({required this.label, required this.isActive, required this.color, required this.onTap});
-
-  Color get _activeColor => switch (color) {
-    'green'     => AppColors.green500,
-    'yellow'    => AppColors.yellow500,
-    'red'       => AppColors.red500,
-    'orange'    => AppColors.orange500,
-    'darkblue'  => AppColors.blue600,
-    'lightblue' => const Color(0xFF93C5FD),
-    _ => AppColors.blue500,
-  };
-
-  Color get _inactiveBg => AppColors.gray100;
-
-  Color get _inactiveText => AppColors.gray700;
+class _FilterDropdown extends StatelessWidget {
+  final String value;
+  final List<(String, String)> items;
+  final ValueChanged<String> onChanged;
+  const _FilterDropdown({required this.value, required this.items, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? _activeColor : _inactiveBg,
-          borderRadius: BorderRadius.circular(8),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.gray50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.gray200),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.gray500, size: 20),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray900),
+          items: items
+              .map((item) => DropdownMenuItem(value: item.$1, child: Text(item.$2, overflow: TextOverflow.ellipsis)))
+              .toList(),
+          onChanged: (v) { if (v != null) onChanged(v); },
         ),
-        child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isActive ? Colors.white : _inactiveText)),
       ),
     );
   }
@@ -667,7 +687,7 @@ class _IslandCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.gray200),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)],
         ),
@@ -702,8 +722,8 @@ class _IslandCard extends StatelessWidget {
                       Text(island.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: _congestionBg, borderRadius: BorderRadius.circular(6)),
-                        child: Text(_congestionLabel, style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500)),
+                        decoration: BoxDecoration(color: _congestionBg, borderRadius: BorderRadius.circular(10)),
+                        child: Text(_congestionLabel, style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500)),
                       ),
                     ],
                   ),
@@ -722,7 +742,7 @@ class _IslandCard extends StatelessWidget {
                     child: Row(children: [
                       Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.blue500, shape: BoxShape.circle)),
                       const SizedBox(width: 8),
-                      Text(f, style: const TextStyle(fontSize: 12, color: AppColors.gray700)),
+                      Text(f, style: const TextStyle(fontSize: 13, color: AppColors.gray700)),
                     ]),
                   )),
                   const SizedBox(height: 12),
@@ -757,7 +777,7 @@ class _IslandCard extends StatelessWidget {
                         color: port == '인천항' ? AppColors.blue600 : const Color(0xFF93C5FD),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(port, style: const TextStyle(fontSize: 11, color: Colors.white)),
+                      child: Text(port, style: const TextStyle(fontSize: 13, color: Colors.white)),
                     )).toList(),
                   ),
                 ],
@@ -782,7 +802,7 @@ class _LegendItem extends StatelessWidget {
       children: [
         Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray700)),
+        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray700)),
       ],
     );
   }

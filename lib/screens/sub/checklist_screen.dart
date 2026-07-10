@@ -121,7 +121,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               decoration: isChecked ? TextDecoration.lineThrough : null,
                             ),
                           ),
-                          subtitle: Text(item['category'] as String? ?? '', style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+                          subtitle: Text(item['category'] as String? ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                           activeColor: AppColors.blue600,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),

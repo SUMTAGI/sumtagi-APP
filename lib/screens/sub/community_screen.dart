@@ -61,7 +61,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             Text('리뷰 & Q&A',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             Text('섬 여행 리뷰와 질문을 공유하세요',
-                style: TextStyle(fontSize: 11, color: AppColors.gray500)),
+                style: TextStyle(fontSize: 13, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -154,7 +154,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           size: 64, color: AppColors.gray200),
                       const SizedBox(height: 16),
                       Text(
-                        _tab == 0 ? '아직 리뷰가 없어요' : '아직 질문이 없어요',
+                        _tab == 0 ? '첫 리뷰를 남겨보세요' : '첫 질문을 남겨보세요',
                         style: const TextStyle(fontSize: 16, color: AppColors.gray500),
                       ),
                       const SizedBox(height: 8),
@@ -370,7 +370,7 @@ class _PostCardState extends State<_PostCard> {
                                   const SizedBox(width: 2),
                                   Text(islandName,
                                       style: const TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 13,
                                           color: AppColors.blue600,
                                           fontWeight: FontWeight.w500)),
                                 ]),
@@ -386,7 +386,7 @@ class _PostCardState extends State<_PostCard> {
                                         BorderRadius.circular(8)),
                                 child: const Text('Q',
                                     style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFFD97706))),
                               ),
@@ -394,7 +394,7 @@ class _PostCardState extends State<_PostCard> {
                           ]),
                           Text(_timeAgo(createdAt),
                               style: const TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 13,
                                   color: AppColors.gray400)),
                         ],
                       ),
@@ -511,10 +511,10 @@ class _PostCardState extends State<_PostCard> {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text(
                           widget.isQna
-                              ? '아직 답변이 없어요'
-                              : '아직 댓글이 없어요',
+                              ? '첫 답변을 남겨보세요'
+                              : '첫 댓글을 남겨보세요',
                           style: const TextStyle(
-                              fontSize: 12, color: AppColors.gray400),
+                              fontSize: 13, color: AppColors.gray400),
                         ),
                       ),
                     )
@@ -537,7 +537,7 @@ class _PostCardState extends State<_PostCard> {
                                         ? (c['author_name'] as String)[0]
                                         : '?',
                                     style: const TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.blue600),
                                   ),
@@ -561,7 +561,7 @@ class _PostCardState extends State<_PostCard> {
                                           c['author_name'] as String? ??
                                               '여행자',
                                           style: const TextStyle(
-                                              fontSize: 12,
+                                              fontSize: 13,
                                               fontWeight: FontWeight.w600,
                                               color: AppColors.gray900),
                                         ),
@@ -580,7 +580,7 @@ class _PostCardState extends State<_PostCard> {
                                                         6)),
                                             child: const Text('A',
                                                 style: TextStyle(
-                                                    fontSize: 10,
+                                                    fontSize: 13,
                                                     fontWeight:
                                                         FontWeight.bold,
                                                     color: Color(
@@ -593,7 +593,7 @@ class _PostCardState extends State<_PostCard> {
                                                   as String? ??
                                               ''),
                                           style: const TextStyle(
-                                              fontSize: 10,
+                                              fontSize: 13,
                                               color: AppColors.gray400),
                                         ),
                                       ]),
@@ -713,7 +713,7 @@ class _IslandChip extends StatelessWidget {
         ),
         child: Text(label,
             style: TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: selected ? Colors.white : AppColors.gray600)),
       ),

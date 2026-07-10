@@ -24,7 +24,7 @@ class _SupportScreenState extends State<SupportScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             Text('고객센터', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('도움이 필요하신가요?', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
+            Text('도움이 필요하신가요?', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -45,7 +45,7 @@ class _SupportScreenState extends State<SupportScreen> {
                 const SizedBox(height: 12),
                 const Text('고객 지원팀', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 4),
-                const Text('평일 9:00 - 18:00', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                const Text('평일 9:00 - 18:00', style: TextStyle(fontSize: 13, color: Colors.white70)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -133,7 +133,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('이메일 문의', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                      Text('support@icisland.kr', style: TextStyle(fontSize: 12, color: AppColors.blue600)),
+                      Text('support@icisland.kr', style: TextStyle(fontSize: 13, color: AppColors.blue600)),
                     ],
                   ),
                 ),

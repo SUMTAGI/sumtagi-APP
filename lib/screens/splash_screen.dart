@@ -160,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 32),
                 // App name
                 const Text(
-                  '섬여행',
+                  '섬타기',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 32,

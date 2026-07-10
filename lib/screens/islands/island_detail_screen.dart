@@ -297,7 +297,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               child: const Row(children: [
                 Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray400),
                 SizedBox(width: 6),
-                Text('이 섬은 혼잡도 예측 데이터가 없어요',
+                Text('혼잡도 예측 정보를 수집중이에요',
                     style: TextStyle(fontSize: 13, color: AppColors.gray400)),
               ]),
             )
@@ -335,7 +335,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                 SizedBox(width: 6),
                 Text('오늘 출발 여객선', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
               ]),
-              Text(dateLabel, style: const TextStyle(fontSize: 12, color: AppColors.gray400)),
+              Text(dateLabel, style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
             ],
           ),
           const SizedBox(height: 12),
@@ -345,7 +345,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(12)),
             )))
           else if (_ferrySchedule.isEmpty)
-            const Text('오늘 운항 정보가 없어요', style: TextStyle(fontSize: 13, color: AppColors.gray400))
+            const Text('오늘 운항 정보를 확인하고 있어요', style: TextStyle(fontSize: 13, color: AppColors.gray400))
           else
             SizedBox(
               height: 84,
@@ -371,13 +371,13 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(f.status,
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: labelColor)),
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: labelColor)),
                         const SizedBox(height: 2),
                         Text(f.departureTime,
                             style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: timeColor,
                                 decoration: f.isCancelled ? TextDecoration.lineThrough : null)),
                         const SizedBox(height: 2),
-                        Text(f.ferryName, style: const TextStyle(fontSize: 10, color: AppColors.gray500),
+                        Text(f.ferryName, style: const TextStyle(fontSize: 13, color: AppColors.gray500),
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                       ],
                     ),
@@ -393,7 +393,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
   Widget _buildTabContent(IslandDetailModel island) {
     switch (_activeTab) {
       case 'attractions':
-        if (island.attractions.isEmpty) return const _EmptyState(message: '등록된 관광지가 없어요');
+        if (island.attractions.isEmpty) return const _EmptyState(message: '관광지 정보를 준비중이에요');
         return Column(
           children: island.attractions.map((a) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -401,7 +401,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
           )).toList(),
         );
       case 'restaurants':
-        if (island.restaurants.isEmpty) return const _EmptyState(message: '등록된 맛집이 없어요');
+        if (island.restaurants.isEmpty) return const _EmptyState(message: '맛집 정보를 준비중이에요');
         return Column(
           children: island.restaurants.map((r) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -414,7 +414,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
           )).toList(),
         );
       case 'accommodations':
-        if (island.accommodations.isEmpty) return const _EmptyState(message: '등록된 숙박시설이 없어요');
+        if (island.accommodations.isEmpty) return const _EmptyState(message: '숙박시설 정보를 준비중이에요');
         return Column(
           children: island.accommodations.map((a) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -425,7 +425,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
           )).toList(),
         );
       case 'photo_spots':
-        if (island.photoSpots.isEmpty) return const _EmptyState(message: '등록된 포토스팟이 없어요');
+        if (island.photoSpots.isEmpty) return const _EmptyState(message: '포토스팟 정보를 준비중이에요');
         return GridView.count(
           crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12,
           childAspectRatio: 0.85, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
@@ -440,7 +440,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(s.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                    Text(s.bestTime, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                    Text(s.bestTime, style: const TextStyle(color: Colors.white70, fontSize: 13)),
                   ],
                 )),
               ],
@@ -514,25 +514,25 @@ class _PlaceCard extends StatelessWidget {
                       Row(children: [
                         const Icon(Icons.star_rounded, size: 14, color: Color(0xFFF59E0B)),
                         const SizedBox(width: 2),
-                        Text(rating!.toStringAsFixed(1), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+                        Text(rating!.toStringAsFixed(1), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
                       ]),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
                 if (description != null) ...[
                   const SizedBox(height: 4),
-                  Text(description!, style: const TextStyle(fontSize: 12, color: AppColors.gray600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(description!, style: const TextStyle(fontSize: 13, color: AppColors.gray600), maxLines: 2, overflow: TextOverflow.ellipsis),
                 ],
                 if (extra != null) ...[
                   const SizedBox(height: 4),
-                  Text(extra!, style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+                  Text(extra!, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                 ],
                 if (phone != null) ...[
                   const SizedBox(height: 4),
                   GestureDetector(
                     onTap: _call,
-                    child: Text('📞 $phone', style: const TextStyle(fontSize: 12, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                    child: Text('📞 $phone', style: const TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
                   ),
                 ],
               ],
@@ -650,7 +650,7 @@ class _ChartPainter extends CustomPainter {
       final tp = TextPainter(
         text: TextSpan(
           text: forecasts[i].dayLabel,
-          style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
@@ -681,7 +681,7 @@ class _CongestionPill extends StatelessWidget {
         children: [
           Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 6),
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray500, fontWeight: FontWeight.w500)),
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray500, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -703,9 +703,9 @@ class _InfoCard extends StatelessWidget {
           children: [
             Icon(icon, color: AppColors.blue600, size: 20),
             const SizedBox(height: 6),
-            Text(label, style: const TextStyle(fontSize: 10, color: AppColors.gray500)),
+            Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
             const SizedBox(height: 2),
-            Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.gray900), textAlign: TextAlign.center),
+            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900), textAlign: TextAlign.center),
           ],
         ),
       ),

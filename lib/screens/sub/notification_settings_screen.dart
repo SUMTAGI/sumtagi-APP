@@ -95,7 +95,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               children: [
                 Icon(Icons.info_outline_rounded, size: 16, color: AppColors.blue600),
                 SizedBox(width: 8),
-                Expanded(child: Text('알림을 받으려면 기기의 알림 설정도 활성화되어 있어야 합니다.', style: TextStyle(fontSize: 12, color: AppColors.blue700, height: 1.4))),
+                Expanded(child: Text('알림을 받으려면 기기의 알림 설정도 활성화되어 있어야 합니다.', style: TextStyle(fontSize: 13, color: AppColors.blue700, height: 1.4))),
               ],
             ),
           ),
@@ -138,7 +138,7 @@ class _NotifItem extends StatelessWidget {
     return SwitchListTile(
       secondary: Icon(icon, size: 22, color: AppColors.gray500),
       title: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.gray900)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+      subtitle: Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
       value: value,
       onChanged: onChanged,
       activeColor: AppColors.blue600,

@@ -131,7 +131,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     color: AppColors.gray700)),
             const SizedBox(height: 4),
             const Text('선택 사항',
-                style: TextStyle(fontSize: 12, color: AppColors.gray400)),
+                style: TextStyle(fontSize: 13, color: AppColors.gray400)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -173,7 +173,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     color: AppColors.gray700)),
             const SizedBox(height: 4),
             const Text('선택 사항',
-                style: TextStyle(fontSize: 12, color: AppColors.gray400)),
+                style: TextStyle(fontSize: 13, color: AppColors.gray400)),
             const SizedBox(height: 10),
             TextField(
               controller: _titleCtrl,
@@ -254,7 +254,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     color: AppColors.gray700)),
             const SizedBox(height: 4),
             const Text('선택 사항',
-                style: TextStyle(fontSize: 12, color: AppColors.gray400)),
+                style: TextStyle(fontSize: 13, color: AppColors.gray400)),
             const SizedBox(height: 10),
             if (_selectedImage != null) ...[
               Stack(children: [

@@ -95,7 +95,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             const Text('여행 경비 관리', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             Text(
               _tripTitle != null ? '$_tripTitle 지출 관리' : '여행 중이 아닐 때의 지출을 기록하세요',
-              style: const TextStyle(fontSize: 11, color: AppColors.gray500),
+              style: const TextStyle(fontSize: 13, color: AppColors.gray500),
             ),
           ],
         ),
@@ -116,7 +116,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('총 예산', style: TextStyle(fontSize: 12, color: Color(0xFFBFDBFE))),
+                          const Text('총 예산', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
                           const SizedBox(height: 4),
                           Text('${_totalBudget.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
                             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
@@ -126,12 +126,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       Row(
                         children: [
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            const Text('총 지출', style: TextStyle(fontSize: 11, color: Color(0xFFBFDBFE))),
+                            const Text('총 지출', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
                             Text('${totalExpense.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
                               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                           ])),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            const Text('남은 예산', style: TextStyle(fontSize: 11, color: Color(0xFFBFDBFE))),
+                            const Text('남은 예산', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
                             Row(children: [
                               Icon(remaining >= 0 ? Icons.trending_up : Icons.trending_down, size: 18, color: remaining >= 0 ? Colors.white : const Color(0xFFFCA5A5)),
                               const SizedBox(width: 4),
@@ -143,8 +143,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       ),
                       const SizedBox(height: 12),
                       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                        const Text('사용률', style: TextStyle(fontSize: 12, color: Color(0xFFBFDBFE))),
-                        Text('${(progress * 100).round()}%', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                        const Text('사용률', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
+                        Text('${(progress * 100).round()}%', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
                       ]),
                       const SizedBox(height: 4),
                       ClipRRect(
@@ -177,7 +177,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                             children: [
                               const Text('지출 추가', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                               const SizedBox(height: 12),
-                              const Text('카테고리', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+                              const Text('카테고리', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
                               const SizedBox(height: 6),
                               DropdownButtonFormField<String>(
                                 value: _newCategory,
@@ -186,11 +186,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                 decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.gray300)), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.gray300)), filled: true, fillColor: Colors.white, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
                               ),
                               const SizedBox(height: 10),
-                              const Text('금액', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+                              const Text('금액', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
                               const SizedBox(height: 6),
                               TextField(controller: _amountCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(hintText: '10000', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), filled: true, fillColor: Colors.white, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10))),
                               const SizedBox(height: 10),
-                              const Text('내용', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+                              const Text('내용', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
                               const SizedBox(height: 6),
                               TextField(controller: _descCtrl, decoration: InputDecoration(hintText: '점심 식사', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), filled: true, fillColor: Colors.white, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10))),
                               const SizedBox(height: 12),
@@ -209,7 +209,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           const SizedBox(height: 48),
                           const Icon(Icons.attach_money_rounded, size: 48, color: AppColors.gray300),
                           const SizedBox(height: 12),
-                          const Text('아직 지출 내역이 없어요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
+                          const Text('지출 내역을 기록해보세요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
                           const SizedBox(height: 12),
                           TextButton(onPressed: () => setState(() => _showAddForm = true), child: const Text('첫 지출 추가하기', style: TextStyle(color: AppColors.blue600, fontWeight: FontWeight.w600))),
                         ])
@@ -240,7 +240,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                           const SizedBox(height: 2),
                                           Text(
                                             DateTime.tryParse(expense['created_at'] as String? ?? '')?.toLocal().toString().substring(0, 10) ?? '',
-                                            style: const TextStyle(fontSize: 11, color: AppColors.gray500),
+                                            style: const TextStyle(fontSize: 13, color: AppColors.gray500),
                                           ),
                                         ]),
                                         GestureDetector(
@@ -253,7 +253,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                           decoration: BoxDecoration(color: _catColors[cat] ?? AppColors.gray100, borderRadius: BorderRadius.circular(4)),
-                                          child: Text(cat, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _catTextColors[cat] ?? AppColors.gray700)),
+                                          child: Text(cat, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _catTextColors[cat] ?? AppColors.gray700)),
                                         ),
                                         Text('${amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
                                           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.gray900)),

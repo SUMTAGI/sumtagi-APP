@@ -297,7 +297,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                               children: [
                                 ListTile(
                                   title: Text(aid['title'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                                  subtitle: Text(aid['symptoms'] as String, style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
+                                  subtitle: Text(aid['symptoms'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                                   trailing: Icon(expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: AppColors.gray400),
                                   onTap: () => setState(() => _expandedAid = expanded ? null : aid['id'] as String),
                                 ),
@@ -398,7 +398,7 @@ class _EmergencyBtn extends StatelessWidget {
             const SizedBox(width: 10),
             Column(
               children: [
-                Text(small, style: const TextStyle(fontSize: 10, color: AppColors.blue600)),
+                Text(small, style: const TextStyle(fontSize: 13, color: AppColors.blue600)),
                 Text(number, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.blue600)),
               ],
             ),
@@ -438,14 +438,14 @@ class _ContactCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+                Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                 if (address != null) ...[
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray500),
                       const SizedBox(width: 2),
-                      Expanded(child: Text(address!, style: const TextStyle(fontSize: 11, color: AppColors.gray600))),
+                      Expanded(child: Text(address!, style: const TextStyle(fontSize: 13, color: AppColors.gray600))),
                     ],
                   ),
                 ],

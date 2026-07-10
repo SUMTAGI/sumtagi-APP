@@ -121,12 +121,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SectionTitle(label: '계정 정보'),
-                  _MenuCard(children: [
-                    _MenuItem(icon: Icons.person_outline_rounded, label: '프로필 수정', value: _email, onTap: () => context.push('/profile-edit'), showDivider: false),
-                  ]),
-                  const SizedBox(height: 20),
-
                   _SectionTitle(label: '여행 관리'),
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.calendar_month_rounded, label: '내 여행 일정', onTap: () => context.go('/travel')),
@@ -172,7 +166,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Center(child: Text('버전 1.0.0', style: TextStyle(fontSize: 12, color: AppColors.gray500))),
+                  const Center(child: Text('버전 1.0.0', style: TextStyle(fontSize: 13, color: AppColors.gray500))),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -188,41 +182,75 @@ class _MyPageScreenState extends State<MyPageScreen> {
       decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)])),
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-          child: Column(
-            children: [
-              Row(
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Column(
                 children: [
-                  Container(
-                    width: 64, height: 64,
-                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                    child: const Icon(Icons.person_rounded, size: 32, color: AppColors.blue600),
+                  Row(
+                    children: [
+                      Container(
+                        width: 64, height: 64,
+                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                        child: const Icon(Icons.person_rounded, size: 32, color: AppColors.blue600),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                            const SizedBox(height: 4),
+                            Text(_email, style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                        const SizedBox(height: 4),
-                        Text(_email, style: const TextStyle(fontSize: 13, color: Colors.white70)),
-                      ],
-                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(child: _StatCard(label: '가입일', value: '$_daysSinceJoin일전')),
+                      const SizedBox(width: 8),
+                      Expanded(child: _StatCard(label: '예약', value: '$_tripCount건')),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(child: _StatCard(label: '가입일', value: '$_daysSinceJoin일전')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _StatCard(label: '예약', value: '$_tripCount건')),
-                ],
+            ),
+            Positioned(
+              top: 16,
+              right: 24,
+              child: _HeaderIconButton(
+                icon: Icons.edit_rounded,
+                onTap: () => context.push('/profile-edit'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _HeaderIconButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.18),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 18, color: Colors.white),
       ),
     );
   }
@@ -242,7 +270,7 @@ class _StatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: Colors.white70)),
+          Text(label, style: const TextStyle(fontSize: 13, color: Colors.white70)),
           const SizedBox(height: 4),
           Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
         ],
@@ -285,14 +313,12 @@ class _MenuCard extends StatelessWidget {
 class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String? value;
   final VoidCallback onTap;
   final bool showDivider;
 
   const _MenuItem({
     required this.icon,
     required this.label,
-    this.value,
     required this.onTap,
     this.showDivider = true,
   });
@@ -310,10 +336,7 @@ class _MenuItem extends StatelessWidget {
                 Icon(icon, size: 20, color: AppColors.gray500),
                 const SizedBox(width: 12),
                 Expanded(child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.gray900))),
-                if (value != null)
-                  Text(value!, style: const TextStyle(fontSize: 13, color: AppColors.gray500))
-                else
-                  const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
+                const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
               ],
             ),
           ),

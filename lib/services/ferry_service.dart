@@ -93,28 +93,49 @@ class FerryService {
     return '${padded.substring(0, 2)}:${padded.substring(2)}';
   }
 
-  static Future<List<dynamic>> _fetchAllToday() async {
+  static const int _pageSize = 1000;
+
+  static Future<Map<String, dynamic>> _fetchPage(int pageNo) async {
     final apiKey = dotenv.env['FERRY_API_KEY'] ?? '';
     final uri = Uri.parse(_baseUrl).replace(queryParameters: {
       'serviceKey': apiKey,
-      'pageNo': '1',
-      'numOfRows': '500',
+      'pageNo': '$pageNo',
+      'numOfRows': '$_pageSize',
       'dataType': 'JSON',
       'rlvtYmd': _todayKst(),
     });
     final res = await http.get(uri);
     if (res.statusCode != 200) {
       print('[Ferry] HTTP ${res.statusCode}');
-      return [];
+      return {'items': <dynamic>[], 'totalCount': 0};
     }
     final json = jsonDecode(res.body) as Map<String, dynamic>;
-    final items = json['response']?['body']?['items']?['item'];
+    final body = json['response']?['body'];
+    final items = body?['items']?['item'];
     if (items == null) {
       print('[Ferry] items null. body: ${res.body.substring(0, res.body.length.clamp(0, 300))}');
-      return [];
+      return {'items': <dynamic>[], 'totalCount': 0};
     }
-    print('[Ferry] items count: ${items is List ? (items as List).length : 1}');
-    return items is List ? items as List : [items];
+    return {
+      'items': items is List ? items : [items],
+      'totalCount': (body?['totalCount'] ?? 0) as int,
+    };
+  }
+
+  // 하루 전체 항로 데이터가 numOfRows(페이지 크기)보다 많을 수 있어(예: 4000건 이상),
+  // 첫 페이지만 받으면 뒤쪽 항로가 누락되어 실제로는 운항했는데도 '운항없음'으로 잘못 표시됨.
+  // totalCount를 보고 남은 페이지를 모두 받아온다.
+  static Future<List<dynamic>> _fetchAllToday() async {
+    final first = await _fetchPage(1);
+    final items = List<dynamic>.from(first['items'] as List);
+    final totalCount = first['totalCount'] as int;
+    final totalPages = (totalCount / _pageSize).ceil();
+    for (var pageNo = 2; pageNo <= totalPages; pageNo++) {
+      final next = await _fetchPage(pageNo);
+      items.addAll(next['items'] as List);
+    }
+    print('[Ferry] items count: ${items.length} (totalCount: $totalCount)');
+    return items;
   }
 
   static Future<List<FerryRouteStatus>> getHomeFerryStatus() async {
@@ -132,13 +153,8 @@ class FerryService {
     }).toList();
   }
 
-  static Future<List<FerrySchedule>> getScheduleForIsland(String islandId) async {
-    final keyword = _routeKeywords[islandId];
-    if (keyword == null) return [];
-
-    final list = await _fetchAllToday();
-
-    final filtered = list.where((item) {
+  static List<FerrySchedule> _schedulesFromItems(List<dynamic> items, String keyword) {
+    final filtered = items.where((item) {
       final route = (item['lcns_seawy_nm'] ?? item['nvg_seawy_nm'] ?? '') as String;
       return route.contains(keyword);
     }).toList();
@@ -164,4 +180,37 @@ class FerryService {
         .toList()
       ..sort((a, b) => a.departureTime.compareTo(b.departureTime));
   }
+
+  static Future<List<FerrySchedule>> getScheduleForIsland(String islandId) async {
+    final keyword = _routeKeywords[islandId];
+    if (keyword == null) return [];
+
+    final items = await _fetchAllToday();
+    return _schedulesFromItems(items, keyword);
+  }
+
+  // 홈 화면의 '교통시간표'에서 섬 하나씩 getScheduleForIsland를 반복 호출하면
+  // 매번 _fetchAllToday()가 다시 실행돼 API를 섬 개수만큼 중복 호출하게 됨.
+  // 전체 배편을 보여줄 땐 오늘자 데이터를 한 번만 받아서 섬별로 나눠준다.
+  static Future<List<IslandFerrySchedule>> getScheduleForAllIslands() async {
+    final items = await _fetchAllToday();
+    return _allIslands
+        .map((island) {
+          final keyword = _routeKeywords[island['id']];
+          return IslandFerrySchedule(
+            islandId: island['id']!,
+            islandName: island['name']!,
+            schedules: keyword == null ? [] : _schedulesFromItems(items, keyword),
+          );
+        })
+        .where((entry) => entry.schedules.isNotEmpty)
+        .toList();
+  }
+}
+
+class IslandFerrySchedule {
+  final String islandId;
+  final String islandName;
+  final List<FerrySchedule> schedules;
+  const IslandFerrySchedule({required this.islandId, required this.islandName, required this.schedules});
 }

@@ -29,7 +29,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
           _SettingCard(children: [
             SwitchListTile(
               title: const Text('다크 모드', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              subtitle: const Text('어두운 테마로 전환합니다', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
+              subtitle: const Text('어두운 테마로 전환합니다', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
               value: _darkMode,
               onChanged: (v) => setState(() => _darkMode = v),
               activeColor: AppColors.blue600,
@@ -63,7 +63,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
           _SettingCard(children: [
             SwitchListTile(
               title: const Text('위치 접근', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              subtitle: const Text('지도 및 주변 정보에 활용됩니다', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
+              subtitle: const Text('지도 및 주변 정보에 활용됩니다', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
               value: _locationAccess,
               onChanged: (v) => setState(() => _locationAccess = v),
               activeColor: AppColors.blue600,
@@ -74,7 +74,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
           _SettingCard(children: [
             ListTile(
               title: const Text('캐시 삭제', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              subtitle: const Text('앱의 임시 데이터를 삭제합니다', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
+              subtitle: const Text('앱의 임시 데이터를 삭제합니다', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
               onTap: () => showDialog(
                 context: context,
