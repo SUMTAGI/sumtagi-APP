@@ -105,6 +105,7 @@ final GoRouter appRouter = GoRouter(
       path: '/community-write',
       builder: (context, state) => CommunityWriteScreen(
         type: state.uri.queryParameters['type'] ?? 'feed',
+        editId: state.uri.queryParameters['editId'],
       ),
     ),
     GoRoute(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -5,6 +6,8 @@ import '../../services/community_service.dart';
 import '../../theme/app_colors.dart';
 
 const _islands = ['강화도', '영흥도', '자월도', '덕적도', '백령도', '대청도', '연평도'];
+const _reportReasons = ['스팸/광고', '욕설/혐오 발언', '음란물', '거짓 정보', '기타'];
+const _pageSize = 20;
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -15,43 +18,120 @@ class CommunityScreen extends StatefulWidget {
 class _CommunityScreenState extends State<CommunityScreen> {
   int _tab = 0;
   List<Map<String, dynamic>> _posts = [];
-  List<Map<String, dynamic>> _qna = [];
+  Set<String> _likedPostIds = {};
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  bool _loadError = false;
+  int _page = 0;
   String? _islandFilter;
+  String _sortBy = 'recent';
+  final _searchCtrl = TextEditingController();
+  String _search = '';
+  Timer? _searchDebounce;
+  final _scrollController = ScrollController();
 
   String? get _currentUserId =>
       Supabase.instance.client.auth.currentUser?.id;
+  String get _type => _tab == 0 ? 'feed' : 'qna';
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _load();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchCtrl.dispose();
+    _searchDebounce?.cancel();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_hasMore || _isLoadingMore || _isLoading) return;
+    if (_scrollController.position.pixels >
+        _scrollController.position.maxScrollExtent - 300) {
+      _loadMore();
+    }
+  }
+
   Future<void> _load() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadError = false;
+      _page = 0;
+      _hasMore = true;
+    });
     try {
-      final feeds = await CommunityService.getPosts(
-          type: 'feed', islandFilter: _islandFilter);
-      final qnas = await CommunityService.getPosts(
-          type: 'qna', islandFilter: _islandFilter);
+      final data = await CommunityService.getPosts(
+        type: _type,
+        islandFilter: _islandFilter,
+        search: _search.isEmpty ? null : _search,
+        sortBy: _sortBy,
+        page: 0,
+        pageSize: _pageSize,
+      );
+      final liked = await CommunityService.getMyLikedPostIds(
+          data.map((p) => p['id'] as String).toList());
       if (mounted) {
         setState(() {
-          _posts = feeds;
-          _qna = qnas;
+          _posts = data;
+          _likedPostIds = liked;
+          _hasMore = data.length == _pageSize;
           _isLoading = false;
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadError = true;
+        });
+      }
     }
+  }
+
+  Future<void> _loadMore() async {
+    setState(() => _isLoadingMore = true);
+    try {
+      final nextPage = _page + 1;
+      final data = await CommunityService.getPosts(
+        type: _type,
+        islandFilter: _islandFilter,
+        search: _search.isEmpty ? null : _search,
+        sortBy: _sortBy,
+        page: nextPage,
+        pageSize: _pageSize,
+      );
+      final liked = await CommunityService.getMyLikedPostIds(
+          data.map((p) => p['id'] as String).toList());
+      if (mounted) {
+        setState(() {
+          _posts = [..._posts, ...data];
+          _likedPostIds = {..._likedPostIds, ...liked};
+          _page = nextPage;
+          _hasMore = data.length == _pageSize;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingMore = false);
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      setState(() => _search = value.trim());
+      _load();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentPosts = _tab == 0 ? _posts : _qna;
-    final type = _tab == 0 ? 'feed' : 'qna';
-
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
@@ -72,8 +152,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: TextButton(
-              onPressed: () =>
-                  context.push('/community-write?type=$type').then((_) => _load()),
+              onPressed: () => context
+                  .push('/community-write?type=$_type')
+                  .then((_) => _load()),
               style: TextButton.styleFrom(
                 backgroundColor: AppColors.blue600,
                 foregroundColor: Colors.white,
@@ -88,7 +169,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(88),
+          preferredSize: const Size.fromHeight(150),
           child: Container(
             color: Colors.white,
             child: Column(
@@ -96,17 +177,85 @@ class _CommunityScreenState extends State<CommunityScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Row(children: [
-                    _TabBtn(
-                        label: '리뷰',
-                        selected: _tab == 0,
-                        onTap: () => setState(() => _tab = 0)),
-                    const SizedBox(width: 8),
-                    _TabBtn(
-                        label: '질문 & 답변',
-                        selected: _tab == 1,
-                        onTap: () => setState(() => _tab = 1)),
-                  ]),
+                  child: TextField(
+                    controller: _searchCtrl,
+                    onChanged: _onSearchChanged,
+                    decoration: InputDecoration(
+                      hintText: '리뷰/질문 검색',
+                      hintStyle: const TextStyle(
+                          fontSize: 13, color: AppColors.gray400),
+                      prefixIcon: const Icon(Icons.search_rounded,
+                          size: 20, color: AppColors.gray400),
+                      suffixIcon: _searchCtrl.text.isEmpty
+                          ? null
+                          : GestureDetector(
+                              onTap: () {
+                                _searchCtrl.clear();
+                                _onSearchChanged('');
+                              },
+                              child: const Icon(Icons.close_rounded,
+                                  size: 18, color: AppColors.gray400),
+                            ),
+                      filled: true,
+                      fillColor: const Color(0xFFF9FAFB),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.gray200),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.gray200),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(children: [
+                        _TabBtn(
+                            label: '리뷰',
+                            selected: _tab == 0,
+                            onTap: () {
+                              setState(() => _tab = 0);
+                              _load();
+                            }),
+                        const SizedBox(width: 8),
+                        _TabBtn(
+                            label: '질문 & 답변',
+                            selected: _tab == 1,
+                            onTap: () {
+                              setState(() => _tab = 1);
+                              _load();
+                            }),
+                      ]),
+                      Row(children: [
+                        _SortChip(
+                          label: '최신순',
+                          selected: _sortBy == 'recent',
+                          onTap: () {
+                            if (_sortBy == 'recent') return;
+                            setState(() => _sortBy = 'recent');
+                            _load();
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        _SortChip(
+                          label: '인기순',
+                          selected: _sortBy == 'likes',
+                          onTap: () {
+                            if (_sortBy == 'likes') return;
+                            setState(() => _sortBy = 'likes');
+                            _load();
+                          },
+                        ),
+                      ]),
+                    ],
+                  ),
                 ),
                 SizedBox(
                   height: 36,
@@ -118,10 +267,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       _IslandChip(
                         label: '전체',
                         selected: _islandFilter == null,
-                        onTap: () => setState(() {
-                          _islandFilter = null;
+                        onTap: () {
+                          setState(() => _islandFilter = null);
                           _load();
-                        }),
+                        },
                       ),
                       ..._islands.map((island) => Padding(
                             padding: const EdgeInsets.only(left: 6),
@@ -145,40 +294,83 @@ class _CommunityScreenState extends State<CommunityScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : currentPosts.isEmpty
+          : _loadError
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.chat_bubble_outline_rounded,
-                          size: 64, color: AppColors.gray200),
-                      const SizedBox(height: 16),
-                      Text(
-                        _tab == 0 ? '첫 리뷰를 남겨보세요' : '첫 질문을 남겨보세요',
-                        style: const TextStyle(fontSize: 16, color: AppColors.gray500),
-                      ),
-                      const SizedBox(height: 8),
+                      const Icon(Icons.wifi_off_rounded,
+                          size: 56, color: AppColors.gray300),
+                      const SizedBox(height: 12),
+                      const Text('불러오는 데 실패했어요',
+                          style: TextStyle(
+                              fontSize: 15, color: AppColors.gray500)),
+                      const SizedBox(height: 12),
                       TextButton(
-                        onPressed: () => context
-                            .push('/community-write?type=$type')
-                            .then((_) => _load()),
-                        child: Text(_tab == 0 ? '첫 번째 리뷰 남기기' : '질문하기'),
+                        onPressed: _load,
+                        child: const Text('다시 시도'),
                       ),
                     ],
                   ),
                 )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView.builder(
-                    itemCount: currentPosts.length,
-                    itemBuilder: (context, i) => _PostCard(
-                      post: currentPosts[i],
-                      isQna: _tab == 1,
-                      currentUserId: _currentUserId,
-                      onDeleted: _load,
+              : _posts.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.chat_bubble_outline_rounded,
+                              size: 64, color: AppColors.gray200),
+                          const SizedBox(height: 16),
+                          Text(
+                            _search.isNotEmpty
+                                ? '검색 결과가 없어요'
+                                : (_tab == 0 ? '첫 리뷰를 남겨보세요' : '첫 질문을 남겨보세요'),
+                            style: const TextStyle(
+                                fontSize: 16, color: AppColors.gray500),
+                          ),
+                          const SizedBox(height: 8),
+                          if (_search.isEmpty)
+                            TextButton(
+                              onPressed: () => context
+                                  .push('/community-write?type=$_type')
+                                  .then((_) => _load()),
+                              child: Text(_tab == 0 ? '첫 번째 리뷰 남기기' : '질문하기'),
+                            ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: _posts.length + 1,
+                        itemBuilder: (context, i) {
+                          if (i == _posts.length) {
+                            return SizedBox(
+                              height: 48,
+                              child: _isLoadingMore
+                                  ? const Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      ),
+                                    )
+                                  : const SizedBox(),
+                            );
+                          }
+                          final post = _posts[i];
+                          return _PostCard(
+                            post: post,
+                            isQna: _tab == 1,
+                            currentUserId: _currentUserId,
+                            isLiked: _likedPostIds.contains(post['id']),
+                            onChanged: _load,
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ),
     );
   }
 }
@@ -187,13 +379,15 @@ class _PostCard extends StatefulWidget {
   final Map<String, dynamic> post;
   final bool isQna;
   final String? currentUserId;
-  final VoidCallback onDeleted;
+  final bool isLiked;
+  final VoidCallback onChanged;
 
   const _PostCard({
     required this.post,
     this.isQna = false,
     required this.currentUserId,
-    required this.onDeleted,
+    required this.isLiked,
+    required this.onChanged,
   });
 
   @override
@@ -204,14 +398,18 @@ class _PostCardState extends State<_PostCard> {
   bool _isExpanded = false;
   List<Map<String, dynamic>> _comments = [];
   bool _loadingComments = false;
+  bool _commentsError = false;
   final _commentCtrl = TextEditingController();
-  bool _liked = false;
+  late bool _liked;
   late int _likesCount;
   late int _commentsCount;
+  String? _replyToId;
+  String? _replyToName;
 
   @override
   void initState() {
     super.initState();
+    _liked = widget.isLiked;
     _likesCount = (widget.post['likes_count'] as int?) ?? 0;
     _commentsCount = (widget.post['comments_count'] as int?) ?? 0;
   }
@@ -230,14 +428,24 @@ class _PostCardState extends State<_PostCard> {
     setState(() {
       _isExpanded = true;
       _loadingComments = true;
+      _commentsError = false;
     });
-    final data =
-        await CommunityService.getComments(widget.post['id'] as String);
-    if (mounted) {
-      setState(() {
-        _comments = data;
-        _loadingComments = false;
-      });
+    try {
+      final data =
+          await CommunityService.getComments(widget.post['id'] as String);
+      if (mounted) {
+        setState(() {
+          _comments = data;
+          _loadingComments = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingComments = false;
+          _commentsError = true;
+        });
+      }
     }
   }
 
@@ -245,26 +453,102 @@ class _PostCardState extends State<_PostCard> {
     final text = _commentCtrl.text.trim();
     if (text.isEmpty) return;
     _commentCtrl.clear();
-    await CommunityService.createComment(
-        widget.post['id'] as String, text);
+    final replyTo = _replyToId;
+    setState(() {
+      _replyToId = null;
+      _replyToName = null;
+    });
+    try {
+      await CommunityService.createComment(
+          widget.post['id'] as String, text,
+          parentId: replyTo);
+      final data =
+          await CommunityService.getComments(widget.post['id'] as String);
+      if (mounted) {
+        setState(() {
+          _comments = data;
+          _commentsCount++;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('댓글 등록에 실패했어요')));
+      }
+    }
+  }
+
+  Future<void> _editComment(Map<String, dynamic> comment) async {
+    final ctrl =
+        TextEditingController(text: comment['content'] as String? ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('댓글 수정'),
+        content: TextField(controller: ctrl, maxLines: 4, autofocus: true),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+              child: const Text('저장')),
+        ],
+      ),
+    );
+    if (result == null || result.isEmpty) return;
+    await CommunityService.updateComment(comment['id'] as String, result);
+    final data =
+        await CommunityService.getComments(widget.post['id'] as String);
+    if (mounted) setState(() => _comments = data);
+  }
+
+  Future<void> _deleteComment(Map<String, dynamic> comment) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('댓글 삭제'),
+        content: const Text('이 댓글을 삭제할까요?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('취소')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await CommunityService.deleteComment(comment['id'] as String);
     final data =
         await CommunityService.getComments(widget.post['id'] as String);
     if (mounted) {
       setState(() {
         _comments = data;
-        _commentsCount++;
+        _commentsCount = _commentsCount > 0 ? _commentsCount - 1 : 0;
       });
     }
   }
 
   Future<void> _toggleLike() async {
-    final newCount = _liked ? _likesCount - 1 : _likesCount + 1;
+    final prevLiked = _liked;
+    final prevCount = _likesCount;
     setState(() {
       _liked = !_liked;
-      _likesCount = newCount;
+      _likesCount = _liked ? _likesCount + 1 : _likesCount - 1;
     });
-    await CommunityService.updateLikes(
-        widget.post['id'] as String, newCount);
+    try {
+      await CommunityService.toggleLike(widget.post['id'] as String, prevLiked);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _liked = prevLiked;
+          _likesCount = prevCount;
+        });
+      }
+    }
   }
 
   Future<void> _deletePost() async {
@@ -287,7 +571,45 @@ class _PostCardState extends State<_PostCard> {
     );
     if (confirmed != true) return;
     await CommunityService.deletePost(widget.post['id'] as String);
-    widget.onDeleted();
+    widget.onChanged();
+  }
+
+  Future<void> _editPost() async {
+    final type = widget.isQna ? 'qna' : 'feed';
+    await context
+        .push('/community-write?type=$type&editId=${widget.post['id']}');
+    widget.onChanged();
+  }
+
+  Future<void> _showReportSheet() async {
+    final reason = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('신고 사유를 선택해주세요',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            ),
+            ..._reportReasons.map((r) => ListTile(
+                  title: Text(r),
+                  onTap: () => Navigator.pop(ctx, r),
+                )),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (reason == null) return;
+    await CommunityService.reportPost(widget.post['id'] as String, reason);
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('신고했어요. 검토 후 조치할게요')));
+    }
   }
 
   String _timeAgo(String iso) {
@@ -300,6 +622,123 @@ class _PostCardState extends State<_PostCard> {
     return '${dt.month}/${dt.day}';
   }
 
+  List<String> _images(Map<String, dynamic> post) {
+    final raw = post['images'];
+    if (raw is List && raw.isNotEmpty) {
+      return raw.whereType<String>().toList();
+    }
+    if (post['image_url'] is String) return [post['image_url'] as String];
+    return [];
+  }
+
+  Widget _buildAvatar(String name, {double size = 38}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+          color: AppColors.blue100, shape: BoxShape.circle),
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0] : '?',
+          style: TextStyle(
+              fontSize: size * 0.4,
+              fontWeight: FontWeight.bold,
+              color: AppColors.blue600),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommentTile(Map<String, dynamic> c, {bool isReply = false}) {
+    final isMine = widget.currentUserId != null &&
+        c['user_id'] == widget.currentUserId;
+    final name = c['author_name'] as String? ?? '여행자';
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10, left: isReply ? 32 : 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildAvatar(name, size: isReply ? 24 : 28),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(12)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Text(name,
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gray900)),
+                    if (widget.isQna && !isReply) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(6)),
+                        child: const Text('A',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF16A34A))),
+                      ),
+                    ],
+                    const SizedBox(width: 6),
+                    Text(_timeAgo(c['created_at'] as String? ?? ''),
+                        style: const TextStyle(
+                            fontSize: 13, color: AppColors.gray400)),
+                  ]),
+                  const SizedBox(height: 3),
+                  Text(c['content'] as String? ?? '',
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.gray700)),
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    if (!isReply)
+                      GestureDetector(
+                        onTap: () => setState(() {
+                          _replyToId = c['id'] as String;
+                          _replyToName = name;
+                        }),
+                        child: const Text('답글',
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.gray400,
+                                fontWeight: FontWeight.w500)),
+                      ),
+                    if (isMine) ...[
+                      if (!isReply) const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () => _editComment(c),
+                        child: const Text('수정',
+                            style: TextStyle(
+                                fontSize: 13, color: AppColors.gray400)),
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () => _deleteComment(c),
+                        child: const Text('삭제',
+                            style: TextStyle(
+                                fontSize: 13, color: AppColors.gray400)),
+                      ),
+                    ],
+                  ]),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
@@ -307,10 +746,15 @@ class _PostCardState extends State<_PostCard> {
     final islandName = post['island_name'] as String?;
     final content = post['content'] as String? ?? '';
     final title = post['title'] as String?;
-    final imageUrl = post['image_url'] as String?;
+    final images = _images(post);
     final createdAt = post['created_at'] as String? ?? '';
     final isMyPost = widget.currentUserId != null &&
         post['user_id'] == widget.currentUserId;
+
+    final topLevelComments =
+        _comments.where((c) => c['parent_id'] == null).toList();
+    List<Map<String, dynamic>> repliesOf(String id) =>
+        _comments.where((c) => c['parent_id'] == id).toList();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -326,22 +770,7 @@ class _PostCardState extends State<_PostCard> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: const BoxDecoration(
-                          color: AppColors.blue100,
-                          shape: BoxShape.circle),
-                      child: Center(
-                        child: Text(
-                          authorName.isNotEmpty ? authorName[0] : '?',
-                          style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.blue600),
-                        ),
-                      ),
-                    ),
+                    _buildAvatar(authorName),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -399,15 +828,27 @@ class _PostCardState extends State<_PostCard> {
                         ],
                       ),
                     ),
-                    if (isMyPost)
-                      GestureDetector(
-                        onTap: _deletePost,
-                        child: const Padding(
-                          padding: EdgeInsets.only(left: 8),
-                          child: Icon(Icons.delete_outline_rounded,
-                              size: 20, color: AppColors.gray300),
-                        ),
-                      ),
+                    PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(Icons.more_horiz_rounded,
+                          size: 20, color: AppColors.gray400),
+                      onSelected: (v) {
+                        if (v == 'edit') _editPost();
+                        if (v == 'delete') _deletePost();
+                        if (v == 'report') _showReportSheet();
+                      },
+                      itemBuilder: (ctx) => isMyPost
+                          ? [
+                              const PopupMenuItem(
+                                  value: 'edit', child: Text('수정')),
+                              const PopupMenuItem(
+                                  value: 'delete', child: Text('삭제')),
+                            ]
+                          : [
+                              const PopupMenuItem(
+                                  value: 'report', child: Text('신고하기')),
+                            ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -426,18 +867,40 @@ class _PostCardState extends State<_PostCard> {
                         fontSize: 14,
                         color: AppColors.gray700,
                         height: 1.5)),
-                if (imageUrl != null) ...[
+                if (images.isNotEmpty) ...[
                   const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      imageUrl,
-                      width: double.infinity,
+                  if (images.length == 1)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        images[0],
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox(),
+                      ),
+                    )
+                  else
+                    SizedBox(
                       height: 200,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox(),
+                      child: PageView.builder(
+                        controller: PageController(viewportFraction: 0.92),
+                        itemCount: images.length,
+                        itemBuilder: (_, i) => Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              images[i],
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const SizedBox(),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
                 ],
                 const SizedBox(height: 12),
                 Row(
@@ -483,9 +946,6 @@ class _PostCardState extends State<_PostCard> {
                         ),
                       ]),
                     ),
-                    const Spacer(),
-                    const Icon(Icons.share_outlined,
-                        size: 18, color: AppColors.gray400),
                   ],
                 ),
               ],
@@ -505,6 +965,21 @@ class _PostCardState extends State<_PostCard> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     )
+                  else if (_commentsError)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Column(children: [
+                          const Text('댓글을 불러오지 못했어요',
+                              style: TextStyle(
+                                  fontSize: 13, color: AppColors.gray400)),
+                          TextButton(
+                            onPressed: _toggleComments,
+                            child: const Text('다시 시도'),
+                          ),
+                        ]),
+                      ),
+                    )
                   else if (_comments.isEmpty)
                     Center(
                       child: Padding(
@@ -519,98 +994,29 @@ class _PostCardState extends State<_PostCard> {
                       ),
                     )
                   else
-                    ..._comments.map((c) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 28,
-                                height: 28,
-                                decoration: const BoxDecoration(
-                                    color: AppColors.blue100,
-                                    shape: BoxShape.circle),
-                                child: Center(
-                                  child: Text(
-                                    (c['author_name'] as String? ?? '?')
-                                            .isNotEmpty
-                                        ? (c['author_name'] as String)[0]
-                                        : '?',
-                                    style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.blue600),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius:
-                                          BorderRadius.circular(12)),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(children: [
-                                        Text(
-                                          c['author_name'] as String? ??
-                                              '여행자',
-                                          style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.gray900),
-                                        ),
-                                        if (widget.isQna) ...[
-                                          const SizedBox(width: 4),
-                                          Container(
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                                    horizontal: 5,
-                                                    vertical: 1),
-                                            decoration: BoxDecoration(
-                                                color: const Color(
-                                                    0xFFDCFCE7),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        6)),
-                                            child: const Text('A',
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight:
-                                                        FontWeight.bold,
-                                                    color: Color(
-                                                        0xFF16A34A))),
-                                          ),
-                                        ],
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          _timeAgo(c['created_at']
-                                                  as String? ??
-                                              ''),
-                                          style: const TextStyle(
-                                              fontSize: 13,
-                                              color: AppColors.gray400),
-                                        ),
-                                      ]),
-                                      const SizedBox(height: 3),
-                                      Text(
-                                        c['content'] as String? ?? '',
-                                        style: const TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.gray700),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )),
+                    ...topLevelComments.expand((c) => [
+                          _buildCommentTile(c),
+                          ...repliesOf(c['id'] as String)
+                              .map((r) => _buildCommentTile(r, isReply: true)),
+                        ]),
+                  if (_replyToId != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(children: [
+                        Text('$_replyToName님에게 답글 남기는 중',
+                            style: const TextStyle(
+                                fontSize: 13, color: AppColors.blue600)),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () => setState(() {
+                            _replyToId = null;
+                            _replyToName = null;
+                          }),
+                          child: const Icon(Icons.close,
+                              size: 14, color: AppColors.gray400),
+                        ),
+                      ]),
+                    ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -689,6 +1095,35 @@ class _TabBtn extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: selected ? Colors.white : AppColors.gray700)),
+      ),
+    );
+  }
+}
+
+class _SortChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _SortChip(
+      {required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.blue50 : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+              color: selected ? AppColors.blue200 : AppColors.gray200),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: selected ? AppColors.blue600 : AppColors.gray500)),
       ),
     );
   }

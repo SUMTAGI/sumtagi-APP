@@ -6,10 +6,12 @@ import '../../services/community_service.dart';
 import '../../theme/app_colors.dart';
 
 const _islands = ['강화도', '영흥도', '자월도', '덕적도', '백령도', '대청도', '연평도'];
+const _maxImages = 5;
 
 class CommunityWriteScreen extends StatefulWidget {
   final String type;
-  const CommunityWriteScreen({super.key, this.type = 'feed'});
+  final String? editId;
+  const CommunityWriteScreen({super.key, this.type = 'feed', this.editId});
 
   @override
   State<CommunityWriteScreen> createState() => _CommunityWriteScreenState();
@@ -19,8 +21,18 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
   final _titleCtrl = TextEditingController();
   final _contentCtrl = TextEditingController();
   String? _selectedIsland;
-  XFile? _selectedImage;
+  final List<XFile> _newImages = [];
+  List<String> _existingImageUrls = [];
   bool _submitting = false;
+  bool _loadingPost = false;
+
+  bool get _isEdit => widget.editId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEdit) _loadPost();
+  }
 
   @override
   void dispose() {
@@ -29,41 +41,73 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _loadPost() async {
+    setState(() => _loadingPost = true);
+    final post = await CommunityService.getPost(widget.editId!);
+    if (post != null && mounted) {
+      _titleCtrl.text = post['title'] as String? ?? '';
+      _contentCtrl.text = post['content'] as String? ?? '';
+      _selectedIsland = post['island_name'] as String?;
+      final images = post['images'];
+      if (images is List && images.isNotEmpty) {
+        _existingImageUrls = images.whereType<String>().toList();
+      } else if (post['image_url'] is String) {
+        _existingImageUrls = [post['image_url'] as String];
+      }
+    }
+    if (mounted) setState(() => _loadingPost = false);
+  }
+
+  int get _imageCount => _existingImageUrls.length + _newImages.length;
+
+  Future<void> _pickImages() async {
+    final remaining = _maxImages - _imageCount;
+    if (remaining <= 0) return;
     final picker = ImagePicker();
-    final file = await picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 80);
-    if (file != null) setState(() => _selectedImage = file);
+    final files = await picker.pickMultiImage(imageQuality: 80);
+    if (files.isEmpty) return;
+    setState(() => _newImages.addAll(files.take(remaining)));
   }
 
   Future<void> _submit() async {
     if (_contentCtrl.text.isEmpty) return;
     setState(() => _submitting = true);
     try {
-      String? imageUrl;
-      if (_selectedImage != null) {
-        imageUrl = await CommunityService.uploadImage(_selectedImage!);
-      }
+      final uploaded = _newImages.isNotEmpty
+          ? await CommunityService.uploadImages(_newImages)
+          : <String>[];
+      final images = [..._existingImageUrls, ...uploaded];
       final content = _contentCtrl.text;
-      await CommunityService.createPost(
-        title: _titleCtrl.text.isNotEmpty
-            ? _titleCtrl.text
-            : content.substring(0, content.length.clamp(0, 30)),
-        content: content,
-        islandName: _selectedIsland,
-        type: widget.type,
-        imageUrl: imageUrl,
-      );
+      final title = _titleCtrl.text.isNotEmpty
+          ? _titleCtrl.text
+          : content.substring(0, content.length.clamp(0, 30));
+      if (_isEdit) {
+        await CommunityService.updatePost(
+          postId: widget.editId!,
+          title: title,
+          content: content,
+          islandName: _selectedIsland,
+          images: images,
+        );
+      } else {
+        await CommunityService.createPost(
+          title: title,
+          content: content,
+          islandName: _selectedIsland,
+          type: widget.type,
+          images: images,
+        );
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('등록됐어요')),
+          SnackBar(content: Text(_isEdit ? '수정됐어요' : '등록됐어요')),
         );
         context.pop();
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('등록에 실패했어요')),
+          SnackBar(content: Text(_isEdit ? '수정에 실패했어요' : '등록에 실패했어요')),
         );
       }
     } finally {
@@ -74,6 +118,8 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
   @override
   Widget build(BuildContext context) {
     final isQna = widget.type == 'qna';
+    final headerTitle =
+        _isEdit ? (isQna ? '질문 수정' : '리뷰 수정') : (isQna ? '질문하기' : '리뷰 작성');
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -85,7 +131,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          isQna ? '질문하기' : '리뷰 작성',
+          headerTitle,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
         ),
         actions: [
@@ -106,7 +152,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                 disabledForegroundColor: Colors.white,
               ),
               child: Text(
-                _submitting ? '등록 중...' : '등록',
+                _submitting ? '등록 중...' : (_isEdit ? '수정' : '등록'),
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
@@ -118,7 +164,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
           child: Divider(height: 1, color: AppColors.gray200),
         ),
       ),
-      body: SingleChildScrollView(
+      body: _loadingPost
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,74 +294,87 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Image
-            const Text('사진',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.gray700)),
+            // Images
+            Row(children: [
+              const Text('사진',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.gray700)),
+              const SizedBox(width: 6),
+              Text('$_imageCount/$_maxImages',
+                  style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
+            ]),
             const SizedBox(height: 4),
             const Text('선택 사항',
                 style: TextStyle(fontSize: 13, color: AppColors.gray400)),
             const SizedBox(height: 10),
-            if (_selectedImage != null) ...[
-              Stack(children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(
-                    File(_selectedImage!.path),
-                    width: double.infinity,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedImage = null),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ..._existingImageUrls.asMap().entries.map((e) => _ImageThumb(
+                      child: Image.network(e.value,
+                          width: 96, height: 96, fit: BoxFit.cover),
+                      onRemove: () => setState(
+                          () => _existingImageUrls.removeAt(e.key)),
+                    )),
+                ..._newImages.asMap().entries.map((e) => _ImageThumb(
+                      child: Image.file(File(e.value.path),
+                          width: 96, height: 96, fit: BoxFit.cover),
+                      onRemove: () =>
+                          setState(() => _newImages.removeAt(e.key)),
+                    )),
+                if (_imageCount < _maxImages)
+                  GestureDetector(
+                    onTap: _pickImages,
                     child: Container(
-                      decoration: const BoxDecoration(
-                          color: Colors.black54, shape: BoxShape.circle),
-                      padding: const EdgeInsets.all(6),
-                      child: const Icon(Icons.close,
-                          color: Colors.white, size: 18),
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        border: Border.all(
+                            color: AppColors.gray200,
+                            style: BorderStyle.solid,
+                            width: 1.5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.add_photo_alternate_outlined,
+                          size: 28, color: AppColors.gray400),
                     ),
                   ),
-                ),
-              ]),
-            ] else ...[
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  width: double.infinity,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    border: Border.all(
-                        color: AppColors.gray200,
-                        style: BorderStyle.solid,
-                        width: 1.5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.image_outlined,
-                          size: 36, color: AppColors.gray400),
-                      SizedBox(height: 8),
-                      Text('사진을 추가하세요',
-                          style: TextStyle(
-                              fontSize: 14, color: AppColors.gray400)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
             const SizedBox(height: 32),
           ],
         ),
       ),
     );
+  }
+}
+
+class _ImageThumb extends StatelessWidget {
+  final Widget child;
+  final VoidCallback onRemove;
+  const _ImageThumb({required this.child, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(children: [
+      ClipRRect(borderRadius: BorderRadius.circular(12), child: child),
+      Positioned(
+        top: 4,
+        right: 4,
+        child: GestureDetector(
+          onTap: onRemove,
+          child: Container(
+            decoration: const BoxDecoration(
+                color: Colors.black54, shape: BoxShape.circle),
+            padding: const EdgeInsets.all(4),
+            child: const Icon(Icons.close, color: Colors.white, size: 14),
+          ),
+        ),
+      ),
+    ]);
   }
 }
