@@ -133,7 +133,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('이메일 문의', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                      Text('support@icisland.kr', style: TextStyle(fontSize: 13, color: AppColors.blue600)),
+                      Text('kimsungil322@gmail.com', style: TextStyle(fontSize: 13, color: AppColors.blue600)),
                     ],
                   ),
                 ),
