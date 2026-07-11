@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -267,11 +268,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () => context.push('/notifications'),
                         child: Stack(
                           children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                              child: const Icon(Icons.notifications_outlined, size: 20, color: Color(0xFF2563EB)),
+                            ClipOval(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.25),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
+                                  ),
+                                  child: const Icon(Icons.notifications_outlined, size: 20, color: Colors.white),
+                                ),
+                              ),
                             ),
                             if (_unreadNotifications > 0)
                               Positioned(
@@ -305,13 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildConfirmedTrip() {
     final itin = _upcomingTrip!;
     final dday = _getDDay((itin['start_date'] ?? itin['startDate']) as String);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-      ),
+    return _GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -361,13 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNoTrip() {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-          ),
+        _GlassCard(
           child: Center(
             child: Column(
               children: [
@@ -427,17 +425,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => context.push(link['route'] as String),
             child: Column(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.blue50,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.gray100),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4)],
-                  ),
-                  child: Icon(link['icon'] as IconData, color: AppColors.blue600, size: 22),
-                ),
+                _GlassOrb(icon: link['icon'] as IconData),
                 const SizedBox(height: 6),
                 Text(
                   link['title'] as String,
@@ -703,6 +691,88 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+}
+
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  const _GlassCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.14),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.35), width: 1.2),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, 6)),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassOrb extends StatelessWidget {
+  final IconData icon;
+  const _GlassOrb({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: ClipOval(
+        child: Stack(
+          children: [
+            // 거의 투명한 물방울 몸체 - 파란빛은 아주 살짝만
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withOpacity(0.3),
+                    AppColors.blue50.withOpacity(0.2),
+                  ],
+                ),
+              ),
+            ),
+            // 물방울 가장자리 얇은 테두리
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.blue100.withOpacity(0.6), width: 1),
+                ),
+              ),
+            ),
+            // 아주 옅은 광택
+            Positioned(
+              top: 5, left: 6,
+              child: Container(
+                width: 16, height: 10,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                    colors: [Colors.white.withOpacity(0.4), Colors.white.withOpacity(0.0)],
+                  ),
+                ),
+              ),
+            ),
+            Center(child: Icon(icon, color: AppColors.blue700, size: 22)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _StatusRow extends StatelessWidget {

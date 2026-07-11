@@ -697,7 +697,7 @@ class _IslandCard extends StatelessWidget {
             Stack(
               children: [
                 SizedBox(
-                  height: 160, width: double.infinity,
+                  height: 240, width: double.infinity,
                   child: CachedNetworkImage(
                     imageUrl: island.image, fit: BoxFit.cover,
                     errorWidget: (_, __, ___) => Container(color: AppColors.gray100),
@@ -736,18 +736,18 @@ class _IslandCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(island.description, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   ...island.features.take(2).map((f) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.only(bottom: 2),
                     child: Row(children: [
                       Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.blue500, shape: BoxShape.circle)),
                       const SizedBox(width: 8),
                       Text(f, style: const TextStyle(fontSize: 13, color: AppColors.gray700)),
                     ]),
                   )),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   const Divider(height: 1, color: AppColors.gray200),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Row(children: [
                     const Icon(Icons.directions_boat_rounded, size: 14, color: AppColors.gray400),
                     const SizedBox(width: 4),
@@ -757,7 +757,7 @@ class _IslandCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(island.bestSeason, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray900)),
                   ]),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -768,7 +768,7 @@ class _IslandCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
                   Wrap(
                     spacing: 4,
                     children: island.ports.map((port) => Container(
