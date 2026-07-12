@@ -10,6 +10,7 @@ import '../../services/ferry_service.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/ocean_scene.dart';
+import '../../widgets/ai_island_search_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -298,7 +299,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+                  const AiIslandSearchBar(),
+                  const SizedBox(height: 16),
                   if (_upcomingTrip != null)
                     _buildConfirmedTrip()
                   else

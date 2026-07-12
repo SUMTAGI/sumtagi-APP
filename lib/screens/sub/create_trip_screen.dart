@@ -6,7 +6,8 @@ import '../../theme/app_colors.dart';
 
 class CreateTripScreen extends StatefulWidget {
   final String? preSelectedIsland;
-  const CreateTripScreen({super.key, this.preSelectedIsland});
+  final String? preSelectedStyle;
+  const CreateTripScreen({super.key, this.preSelectedIsland, this.preSelectedStyle});
 
   @override
   State<CreateTripScreen> createState() => _CreateTripScreenState();
@@ -46,19 +47,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     '문갑도': '인천항', '백아도': '인천항', '울도': '인천항',
   };
 
-  // 굴업도는 실제로는 인천항에서 출발해 덕적도에서 배를 갈아타고 들어가는 섬이라
-  // _islandPortMap상 표기('덕적도')와 달리 인천항 권역 섬들과 함께 선택할 수 있어야 한다.
-  static const _transferIslands = {'굴업도'};
-
-  String _portGroupOf(String island) =>
-      _transferIslands.contains(island) ? '인천항' : (_islandPortMap[island] ?? '인천항');
-
   @override
   void initState() {
     super.initState();
     if (widget.preSelectedIsland != null) {
       _selectedIslands = [widget.preSelectedIsland!];
     }
+    if (widget.preSelectedStyle != null) _travelType = widget.preSelectedStyle!;
   }
 
   @override
@@ -70,24 +65,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   bool get _hasPreSelected => widget.preSelectedIsland != null;
   int get _totalSteps => _hasPreSelected ? 2 : 3;
 
-  Set<String> get _selectedPortGroups =>
-      _selectedIslands.map(_portGroupOf).toSet();
-
-  bool get _hasPortConflict => _selectedPortGroups.length > 1;
-
   bool get _requiresGulupTransfer => _selectedIslands.contains('굴업도');
 
-  String get _computedPort {
-    if (_selectedIslands.isEmpty) return '인천항';
-    // 굴업도만(단독) 선택된 경우 기존처럼 "덕적도 경유" 표기를 유지한다.
-    if (_selectedIslands.every(_transferIslands.contains)) {
-      return _islandPortMap[_selectedIslands.first] ?? '인천항';
-    }
-    return _portGroupOf(_selectedIslands.first);
-  }
+  String get _computedPort =>
+      _selectedIslands.isEmpty ? '인천항' : (_islandPortMap[_selectedIslands.first] ?? '인천항');
 
   Future<void> _handleSubmit() async {
-    if (_isSubmitting || _hasPortConflict) return;
+    if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
       final request = AIItineraryRequest(
@@ -244,7 +228,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       children: [
         const Text('방문할 섬 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
-        const Text('어느 섬으로 떠나고 싶으세요?', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const Text('어느 섬으로 떠나고 싶으세요? 섬간 이동이 어려워 한 번에 한 섬만 선택할 수 있어요.', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
         const SizedBox(height: 20),
         GridView.count(
           crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12,
@@ -252,8 +236,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           children: _allIslands.map((island) {
             final selected = _selectedIslands.contains(island);
             return GestureDetector(
+              // 섬간 이동이 번거로워 한 번에 한 섬만 선택 가능 — 다른 섬을 누르면 선택이 교체됨
               onTap: () => setState(() {
-                if (selected) { _selectedIslands.remove(island); } else { _selectedIslands.add(island); }
+                _selectedIslands = selected ? [] : [island];
               }),
               child: Container(
                 decoration: BoxDecoration(
@@ -281,76 +266,31 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               border: Border.all(color: AppColors.blue100),
             ),
             child: Text(
-              '${_selectedIslands.length}개 섬 선택됨: ${_selectedIslands.join(', ')}',
+              '${_selectedIslands.first} 선택됨',
               style: const TextStyle(fontSize: 13, color: AppColors.blue700),
             ),
           ),
-          if (_hasPortConflict) ...[
-            const SizedBox(height: 12),
-            _buildPortConflictWarning(),
-          ] else if (_requiresGulupTransfer) ...[
+          if (_requiresGulupTransfer) ...[
             const SizedBox(height: 12),
             _buildTransferNotice(),
           ],
           const SizedBox(height: 16),
-          if (!_hasPortConflict)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => setState(() => _step = 1),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.blue600,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-                child: const Text('다음: 날짜 선택'),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => setState(() => _step = 1),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
               ),
+              child: const Text('다음: 날짜 선택'),
             ),
+          ),
         ],
       ],
-    );
-  }
-
-  Widget _buildPortConflictWarning() {
-    final groups = <String, List<String>>{};
-    for (final island in _selectedIslands) {
-      groups.putIfAbsent(_portGroupOf(island), () => []).add(island);
-    }
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.red50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.red100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.error_outline_rounded, size: 16, color: AppColors.red700),
-              SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  '출발항이 다른 섬은 함께 선택할 수 없어요',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.red700),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ...groups.entries.map(
-            (e) => Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text('${e.key} 출발: ${e.value.join(', ')}', style: const TextStyle(fontSize: 12, color: AppColors.red700)),
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text('같은 출발항의 섬끼리만 함께 선택해주세요.', style: TextStyle(fontSize: 12, color: AppColors.red700)),
-        ],
-      ),
     );
   }
 

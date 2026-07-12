@@ -76,6 +76,7 @@ final GoRouter appRouter = GoRouter(
       path: '/create-trip',
       builder: (context, state) => CreateTripScreen(
         preSelectedIsland: state.uri.queryParameters['name'],
+        preSelectedStyle: state.uri.queryParameters['style'],
       ),
     ),
     GoRoute(
