@@ -20,6 +20,7 @@ class TripBookingService {
     required String tripId,
     required List<String> islands,
     required String departurePort,
+    List<Map<String, dynamic>>? days,
   }) async {
     if (_userId == null) return [];
     final data = await _client
@@ -30,7 +31,7 @@ class TripBookingService {
     final items = List<Map<String, dynamic>>.from(data as List);
     if (items.isNotEmpty) return items;
 
-    await _generateChecklist(tripId: tripId, islands: islands, departurePort: departurePort);
+    await _generateChecklist(tripId: tripId, islands: islands, departurePort: departurePort, days: days);
     final reloaded = await _client
         .from('trip_bookings')
         .select()
@@ -39,10 +40,29 @@ class TripBookingService {
     return List<Map<String, dynamic>>.from(reloaded as List);
   }
 
+  // 일정(days)의 활동에서 실제로 이름이 나온 숙소/식당 후보를 뽑음.
+  // AI 생성 일정은 activity['location']에 실제 상호명이 들어있을 수 있지만, 규칙 기반
+  // (빠른 생성) 일정은 섬 이름/일반 문구뿐이라 아래에서 DB 매칭이 실패하고
+  // 기존처럼 섬 대표 숙소·식당으로 자연스럽게 폴백됨.
+  static List<String> _extractNamedCandidates(List<Map<String, dynamic>>? days, String type) {
+    if (days == null) return [];
+    final names = <String>{};
+    for (final day in days) {
+      final activities = (day['activities'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      for (final act in activities) {
+        if (act['type'] == type && (act['location'] as String?)?.isNotEmpty == true) {
+          names.add(act['location'] as String);
+        }
+      }
+    }
+    return names.toList();
+  }
+
   static Future<void> _generateChecklist({
     required String tripId,
     required List<String> islands,
     required String departurePort,
+    List<Map<String, dynamic>>? days,
   }) async {
     if (_userId == null) return;
     final rows = <Map<String, dynamic>>[];
@@ -57,29 +77,49 @@ class TripBookingService {
     }
 
     final islandIds = islands.map((n) => _korToIslandId[n]).whereType<String>().toList();
+    final accomCandidates = _extractNamedCandidates(days, 'accommodation');
+    final mealCandidates = _extractNamedCandidates(days, 'meal');
 
     for (final islandId in islandIds) {
-      final accs = await _client
-          .from('accommodations')
-          .select('name, phone')
-          .eq('island_id', islandId)
-          .order('order_index')
-          .limit(2);
-      final rests = await _client
-          .from('restaurants')
-          .select('name, phone')
-          .eq('island_id', islandId)
-          .order('order_index')
-          .limit(2);
+      var accs = accomCandidates.isNotEmpty
+          ? List<Map<String, dynamic>>.from(await _client
+              .from('accommodations')
+              .select('name, phone')
+              .eq('island_id', islandId)
+              .inFilter('name', accomCandidates))
+          : <Map<String, dynamic>>[];
+      if (accs.isEmpty) {
+        accs = List<Map<String, dynamic>>.from(await _client
+            .from('accommodations')
+            .select('name, phone')
+            .eq('island_id', islandId)
+            .order('order_index')
+            .limit(2));
+      }
+      var rests = mealCandidates.isNotEmpty
+          ? List<Map<String, dynamic>>.from(await _client
+              .from('restaurants')
+              .select('name, phone')
+              .eq('island_id', islandId)
+              .inFilter('name', mealCandidates))
+          : <Map<String, dynamic>>[];
+      if (rests.isEmpty) {
+        rests = List<Map<String, dynamic>>.from(await _client
+            .from('restaurants')
+            .select('name, phone')
+            .eq('island_id', islandId)
+            .order('order_index')
+            .limit(2));
+      }
 
-      for (final (i, a) in List<Map<String, dynamic>>.from(accs as List).indexed) {
+      for (final (i, a) in accs.indexed) {
         rows.add({
           'trip_id': tripId, 'user_id': _userId, 'category': 'accommodation',
           'name': a['name'], 'island_id': islandId, 'phone': a['phone'],
           'external_url': null, 'is_done': false, 'order_index': 10 + i,
         });
       }
-      for (final (i, r) in List<Map<String, dynamic>>.from(rests as List).indexed) {
+      for (final (i, r) in rests.indexed) {
         rows.add({
           'trip_id': tripId, 'user_id': _userId, 'category': 'restaurant',
           'name': r['name'], 'island_id': islandId, 'phone': r['phone'],

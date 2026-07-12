@@ -96,8 +96,9 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   Future<void> _loadBookingChecklist() async {
     final islands = (_itinerary!['islands'] as List?)?.cast<String>() ?? [];
     final port = _itinerary!['departurePort'] as String? ?? '인천항';
+    final days = (_itinerary!['days'] as List?)?.cast<Map<String, dynamic>>();
     final bookings = await TripBookingService.getChecklist(
-      tripId: widget.id, islands: islands, departurePort: port,
+      tripId: widget.id, islands: islands, departurePort: port, days: days,
     );
     if (mounted) setState(() => _bookings = bookings);
   }
