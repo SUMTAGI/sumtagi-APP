@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'special_tour_service.dart' show getSpecialTourByStyle;
 
 class TripFormData {
   final String departurePort;
@@ -308,6 +309,24 @@ Future<List<Attraction>> fetchIslandAttractions() async {
     // Supabase 실패 시 하드코딩 목록으로
   }
   return _hardcodedAttractions;
+}
+
+/// 생태/무장애/반려동물 여행 스타일용 특수 관광지를 규칙 기반 일정에 끼워넣기 위한 변환.
+/// WEB(itineraryGenerator.ts의 prefetchSpecialTourData) 미러링.
+Future<List<Attraction>> prefetchSpecialTourData(String travelType, List<String> islandIds) async {
+  final specialItems = await getSpecialTourByStyle(travelType);
+  return List.generate(specialItems.length, (idx) {
+    final item = specialItems[idx];
+    return Attraction(
+      id: 'special-$idx',
+      name: item.title,
+      island: islandIds.isNotEmpty ? islandIds.first : '',
+      category: travelType == '생태' ? '생태' : travelType == '무장애' ? '문화' : '체험',
+      duration: 90,
+      congestionLevel: 'low',
+      description: item.addr1,
+    );
+  });
 }
 
 int _parseDurationText(String text) {

@@ -465,6 +465,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           children: [
             {'id': '관광', 'emoji': '🏖️'}, {'id': '휴양', 'emoji': '😌'},
             {'id': '체험', 'emoji': '🎣'}, {'id': '사진', 'emoji': '📸'},
+            {'id': '생태', 'emoji': '🌿', 'badge': '생태관광'},
+            {'id': '무장애', 'emoji': '♿', 'badge': '무장애여행'},
+            {'id': '반려동물', 'emoji': '🐾', 'badge': '반려동물동반'},
           ].map((t) {
             final isSelected = _travelType == t['id'];
             return GestureDetector(
@@ -475,12 +478,25 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   border: Border.all(color: isSelected ? AppColors.blue600 : AppColors.gray200, width: 2),
                   color: isSelected ? AppColors.blue50 : Colors.white,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Stack(
                   children: [
-                    Text(t['emoji']!, style: const TextStyle(fontSize: 28)),
-                    const SizedBox(height: 6),
-                    Text(t['id']!, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.blue600 : AppColors.gray900)),
+                    if (t['badge'] != null)
+                      Positioned(
+                        top: 6, right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(999)),
+                          child: const Text('관광공사', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
+                        ),
+                      ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(t['emoji']!, style: const TextStyle(fontSize: 28)),
+                        const SizedBox(height: 6),
+                        Text(t['id']!, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.blue600 : AppColors.gray900)),
+                      ],
+                    ),
                   ],
                 ),
               ),

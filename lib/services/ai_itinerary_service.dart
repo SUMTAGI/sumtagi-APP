@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'itinerary_generator.dart';
+import 'special_tour_service.dart' show isSpecialTravelStyle;
 
 class AIItineraryRequest {
   final String departurePort;
@@ -81,6 +82,16 @@ GeneratedItinerary _transformLLMResponse(Map<String, dynamic> aiData, AIItinerar
 /// 규칙 기반 일정 조립 (AI 미사용, fallback과 명시적 빠른 생성이 공유)
 Future<AIItineraryResult> _buildScriptItinerary(AIItineraryRequest req, String generatedBy) async {
   final allAttractions = await fetchIslandAttractions();
+
+  List<Attraction> extraAttractions = [];
+  if (isSpecialTravelStyle(req.travelStyle)) {
+    try {
+      extraAttractions = await prefetchSpecialTourData(req.travelStyle, req.islands);
+    } catch (_) {
+      extraAttractions = [];
+    }
+  }
+
   final formData = TripFormData(
     departurePort: req.departurePort,
     startDate: req.startDate,
@@ -91,6 +102,22 @@ Future<AIItineraryResult> _buildScriptItinerary(AIItineraryRequest req, String g
     budget: req.budget,
   );
   final itinerary = generateItinerary(formData, allAttractions);
+
+  // 특수 여행 관광지가 있으면 첫날에 삽입 (WEB aiItinerary.ts buildScriptItinerary 미러링)
+  if (extraAttractions.isNotEmpty && itinerary.days.isNotEmpty) {
+    final extra = extraAttractions.take(2).toList().asMap().entries.map((e) => {
+          'id': 'special-fallback-${e.key}',
+          'type': 'attraction',
+          'time': '${15 + e.key}:30',
+          'title': e.value.name,
+          'location': e.value.island,
+          'duration': e.value.duration,
+          'description': e.value.description,
+          'congestionLevel': 'low',
+        });
+    itinerary.days.first.activities.addAll(extra);
+  }
+
   return AIItineraryResult(itinerary: itinerary, generatedBy: generatedBy);
 }
 
