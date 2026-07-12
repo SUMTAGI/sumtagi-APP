@@ -76,17 +76,26 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   Future<void> _loadItinerary() async {
     final data = await TripService.getTripById(widget.id);
     if (data != null && mounted) {
+      // WEB(CreateTrip.tsx)에서 만든 여행은 departure_port/total_cost/travel_type/days
+      // 개별 컬럼이 아니라 trips.plan(JSONB 전체 스냅샷)에만 저장됨 — plan을 먼저 확인하고,
+      // 없을 때만(APP이 만든 여행) 개별 컬럼 조합으로 폴백해야 WEB에서 만든 여행도 보임.
+      final plan = data['plan'] as Map<String, dynamic>?;
       setState(() {
-        _itinerary = {
-          ...data,
-          'departurePort': data['departure_port'],
-          'startDate': data['start_date'],
-          'endDate': data['end_date'],
-          'totalCost': data['total_cost'],
-          'travelType': data['travel_type'],
-          'days': (data['days'] as List?)?.cast<Map<String, dynamic>>() ?? [],
-        };
-        _isConfirmed = data['confirmed'] == true;
+        if (plan != null) {
+          _itinerary = {...data, ...plan};
+          _isConfirmed = plan['confirmed'] == true || data['confirmed'] == true;
+        } else {
+          _itinerary = {
+            ...data,
+            'departurePort': data['departure_port'],
+            'startDate': data['start_date'],
+            'endDate': data['end_date'],
+            'totalCost': data['total_cost'],
+            'travelType': data['travel_type'],
+            'days': (data['days'] as List?)?.cast<Map<String, dynamic>>() ?? [],
+          };
+          _isConfirmed = data['confirmed'] == true;
+        }
       });
       _loadBookingChecklist();
       if (_isConfirmed) _checkRisks();
@@ -659,7 +668,10 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                   interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
                 ),
                 children: [
-                  TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.sumtagi.app',
+                  ),
                   PolylineLayer(polylines: [
                     Polyline(
                       points: route,
