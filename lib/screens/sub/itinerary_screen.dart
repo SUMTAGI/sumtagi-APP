@@ -152,11 +152,14 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     }
   }
 
-  bool get _isFallbackGenerated {
+  String? get _generatedByMeta {
     final days = (_itinerary?['days'] as List?) ?? [];
-    if (days.isEmpty) return false;
-    return (days.first as Map<String, dynamic>)['generatedBy'] == 'fallback';
+    if (days.isEmpty) return null;
+    return (days.first as Map<String, dynamic>)['generatedBy'] as String?;
   }
+
+  bool get _isFallbackGenerated => _generatedByMeta == 'fallback';
+  bool get _isQuickGenerated => _generatedByMeta == 'quick';
 
   void _toggleBooking(Map<String, dynamic> booking) {
     final current = booking['is_done'] == true;
@@ -736,16 +739,19 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   }
 
   Widget _buildFallbackNotice() {
-    if (!_isFallbackGenerated || _isEditMode) return const SizedBox.shrink();
+    if (_isEditMode || (!_isFallbackGenerated && !_isQuickGenerated)) return const SizedBox.shrink();
+    final message = _isFallbackGenerated
+        ? 'AI 응답에 실패해 기본 일정으로 생성됐어요'
+        : '빠른 생성으로 만든 기본 일정이에요 (AI 미사용)';
     return Container(
       width: double.infinity,
       color: AppColors.gray100,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray600),
-          SizedBox(width: 6),
-          Text('AI 응답에 실패해 기본 일정으로 생성됐어요', style: TextStyle(fontSize: 12, color: AppColors.gray600)),
+          const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray600),
+          const SizedBox(width: 6),
+          Text(message, style: const TextStyle(fontSize: 12, color: AppColors.gray600)),
         ],
       ),
     );

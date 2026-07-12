@@ -39,7 +39,7 @@ class AIItineraryRequest {
 
 class AIItineraryResult {
   final GeneratedItinerary itinerary;
-  final String generatedBy; // 'llm' | 'fallback'
+  final String generatedBy; // 'llm' | 'fallback' | 'quick'
   const AIItineraryResult({required this.itinerary, required this.generatedBy});
 }
 
@@ -78,6 +78,22 @@ GeneratedItinerary _transformLLMResponse(Map<String, dynamic> aiData, AIItinerar
   );
 }
 
+/// 규칙 기반 일정 조립 (AI 미사용, fallback과 명시적 빠른 생성이 공유)
+Future<AIItineraryResult> _buildScriptItinerary(AIItineraryRequest req, String generatedBy) async {
+  final allAttractions = await fetchIslandAttractions();
+  final formData = TripFormData(
+    departurePort: req.departurePort,
+    startDate: req.startDate,
+    endDate: req.endDate,
+    travelers: req.travelers,
+    travelType: req.travelStyle,
+    islands: req.islands,
+    budget: req.budget,
+  );
+  final itinerary = generateItinerary(formData, allAttractions);
+  return AIItineraryResult(itinerary: itinerary, generatedBy: generatedBy);
+}
+
 /// AI(Gemini 등) Edge Function 호출 → 실패 시 실제 Supabase 관광지 데이터 기반 규칙 생성으로 대체
 Future<AIItineraryResult> generateAIItinerary(
   AIItineraryRequest req, {
@@ -96,18 +112,11 @@ Future<AIItineraryResult> generateAIItinerary(
     return AIItineraryResult(itinerary: itinerary, generatedBy: 'llm');
   } catch (e) {
     onFallback?.call(e.toString());
-
-    final allAttractions = await fetchIslandAttractions();
-    final formData = TripFormData(
-      departurePort: req.departurePort,
-      startDate: req.startDate,
-      endDate: req.endDate,
-      travelers: req.travelers,
-      travelType: req.travelStyle,
-      islands: req.islands,
-      budget: req.budget,
-    );
-    final itinerary = generateItinerary(formData, allAttractions);
-    return AIItineraryResult(itinerary: itinerary, generatedBy: 'fallback');
+    return _buildScriptItinerary(req, 'fallback');
   }
+}
+
+/// 규칙 기반으로만 즉시 생성 (AI 미사용, 사용자가 명시적으로 선택)
+Future<AIItineraryResult> generateQuickItinerary(AIItineraryRequest req) {
+  return _buildScriptItinerary(req, 'quick');
 }

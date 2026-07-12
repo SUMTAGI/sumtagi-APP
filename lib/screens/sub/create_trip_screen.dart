@@ -22,6 +22,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   String _budget = '보통';
   final _specialRequestsCtrl = TextEditingController();
   bool _isSubmitting = false;
+  String _generationMode = 'quick'; // 'ai' | 'quick'
 
   static const _allIslands = [
     '백령도', '대청도', '소청도', '연평도',
@@ -89,30 +90,34 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     if (_isSubmitting || _hasPortConflict) return;
     setState(() => _isSubmitting = true);
     try {
-      final result = await generateAIItinerary(
-        AIItineraryRequest(
-          departurePort: _computedPort,
-          islands: _selectedIslands,
-          startDate: _startDate!.toIso8601String().split('T')[0],
-          endDate: _endDate!.toIso8601String().split('T')[0],
-          travelers: _travelers,
-          travelStyle: _travelType,
-          budget: _budget,
-          specialRequests: _specialRequestsCtrl.text.trim(),
-        ),
-        onFallback: (reason) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('AI 일정 생성에 실패했어요. 기본 일정으로 대체합니다.'),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                backgroundColor: AppColors.gray900,
-              ),
-            );
-          }
-        },
+      final request = AIItineraryRequest(
+        departurePort: _computedPort,
+        islands: _selectedIslands,
+        startDate: _startDate!.toIso8601String().split('T')[0],
+        endDate: _endDate!.toIso8601String().split('T')[0],
+        travelers: _travelers,
+        travelStyle: _travelType,
+        budget: _budget,
+        specialRequests: _specialRequestsCtrl.text.trim(),
       );
+
+      final result = _generationMode == 'quick'
+          ? await generateQuickItinerary(request)
+          : await generateAIItinerary(
+              request,
+              onFallback: (reason) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('AI 일정 생성에 실패했어요. 기본 일정으로 대체합니다.'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      backgroundColor: AppColors.gray900,
+                    ),
+                  );
+                }
+              },
+            );
 
       final itinerary = result.itinerary;
       // DB에 generated_by 컬럼이 없어도 저장할 수 있도록, days의 첫 번째 날에 생성 방식을 함께 기록한다.
@@ -570,25 +575,54 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           }).toList(),
         ),
         const SizedBox(height: 24),
-        const Text.rich(
-          TextSpan(children: [
-            TextSpan(text: 'AI에게 하고 싶은 말이 있나요? ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
-            TextSpan(text: '(선택)', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
-          ]),
-        ),
+        const Text('일정 생성 방식', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
         const SizedBox(height: 12),
-        TextField(
-          controller: _specialRequestsCtrl,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: '예: 아이랑 같이 가요, 낚시하고 싶어요, 걷는 건 최소화해주세요',
-            hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue500, width: 2)),
-            contentPadding: const EdgeInsets.all(14),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _GenerationModeCard(
+                emoji: '⚡',
+                label: '빠른 일정 생성',
+                description: 'AI 없이\n즉시 생성',
+                selected: _generationMode == 'quick',
+                recommended: true,
+                onTap: () => setState(() => _generationMode = 'quick'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _GenerationModeCard(
+                emoji: '✨',
+                label: 'AI 추천 일정',
+                description: '관광 데이터 기반\n맞춤 일정',
+                selected: _generationMode == 'ai',
+                onTap: () => setState(() => _generationMode = 'ai'),
+              ),
+            ),
+          ],
         ),
+        if (_generationMode == 'ai') ...[
+          const SizedBox(height: 24),
+          const Text.rich(
+            TextSpan(children: [
+              TextSpan(text: 'AI에게 하고 싶은 말이 있나요? ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+              TextSpan(text: '(선택)', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _specialRequestsCtrl,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: '예: 아이랑 같이 가요, 낚시하고 싶어요, 걷는 건 최소화해주세요',
+              hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue500, width: 2)),
+              contentPadding: const EdgeInsets.all(14),
+            ),
+          ),
+        ],
         if (_travelType.isNotEmpty) ...[
           const SizedBox(height: 24),
           SizedBox(
@@ -604,15 +638,21 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 elevation: 0,
               ),
               child: _isSubmitting
-                  ? const Row(
+                  ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                        SizedBox(width: 10),
-                        Text('AI가 일정을 만들고 있어요...', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                        const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                        const SizedBox(width: 10),
+                        Text(
+                          _generationMode == 'ai' ? 'AI가 일정을 만들고 있어요...' : '일정을 만들고 있어요...',
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        ),
                       ],
                     )
-                  : const Text('AI 일정 생성하기 ✨', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  : Text(
+                      _generationMode == 'ai' ? 'AI 일정 생성하기 ✨' : '빠른 일정 생성하기 ⚡',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
             ),
           ),
         ],
@@ -674,6 +714,62 @@ class _DateConfirm extends StatelessWidget {
             style: const TextStyle(fontSize: 13, color: AppColors.blue700, fontWeight: FontWeight.w500),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GenerationModeCard extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final String description;
+  final bool selected;
+  final bool recommended;
+  final VoidCallback onTap;
+  const _GenerationModeCard({
+    required this.emoji,
+    required this.label,
+    required this.description,
+    required this.selected,
+    this.recommended = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: selected ? AppColors.blue600 : AppColors.gray200, width: 2),
+          color: selected ? AppColors.blue50 : Colors.white,
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 24)),
+                const SizedBox(height: 6),
+                Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: selected ? AppColors.blue600 : AppColors.gray900)),
+                const SizedBox(height: 2),
+                Text(description, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+              ],
+            ),
+            if (recommended)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(color: AppColors.blue100, borderRadius: BorderRadius.circular(999)),
+                  child: const Text('추천', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.blue700)),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
