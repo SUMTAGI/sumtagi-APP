@@ -107,11 +107,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       // 고객센터 안에 묻혀 있어 진입성이 낮다는 피드백으로 홈에도 노출
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'ai_chat_fab',
-        backgroundColor: AppColors.blue600,
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen())),
-        child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+      // 하단 플로팅 네비게이션 바(MainNavigation)에 가리지 않도록 여백을 띄움
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: FloatingActionButton(
+          heroTag: 'ai_chat_fab',
+          backgroundColor: AppColors.blue600,
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen())),
+          child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+        ),
       ),
     );
   }

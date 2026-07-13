@@ -47,6 +47,92 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     '문갑도': '인천항', '백아도': '인천항', '울도': '인천항',
   };
 
+  static const List<Map<String, Object>> _quickDatePicks = [
+    {'label': '이번 주말', 'type': 'weekend', 'weeksAhead': 0},
+    {'label': '다음 주말', 'type': 'weekend', 'weeksAhead': 1},
+    {'label': '당일치기', 'type': 'nights', 'nights': 0},
+    {'label': '1박 2일', 'type': 'nights', 'nights': 1},
+    {'label': '2박 3일', 'type': 'nights', 'nights': 2},
+    {'label': '3박 4일', 'type': 'nights', 'nights': 3},
+  ];
+
+  DateTime _today() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  // JS의 getDay()(일=0~토=6) 기준 계산과 동일하게 맞추기 위해 Dart weekday(월=1~일=7)를 변환
+  DateTime _upcomingSaturday(int weeksAhead) {
+    final today = _today();
+    final jsWeekday = today.weekday % 7;
+    final daysUntilSat = ((6 - jsWeekday) % 7) + weeksAhead * 7;
+    return today.add(Duration(days: daysUntilSat));
+  }
+
+  void _applyQuickDatePick(Map<String, Object> pick) {
+    setState(() {
+      if (pick['type'] == 'weekend') {
+        final sat = _upcomingSaturday(pick['weeksAhead']! as int);
+        _startDate = sat;
+        _endDate = sat.add(const Duration(days: 1));
+      } else {
+        final start = _startDate ?? _today();
+        _startDate = start;
+        _endDate = start.add(Duration(days: pick['nights']! as int));
+      }
+    });
+  }
+
+  String? get _activeQuickPick {
+    if (_startDate == null || _endDate == null) return null;
+    final nights = _endDate!.difference(_startDate!).inDays;
+    if (nights < 0) return null;
+    bool sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+    final thisWeekendStart = _upcomingSaturday(0);
+    final nextWeekendStart = _upcomingSaturday(1);
+    if (sameDay(_startDate!, thisWeekendStart) && sameDay(_endDate!, thisWeekendStart.add(const Duration(days: 1)))) {
+      return '이번 주말';
+    }
+    if (sameDay(_startDate!, nextWeekendStart) && sameDay(_endDate!, nextWeekendStart.add(const Duration(days: 1)))) {
+      return '다음 주말';
+    }
+    for (final pick in _quickDatePicks) {
+      if (pick['type'] == 'nights' && pick['nights'] == nights) return pick['label'] as String;
+    }
+    return null;
+  }
+
+  Future<DateTime?> _pickDate({
+    required DateTime initialDate,
+    required DateTime firstDate,
+    required DateTime lastDate,
+  }) {
+    return showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppColors.blue600,
+                  onPrimary: Colors.white,
+                  onSurface: AppColors.gray900,
+                ),
+            datePickerTheme: DatePickerThemeData(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              headerBackgroundColor: AppColors.blue600,
+              headerForegroundColor: Colors.white,
+              todayBorder: const BorderSide(color: AppColors.blue600),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -346,6 +432,39 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         const Text('여행 날짜', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
         const Text('언제 떠나시나요?', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const SizedBox(height: 20),
+        const Text('빠른 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+        const SizedBox(height: 10),
+        GridView.count(
+          crossAxisCount: 3,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 2.2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: _quickDatePicks.map((pick) {
+            final isActive = _activeQuickPick == pick['label'];
+            return GestureDetector(
+              onTap: () => _applyQuickDatePick(pick),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isActive ? AppColors.blue600 : AppColors.gray200, width: 2),
+                  color: isActive ? AppColors.blue50 : Colors.white,
+                ),
+                child: Text(
+                  pick['label'] as String,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    color: isActive ? AppColors.blue600 : AppColors.gray600,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
         const SizedBox(height: 24),
         const Text('출발일', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
         const SizedBox(height: 8),
@@ -353,11 +472,10 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           value: _startDate,
           hint: '출발일 선택',
           onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
+            final picked = await _pickDate(
+              initialDate: _startDate ?? DateTime.now(),
               firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
+              lastDate: _endDate ?? DateTime.now().add(const Duration(days: 365)),
             );
             if (picked != null) setState(() => _startDate = picked);
           },
@@ -373,9 +491,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           value: _endDate,
           hint: '귀가일 선택',
           onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: _startDate ?? DateTime.now(),
+            final picked = await _pickDate(
+              initialDate: _endDate ?? _startDate ?? DateTime.now(),
               firstDate: _startDate ?? DateTime.now(),
               lastDate: DateTime.now().add(const Duration(days: 365)),
             );
@@ -489,13 +606,22 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                           child: const Text('관광공사', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
                         ),
                       ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(t['emoji']!, style: const TextStyle(fontSize: 28)),
-                        const SizedBox(height: 6),
-                        Text(t['id']!, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.blue600 : AppColors.gray900)),
-                      ],
+                    Positioned.fill(
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(t['emoji']!, style: const TextStyle(fontSize: 28)),
+                            const SizedBox(height: 6),
+                            Text(
+                              t['id']!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.blue600 : AppColors.gray900),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
