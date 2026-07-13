@@ -608,7 +608,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('실시간 운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
+                    const Text('운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
                     GestureDetector(
                       onTap: () => _showAllFerryStatus(context),
                       child: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
