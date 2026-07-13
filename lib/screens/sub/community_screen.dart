@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/community_service.dart';
@@ -418,6 +419,14 @@ class _PostCardState extends State<_PostCard> {
   void dispose() {
     _commentCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _share() async {
+    await Clipboard.setData(
+        const ClipboardData(text: 'https://sumtagi-web.vercel.app/community'));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('링크가 복사됐어요')));
   }
 
   Future<void> _toggleComments() async {
@@ -945,6 +954,12 @@ class _PostCardState extends State<_PostCard> {
                               color: AppColors.gray600),
                         ),
                       ]),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: _share,
+                      child: const Icon(Icons.share_outlined,
+                          size: 18, color: AppColors.gray400),
                     ),
                   ],
                 ),

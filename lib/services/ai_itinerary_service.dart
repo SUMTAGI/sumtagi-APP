@@ -1,6 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'itinerary_generator.dart';
 import 'special_tour_service.dart' show isSpecialTravelStyle;
+import 'related_attractions_service.dart' show buildRoutingHints;
+import 'demand_intensity_service.dart' show getIslandsDemandLevels;
+
+// WEB의 ISLAND_NAME_TO_ID(aiItinerary.ts)와 동일 — islandIdToKor(itinerary_generator.dart)를 뒤집어 재사용.
+final Map<String, String> _islandNameToId = {
+  for (final e in islandIdToKor.entries) e.value: e.key,
+};
 
 class AIItineraryRequest {
   final String departurePort;
@@ -12,6 +19,10 @@ class AIItineraryRequest {
   final String budget;
   final String? specialRequests;
   final String provider;
+  // 관광공사 OpenAPI 컨텍스트 (Edge Function에서 프롬프트 강화에 사용, WEB aiItinerary.ts 미러링)
+  final Map<String, List<String>>? routingHints;
+  final Map<String, String>? demandLevels;
+  final String? specialFilter;
 
   const AIItineraryRequest({
     required this.departurePort,
@@ -23,7 +34,29 @@ class AIItineraryRequest {
     required this.budget,
     this.specialRequests,
     this.provider = 'gemini',
+    this.routingHints,
+    this.demandLevels,
+    this.specialFilter,
   });
+
+  AIItineraryRequest copyWith({
+    Map<String, List<String>>? routingHints,
+    Map<String, String>? demandLevels,
+    String? specialFilter,
+  }) => AIItineraryRequest(
+    departurePort: departurePort,
+    islands: islands,
+    startDate: startDate,
+    endDate: endDate,
+    travelers: travelers,
+    travelStyle: travelStyle,
+    budget: budget,
+    specialRequests: specialRequests,
+    provider: provider,
+    routingHints: routingHints ?? this.routingHints,
+    demandLevels: demandLevels ?? this.demandLevels,
+    specialFilter: specialFilter ?? this.specialFilter,
+  );
 
   Map<String, dynamic> toJson() => {
     'departurePort': departurePort,
@@ -35,7 +68,29 @@ class AIItineraryRequest {
     'budget': budget,
     if (specialRequests != null && specialRequests!.isNotEmpty) 'specialRequests': specialRequests,
     'provider': provider,
+    if (routingHints != null) 'routingHints': routingHints,
+    if (demandLevels != null) 'demandLevels': demandLevels,
+    if (specialFilter != null) 'specialFilter': specialFilter,
   };
+}
+
+/// 관광공사 API 컨텍스트(연관관광지/수요강도) 사전 수집 — 실패해도 원본 요청 그대로 진행
+/// (WEB aiItinerary.ts의 enrichRequestContext 미러링)
+Future<AIItineraryRequest> _enrichRequestContext(AIItineraryRequest req) async {
+  final islandIds = req.islands.map((name) => _islandNameToId[name] ?? name).toList();
+  try {
+    final results = await Future.wait([
+      buildRoutingHints(islandIds),
+      getIslandsDemandLevels(islandIds),
+    ]);
+    return req.copyWith(
+      routingHints: results[0] as Map<String, List<String>>,
+      demandLevels: results[1] as Map<String, String>,
+      specialFilter: isSpecialTravelStyle(req.travelStyle) ? req.travelStyle : null,
+    );
+  } catch (_) {
+    return req;
+  }
 }
 
 class AIItineraryResult {
@@ -126,10 +181,11 @@ Future<AIItineraryResult> generateAIItinerary(
   AIItineraryRequest req, {
   void Function(String reason)? onFallback,
 }) async {
+  final enrichedReq = await _enrichRequestContext(req);
   try {
     final response = await Supabase.instance.client.functions.invoke(
       'generate-itinerary',
-      body: req.toJson(),
+      body: enrichedReq.toJson(),
     );
     final data = response.data;
     if (data is! Map || data['ok'] != true || data['itinerary'] == null) {

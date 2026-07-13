@@ -7,6 +7,7 @@ import '../../services/island_service.dart';
 import '../../services/favorite_service.dart';
 import '../../services/ferry_service.dart';
 import '../../services/congestion_service.dart';
+import '../../services/weather_service.dart';
 import '../sub/ai_chat_screen.dart';
 
 
@@ -28,6 +29,8 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
   bool _ferryLoading = true;
   IslandCongestionData? _congestion;
   bool _congestionLoading = true;
+  WeatherCurrent? _weather;
+  bool _weatherLoading = true;
 
   @override
   void initState() {
@@ -63,8 +66,15 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               .catchError((_, __) {
                 if (mounted) setState(() => _congestionLoading = false);
               });
+          WeatherService.getWeatherForIsland(widget.id, lat: islandData.lat, lng: islandData.lng)
+              .then((result) {
+                if (mounted) setState(() { _weather = result?.current; _weatherLoading = false; });
+              })
+              .catchError((_) {
+                if (mounted) setState(() => _weatherLoading = false);
+              });
         } else {
-          setState(() { _ferryLoading = false; _congestionLoading = false; });
+          setState(() { _ferryLoading = false; _congestionLoading = false; _weatherLoading = false; });
         }
       }
     } catch (_) {
@@ -160,6 +170,8 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildWeatherSection(),
+
                 // Info row
                 Padding(
                   padding: const EdgeInsets.all(24),
@@ -458,6 +470,107 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
       default:
         return const SizedBox();
     }
+  }
+
+  Widget _buildWeatherSection() {
+    final risk = _weather != null
+        ? WeatherService.assessFerryRisk(_weather!.windSpeed, _weather!.waveHeight)
+        : null;
+    final riskColor = switch (risk) {
+      FerryRisk.safe => AppColors.green600,
+      FerryRisk.caution => AppColors.orange600,
+      FerryRisk.danger => AppColors.red700,
+      null => AppColors.gray500,
+    };
+    final riskBg = switch (risk) {
+      FerryRisk.safe => const Color(0xFFDCFCE7),
+      FerryRisk.caution => AppColors.orange100,
+      FerryRisk.danger => AppColors.red100,
+      null => AppColors.gray100,
+    };
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      color: AppColors.blue50,
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                _WeatherStat(
+                  icon: Icons.wb_sunny_rounded,
+                  iconColor: AppColors.orange500,
+                  label: '날씨',
+                  value: _weatherLoading
+                      ? '-'
+                      : _weather != null
+                          ? '${_weather!.temperature.round()}°C ${_weather!.condition}'
+                          : '정보 없음',
+                ),
+                const SizedBox(width: 16),
+                _WeatherStat(
+                  icon: Icons.waves_rounded,
+                  iconColor: AppColors.blue600,
+                  label: '파고',
+                  value: _weatherLoading
+                      ? '-'
+                      : _weather != null
+                          ? '${_weather!.waveHeight.toStringAsFixed(1)}m'
+                          : '정보 없음',
+                ),
+                const SizedBox(width: 16),
+                _WeatherStat(
+                  icon: Icons.air_rounded,
+                  iconColor: AppColors.gray500,
+                  label: '풍속',
+                  value: _weatherLoading
+                      ? '-'
+                      : _weather != null
+                          ? '${_weather!.windSpeed.round()}km/h'
+                          : '정보 없음',
+                ),
+              ],
+            ),
+          ),
+          if (!_weatherLoading && risk != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(color: riskBg, borderRadius: BorderRadius.circular(8)),
+              child: Text(
+                risk.label,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: riskColor),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeatherStat extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+  const _WeatherStat({required this.icon, required this.iconColor, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 20, color: iconColor),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray600)),
+            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+          ],
+        ),
+      ],
+    );
   }
 }
 

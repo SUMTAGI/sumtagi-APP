@@ -330,6 +330,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildConfirmedTrip() {
     final itin = _upcomingTrip!;
     final dday = _getDDay((itin['start_date'] ?? itin['startDate']) as String);
+    final days = (itin['days'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final activities = days.isNotEmpty
+        ? ((days[0]['activities'] as List?)?.cast<Map<String, dynamic>>() ?? [])
+        : <Map<String, dynamic>>[];
+    final departurePort = (itin['departure_port'] ?? itin['departurePort']) as String? ?? '인천항';
+    final islands = (itin['islands'] as List?)?.cast<String>() ?? [];
     return _GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Row(
                 children: [
-                  if (dday >= 0)
+                  if (dday >= 0) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -358,6 +364,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
+                    const SizedBox(width: 10),
+                  ],
+                  GestureDetector(
+                    onTap: () => context.push('/itinerary/${itin['id']}'),
+                    child: const Text(
+                      '전체보기',
+                      style: TextStyle(fontSize: 12, color: Color(0xFFDBEAFE), decoration: TextDecoration.underline),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -372,6 +387,54 @@ class _HomeScreenState extends State<HomeScreen> {
             _getDDayMessage(dday),
             style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.85)),
           ),
+          if (activities.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...activities.take(3).map((a) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        a['time'] as String? ?? '',
+                        style: const TextStyle(fontSize: 13, color: Color(0xFFBFDBFE)),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          a['title'] as String? ?? '',
+                          style: const TextStyle(fontSize: 13, color: Color(0xFFEFF6FF)),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+          if (islands.isNotEmpty) ...[
+            Container(
+              margin: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.only(top: 12),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Colors.white24)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.directions_boat_rounded, color: Color(0xFFBFDBFE), size: 16),
+                  const SizedBox(width: 6),
+                  Text(departurePort, style: const TextStyle(fontSize: 13, color: Color(0xFFDBEAFE))),
+                  const Text(' → ', style: TextStyle(color: Color(0xFFBFDBFE))),
+                  const Icon(Icons.location_on_rounded, color: Color(0xFFBFDBFE), size: 16),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      islands.join(', '),
+                      style: const TextStyle(fontSize: 13, color: Color(0xFFDBEAFE)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
