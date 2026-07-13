@@ -3,7 +3,9 @@ import '../../theme/app_colors.dart';
 import '../../services/island_chat_service.dart';
 
 class AiChatScreen extends StatefulWidget {
-  const AiChatScreen({super.key});
+  // 섬 상세 화면 등에서 "이 섬에 대해 물어보기"로 진입할 때 첫 질문을 자동 전송하기 위한 값
+  final String? initialQuestion;
+  const AiChatScreen({super.key, this.initialQuestion});
   @override State<AiChatScreen> createState() => _AiChatScreenState();
 }
 
@@ -12,6 +14,15 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialQuestion;
+    if (initial != null && initial.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _send(initial));
+    }
+  }
 
   @override
   void dispose() {
@@ -31,8 +42,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
     });
   }
 
-  Future<void> _send() async {
-    final text = _inputCtrl.text.trim();
+  Future<void> _send([String? overrideText]) async {
+    final text = (overrideText ?? _inputCtrl.text).trim();
     if (text.isEmpty || _loading) return;
 
     setState(() {

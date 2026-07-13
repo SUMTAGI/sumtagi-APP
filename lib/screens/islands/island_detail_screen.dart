@@ -7,6 +7,7 @@ import '../../services/island_service.dart';
 import '../../services/favorite_service.dart';
 import '../../services/ferry_service.dart';
 import '../../services/congestion_service.dart';
+import '../sub/ai_chat_screen.dart';
 
 
 class IslandDetailScreen extends StatefulWidget {
@@ -108,6 +109,13 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               onPressed: () => context.pop(),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+                tooltip: '${island.name}에 대해 AI에게 물어보기',
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => AiChatScreen(initialQuestion: '${island.name}에 대해 알려줘'),
+                )),
+              ),
               IconButton(
                 icon: _favLoading
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
