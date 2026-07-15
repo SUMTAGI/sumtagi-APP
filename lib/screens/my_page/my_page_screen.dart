@@ -369,7 +369,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Center(child: Text('버전 1.0.0', style: TextStyle(fontSize: 13, color: AppColors.gray500))),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),

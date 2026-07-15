@@ -62,12 +62,9 @@ class _AiIslandSearchBarState extends State<AiIslandSearchBar> {
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
       ),
       child: Row(
         children: [
-          const Icon(Icons.auto_awesome, size: 18, color: Colors.white),
-          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _controller,
@@ -78,6 +75,8 @@ class _AiIslandSearchBarState extends State<AiIslandSearchBar> {
                 hintText: widget.placeholder ?? '어떤 여행을 원하세요? 예: 낚시하고 조용한 섬',
                 hintStyle: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),

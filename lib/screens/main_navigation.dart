@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
@@ -75,69 +76,81 @@ class _MainNavigationState extends State<MainNavigation> {
             return Container(
               height: barHeight,
               decoration: BoxDecoration(
-                color: AppColors.gray100,
                 borderRadius: BorderRadius.circular(38),
                 boxShadow: [
                   BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, 8)),
                 ],
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 280),
-                    curve: Curves.easeOutCubic,
-                    left: itemWidth * currentIndex + (itemWidth - indicatorSize) / 2,
-                    top: (barHeight - indicatorSize) / 2,
-                    width: indicatorSize,
-                    height: indicatorSize,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 2)),
-                        ],
-                      ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(38),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.55),
+                      borderRadius: BorderRadius.circular(38),
+                      border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 280),
+                          curve: Curves.easeOutCubic,
+                          left: itemWidth * currentIndex + (itemWidth - indicatorSize) / 2,
+                          top: (barHeight - indicatorSize) / 2,
+                          width: indicatorSize,
+                          height: indicatorSize,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.75),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 2)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.home_rounded,
+                                label: '홈',
+                                isActive: currentIndex == 0,
+                                onTap: () => _onTabTap(context, 0),
+                              ),
+                            ),
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.calendar_month_rounded,
+                                label: '여행',
+                                isActive: currentIndex == 1,
+                                onTap: () => _onTabTap(context, 1),
+                              ),
+                            ),
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.location_on_rounded,
+                                label: '섬',
+                                isActive: currentIndex == 2,
+                                onTap: () => _onTabTap(context, 2),
+                              ),
+                            ),
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.person_rounded,
+                                label: '마이',
+                                isActive: currentIndex == 3,
+                                onTap: () => _onTabTap(context, 3),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _NavItem(
-                          icon: Icons.home_rounded,
-                          label: '홈',
-                          isActive: currentIndex == 0,
-                          onTap: () => _onTabTap(context, 0),
-                        ),
-                      ),
-                      Expanded(
-                        child: _NavItem(
-                          icon: Icons.calendar_month_rounded,
-                          label: '여행',
-                          isActive: currentIndex == 1,
-                          onTap: () => _onTabTap(context, 1),
-                        ),
-                      ),
-                      Expanded(
-                        child: _NavItem(
-                          icon: Icons.location_on_rounded,
-                          label: '섬',
-                          isActive: currentIndex == 2,
-                          onTap: () => _onTabTap(context, 2),
-                        ),
-                      ),
-                      Expanded(
-                        child: _NavItem(
-                          icon: Icons.person_rounded,
-                          label: '마이',
-                          isActive: currentIndex == 3,
-                          onTap: () => _onTabTap(context, 3),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             );
           },

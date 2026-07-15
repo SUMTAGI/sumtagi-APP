@@ -103,6 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(child: _buildFerryRiskBanner()),
             SliverToBoxAdapter(child: _buildQuickLinks()),
             SliverToBoxAdapter(child: _buildStatus()),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
       ),
