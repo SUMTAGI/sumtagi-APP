@@ -60,8 +60,9 @@ class _AiIslandSearchBarState extends State<AiIslandSearchBar> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withOpacity(0.14),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.35), width: 1.2),
       ),
       child: Row(
         children: [
