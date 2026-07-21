@@ -27,6 +27,8 @@ import '../screens/sub/notification_settings_screen.dart';
 import '../screens/sub/payment_methods_screen.dart';
 import '../screens/sub/favorites_screen.dart';
 import '../screens/sub/notifications_screen.dart';
+import '../screens/sub/host_apply_screen.dart';
+import '../screens/sub/admin_host_applications_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -76,6 +78,7 @@ final GoRouter appRouter = GoRouter(
       path: '/create-trip',
       builder: (context, state) => CreateTripScreen(
         preSelectedIsland: state.uri.queryParameters['name'],
+        preSelectedStyle: state.uri.queryParameters['style'],
       ),
     ),
     GoRoute(
@@ -105,6 +108,7 @@ final GoRouter appRouter = GoRouter(
       path: '/community-write',
       builder: (context, state) => CommunityWriteScreen(
         type: state.uri.queryParameters['type'] ?? 'feed',
+        editId: state.uri.queryParameters['editId'],
       ),
     ),
     GoRoute(
@@ -154,6 +158,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/host-apply',
+      builder: (context, state) => const HostApplyScreen(),
+    ),
+    GoRoute(
+      path: '/admin/hosts',
+      builder: (context, state) => const AdminHostApplicationsScreen(),
     ),
   ],
 );

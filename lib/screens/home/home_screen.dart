@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -9,6 +10,8 @@ import '../../services/ferry_service.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/ocean_scene.dart';
+import '../../widgets/ai_island_search_bar.dart';
+import '../sub/ai_chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -100,7 +103,19 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(child: _buildFerryRiskBanner()),
             SliverToBoxAdapter(child: _buildQuickLinks()),
             SliverToBoxAdapter(child: _buildStatus()),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
+        ),
+      ),
+      // 고객센터 안에 묻혀 있어 진입성이 낮다는 피드백으로 홈에도 노출
+      // 하단 플로팅 네비게이션 바(MainNavigation)에 가리지 않도록 여백을 띄움
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: FloatingActionButton(
+          heroTag: 'ai_chat_fab',
+          backgroundColor: AppColors.blue600,
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen())),
+          child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
         ),
       ),
     );
@@ -267,11 +282,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () => context.push('/notifications'),
                         child: Stack(
                           children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                              child: const Icon(Icons.notifications_outlined, size: 20, color: Color(0xFF2563EB)),
+                            ClipOval(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.25),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
+                                  ),
+                                  child: const Icon(Icons.notifications_outlined, size: 20, color: Colors.white),
+                                ),
+                              ),
                             ),
                             if (_unreadNotifications > 0)
                               Positioned(
@@ -288,7 +312,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+                  const AiIslandSearchBar(),
+                  const SizedBox(height: 16),
                   if (_upcomingTrip != null)
                     _buildConfirmedTrip()
                   else
@@ -305,13 +331,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildConfirmedTrip() {
     final itin = _upcomingTrip!;
     final dday = _getDDay((itin['start_date'] ?? itin['startDate']) as String);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-      ),
+    final days = (itin['days'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final activities = days.isNotEmpty
+        ? ((days[0]['activities'] as List?)?.cast<Map<String, dynamic>>() ?? [])
+        : <Map<String, dynamic>>[];
+    final departurePort = (itin['departure_port'] ?? itin['departurePort']) as String? ?? '인천항';
+    final islands = (itin['islands'] as List?)?.cast<String>() ?? [];
+    return _GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -327,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Row(
                 children: [
-                  if (dday >= 0)
+                  if (dday >= 0) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -339,6 +365,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
+                    const SizedBox(width: 10),
+                  ],
+                  GestureDetector(
+                    onTap: () => context.push('/itinerary/${itin['id']}'),
+                    child: const Text(
+                      '전체보기',
+                      style: TextStyle(fontSize: 12, color: Color(0xFFDBEAFE), decoration: TextDecoration.underline),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -353,6 +388,54 @@ class _HomeScreenState extends State<HomeScreen> {
             _getDDayMessage(dday),
             style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.85)),
           ),
+          if (activities.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...activities.take(3).map((a) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        a['time'] as String? ?? '',
+                        style: const TextStyle(fontSize: 13, color: Color(0xFFBFDBFE)),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          a['title'] as String? ?? '',
+                          style: const TextStyle(fontSize: 13, color: Color(0xFFEFF6FF)),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+          if (islands.isNotEmpty) ...[
+            Container(
+              margin: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.only(top: 12),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Colors.white24)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.directions_boat_rounded, color: Color(0xFFBFDBFE), size: 16),
+                  const SizedBox(width: 6),
+                  Text(departurePort, style: const TextStyle(fontSize: 13, color: Color(0xFFDBEAFE))),
+                  const Text(' → ', style: TextStyle(color: Color(0xFFBFDBFE))),
+                  const Icon(Icons.location_on_rounded, color: Color(0xFFBFDBFE), size: 16),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      islands.join(', '),
+                      style: const TextStyle(fontSize: 13, color: Color(0xFFDBEAFE)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -361,13 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNoTrip() {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-          ),
+        _GlassCard(
           child: Center(
             child: Column(
               children: [
@@ -427,17 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => context.push(link['route'] as String),
             child: Column(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.blue50,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.gray100),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4)],
-                  ),
-                  child: Icon(link['icon'] as IconData, color: AppColors.blue600, size: 22),
-                ),
+                _GlassOrb(icon: link['icon'] as IconData),
                 const SizedBox(height: 6),
                 Text(
                   link['title'] as String,
@@ -457,62 +524,6 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
-          // Ferry status
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.gray100),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('실시간 운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
-                    GestureDetector(
-                      onTap: () => _showAllFerryStatus(context),
-                      child: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                ...(() {
-                  final display = _ferryStatus.isNotEmpty
-                      ? _ferryStatus.take(3).toList()
-                      : [
-                          FerryRouteStatus(islandName: '백령도', status: '확인중'),
-                          FerryRouteStatus(islandName: '덕적도', status: '확인중'),
-                          FerryRouteStatus(islandName: '영흥도', status: '확인중'),
-                        ];
-                  final rows = <Widget>[];
-                  for (var i = 0; i < display.length; i++) {
-                    rows.add(_StatusRow(island: display[i].islandName, status: display[i].status));
-                    if (i != display.length - 1) {
-                      rows.add(const SizedBox(height: 10));
-                      rows.add(Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Container(
-                          height: 1.5,
-                          decoration: BoxDecoration(
-                            color: AppColors.gray200,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                        ),
-                      ));
-                      rows.add(const SizedBox(height: 10));
-                    }
-                  }
-                  return rows;
-                })(),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
           // Weather widget
           Container(
             padding: const EdgeInsets.all(20),
@@ -581,6 +592,62 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Weekly forecast
           _buildWeeklyForecast(),
+          const SizedBox(height: 16),
+
+          // Ferry status
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.gray100),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
+                    GestureDetector(
+                      onTap: () => _showAllFerryStatus(context),
+                      child: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ...(() {
+                  final display = _ferryStatus.isNotEmpty
+                      ? _ferryStatus.take(3).toList()
+                      : [
+                          FerryRouteStatus(islandName: '백령도', status: '확인중'),
+                          FerryRouteStatus(islandName: '덕적도', status: '확인중'),
+                          FerryRouteStatus(islandName: '영흥도', status: '확인중'),
+                        ];
+                  final rows = <Widget>[];
+                  for (var i = 0; i < display.length; i++) {
+                    rows.add(_StatusRow(island: display[i].islandName, status: display[i].status));
+                    if (i != display.length - 1) {
+                      rows.add(const SizedBox(height: 10));
+                      rows.add(Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Container(
+                          height: 1.5,
+                          decoration: BoxDecoration(
+                            color: AppColors.gray200,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ));
+                      rows.add(const SizedBox(height: 10));
+                    }
+                  }
+                  return rows;
+                })(),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -703,6 +770,88 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+}
+
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  const _GlassCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.14),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.35), width: 1.2),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, 6)),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassOrb extends StatelessWidget {
+  final IconData icon;
+  const _GlassOrb({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: ClipOval(
+        child: Stack(
+          children: [
+            // 거의 투명한 물방울 몸체 - 파란빛은 아주 살짝만
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withOpacity(0.3),
+                    AppColors.blue50.withOpacity(0.2),
+                  ],
+                ),
+              ),
+            ),
+            // 물방울 가장자리 얇은 테두리
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.blue100.withOpacity(0.6), width: 1),
+                ),
+              ),
+            ),
+            // 아주 옅은 광택
+            Positioned(
+              top: 5, left: 6,
+              child: Container(
+                width: 16, height: 10,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                    colors: [Colors.white.withOpacity(0.4), Colors.white.withOpacity(0.0)],
+                  ),
+                ),
+              ),
+            ),
+            Center(child: Icon(icon, color: AppColors.blue700, size: 22)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _StatusRow extends StatelessWidget {

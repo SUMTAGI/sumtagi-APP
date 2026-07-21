@@ -10,11 +10,14 @@ class ChecklistScreen extends StatefulWidget {
 }
 
 class _ChecklistScreenState extends State<ChecklistScreen> {
+  static const _categories = ['여행 서류', '짐', '편의', '기타'];
+
   List<Map<String, dynamic>> _items = [];
   bool _isLoading = true;
   final _textCtrl = TextEditingController();
   String? _tripId;
   String? _tripTitle;
+  String _selectedCategory = _categories.first;
 
   @override
   void initState() {
@@ -50,9 +53,25 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   Future<void> _addItem() async {
     if (_textCtrl.text.isEmpty) return;
-    await ChecklistService.addItem(title: _textCtrl.text, tripId: _tripId);
+    await ChecklistService.addItem(title: _textCtrl.text, category: _selectedCategory, tripId: _tripId);
     _textCtrl.clear();
     _load();
+  }
+
+  Future<void> _deleteItem(String id) async {
+    await ChecklistService.deleteItem(id);
+    setState(() => _items.removeWhere((i) => i['id'] == id));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('항목이 삭제됐어요')));
+    }
+  }
+
+  Future<void> _reset() async {
+    await ChecklistService.reset(tripId: _tripId);
+    await _load();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('체크리스트가 초기화됐어요')));
+    }
   }
 
   @override
@@ -70,6 +89,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.gray900,
         elevation: 0,
+        actions: [
+          TextButton(
+            onPressed: _reset,
+            child: const Text('초기화', style: TextStyle(color: AppColors.blue600, fontWeight: FontWeight.w600)),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -124,6 +149,10 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                           subtitle: Text(item['category'] as String? ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
                           activeColor: AppColors.blue600,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          secondary: IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.gray400),
+                            onPressed: () => _deleteItem(item['id'] as String),
+                          ),
                         ),
                       );
                     },
@@ -134,6 +163,26 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                   decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.gray200))),
                   child: Row(
                     children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.gray300),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedCategory,
+                            style: const TextStyle(fontSize: 13, color: AppColors.gray900),
+                            items: _categories
+                                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                                .toList(),
+                            onChanged: (v) {
+                              if (v != null) setState(() => _selectedCategory = v);
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
                           controller: _textCtrl,

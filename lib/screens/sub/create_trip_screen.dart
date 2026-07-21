@@ -6,7 +6,8 @@ import '../../theme/app_colors.dart';
 
 class CreateTripScreen extends StatefulWidget {
   final String? preSelectedIsland;
-  const CreateTripScreen({super.key, this.preSelectedIsland});
+  final String? preSelectedStyle;
+  const CreateTripScreen({super.key, this.preSelectedIsland, this.preSelectedStyle});
 
   @override
   State<CreateTripScreen> createState() => _CreateTripScreenState();
@@ -22,6 +23,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   String _budget = '보통';
   final _specialRequestsCtrl = TextEditingController();
   bool _isSubmitting = false;
+  String _generationMode = 'quick'; // 'ai' | 'quick'
 
   static const _allIslands = [
     '백령도', '대청도', '소청도', '연평도',
@@ -45,12 +47,91 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     '문갑도': '인천항', '백아도': '인천항', '울도': '인천항',
   };
 
-  // 굴업도는 실제로는 인천항에서 출발해 덕적도에서 배를 갈아타고 들어가는 섬이라
-  // _islandPortMap상 표기('덕적도')와 달리 인천항 권역 섬들과 함께 선택할 수 있어야 한다.
-  static const _transferIslands = {'굴업도'};
+  static const List<Map<String, Object>> _quickDatePicks = [
+    {'label': '이번 주말', 'type': 'weekend', 'weeksAhead': 0},
+    {'label': '다음 주말', 'type': 'weekend', 'weeksAhead': 1},
+    {'label': '당일치기', 'type': 'nights', 'nights': 0},
+    {'label': '1박 2일', 'type': 'nights', 'nights': 1},
+    {'label': '2박 3일', 'type': 'nights', 'nights': 2},
+    {'label': '3박 4일', 'type': 'nights', 'nights': 3},
+  ];
 
-  String _portGroupOf(String island) =>
-      _transferIslands.contains(island) ? '인천항' : (_islandPortMap[island] ?? '인천항');
+  DateTime _today() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  // JS의 getDay()(일=0~토=6) 기준 계산과 동일하게 맞추기 위해 Dart weekday(월=1~일=7)를 변환
+  DateTime _upcomingSaturday(int weeksAhead) {
+    final today = _today();
+    final jsWeekday = today.weekday % 7;
+    final daysUntilSat = ((6 - jsWeekday) % 7) + weeksAhead * 7;
+    return today.add(Duration(days: daysUntilSat));
+  }
+
+  void _applyQuickDatePick(Map<String, Object> pick) {
+    setState(() {
+      if (pick['type'] == 'weekend') {
+        final sat = _upcomingSaturday(pick['weeksAhead']! as int);
+        _startDate = sat;
+        _endDate = sat.add(const Duration(days: 1));
+      } else {
+        final start = _startDate ?? _today();
+        _startDate = start;
+        _endDate = start.add(Duration(days: pick['nights']! as int));
+      }
+    });
+  }
+
+  String? get _activeQuickPick {
+    if (_startDate == null || _endDate == null) return null;
+    final nights = _endDate!.difference(_startDate!).inDays;
+    if (nights < 0) return null;
+    bool sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+    final thisWeekendStart = _upcomingSaturday(0);
+    final nextWeekendStart = _upcomingSaturday(1);
+    if (sameDay(_startDate!, thisWeekendStart) && sameDay(_endDate!, thisWeekendStart.add(const Duration(days: 1)))) {
+      return '이번 주말';
+    }
+    if (sameDay(_startDate!, nextWeekendStart) && sameDay(_endDate!, nextWeekendStart.add(const Duration(days: 1)))) {
+      return '다음 주말';
+    }
+    for (final pick in _quickDatePicks) {
+      if (pick['type'] == 'nights' && pick['nights'] == nights) return pick['label'] as String;
+    }
+    return null;
+  }
+
+  Future<DateTime?> _pickDate({
+    required DateTime initialDate,
+    required DateTime firstDate,
+    required DateTime lastDate,
+  }) {
+    return showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppColors.blue600,
+                  onPrimary: Colors.white,
+                  onSurface: AppColors.gray900,
+                ),
+            datePickerTheme: DatePickerThemeData(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              headerBackgroundColor: AppColors.blue600,
+              headerForegroundColor: Colors.white,
+              todayBorder: const BorderSide(color: AppColors.blue600),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -58,6 +139,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     if (widget.preSelectedIsland != null) {
       _selectedIslands = [widget.preSelectedIsland!];
     }
+    if (widget.preSelectedStyle != null) _travelType = widget.preSelectedStyle!;
   }
 
   @override
@@ -69,50 +151,43 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   bool get _hasPreSelected => widget.preSelectedIsland != null;
   int get _totalSteps => _hasPreSelected ? 2 : 3;
 
-  Set<String> get _selectedPortGroups =>
-      _selectedIslands.map(_portGroupOf).toSet();
-
-  bool get _hasPortConflict => _selectedPortGroups.length > 1;
-
   bool get _requiresGulupTransfer => _selectedIslands.contains('굴업도');
 
-  String get _computedPort {
-    if (_selectedIslands.isEmpty) return '인천항';
-    // 굴업도만(단독) 선택된 경우 기존처럼 "덕적도 경유" 표기를 유지한다.
-    if (_selectedIslands.every(_transferIslands.contains)) {
-      return _islandPortMap[_selectedIslands.first] ?? '인천항';
-    }
-    return _portGroupOf(_selectedIslands.first);
-  }
+  String get _computedPort =>
+      _selectedIslands.isEmpty ? '인천항' : (_islandPortMap[_selectedIslands.first] ?? '인천항');
 
   Future<void> _handleSubmit() async {
-    if (_isSubmitting || _hasPortConflict) return;
+    if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-      final result = await generateAIItinerary(
-        AIItineraryRequest(
-          departurePort: _computedPort,
-          islands: _selectedIslands,
-          startDate: _startDate!.toIso8601String().split('T')[0],
-          endDate: _endDate!.toIso8601String().split('T')[0],
-          travelers: _travelers,
-          travelStyle: _travelType,
-          budget: _budget,
-          specialRequests: _specialRequestsCtrl.text.trim(),
-        ),
-        onFallback: (reason) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('AI 일정 생성에 실패했어요. 기본 일정으로 대체합니다.'),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                backgroundColor: AppColors.gray900,
-              ),
-            );
-          }
-        },
+      final request = AIItineraryRequest(
+        departurePort: _computedPort,
+        islands: _selectedIslands,
+        startDate: _startDate!.toIso8601String().split('T')[0],
+        endDate: _endDate!.toIso8601String().split('T')[0],
+        travelers: _travelers,
+        travelStyle: _travelType,
+        budget: _budget,
+        specialRequests: _specialRequestsCtrl.text.trim(),
       );
+
+      final result = _generationMode == 'quick'
+          ? await generateQuickItinerary(request)
+          : await generateAIItinerary(
+              request,
+              onFallback: (reason) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('AI 일정 생성에 실패했어요. 기본 일정으로 대체합니다.'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      backgroundColor: AppColors.gray900,
+                    ),
+                  );
+                }
+              },
+            );
 
       final itinerary = result.itinerary;
       // DB에 generated_by 컬럼이 없어도 저장할 수 있도록, days의 첫 번째 날에 생성 방식을 함께 기록한다.
@@ -239,7 +314,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       children: [
         const Text('방문할 섬 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
-        const Text('어느 섬으로 떠나고 싶으세요?', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const Text('어느 섬으로 떠나고 싶으세요? 섬간 이동이 어려워 한 번에 한 섬만 선택할 수 있어요.', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
         const SizedBox(height: 20),
         GridView.count(
           crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12,
@@ -247,8 +322,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           children: _allIslands.map((island) {
             final selected = _selectedIslands.contains(island);
             return GestureDetector(
+              // 섬간 이동이 번거로워 한 번에 한 섬만 선택 가능 — 다른 섬을 누르면 선택이 교체됨
               onTap: () => setState(() {
-                if (selected) { _selectedIslands.remove(island); } else { _selectedIslands.add(island); }
+                _selectedIslands = selected ? [] : [island];
               }),
               child: Container(
                 decoration: BoxDecoration(
@@ -276,76 +352,31 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               border: Border.all(color: AppColors.blue100),
             ),
             child: Text(
-              '${_selectedIslands.length}개 섬 선택됨: ${_selectedIslands.join(', ')}',
+              '${_selectedIslands.first} 선택됨',
               style: const TextStyle(fontSize: 13, color: AppColors.blue700),
             ),
           ),
-          if (_hasPortConflict) ...[
-            const SizedBox(height: 12),
-            _buildPortConflictWarning(),
-          ] else if (_requiresGulupTransfer) ...[
+          if (_requiresGulupTransfer) ...[
             const SizedBox(height: 12),
             _buildTransferNotice(),
           ],
           const SizedBox(height: 16),
-          if (!_hasPortConflict)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => setState(() => _step = 1),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.blue600,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-                child: const Text('다음: 날짜 선택'),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => setState(() => _step = 1),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
               ),
+              child: const Text('다음: 날짜 선택'),
             ),
+          ),
         ],
       ],
-    );
-  }
-
-  Widget _buildPortConflictWarning() {
-    final groups = <String, List<String>>{};
-    for (final island in _selectedIslands) {
-      groups.putIfAbsent(_portGroupOf(island), () => []).add(island);
-    }
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.red50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.red100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.error_outline_rounded, size: 16, color: AppColors.red700),
-              SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  '출발항이 다른 섬은 함께 선택할 수 없어요',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.red700),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ...groups.entries.map(
-            (e) => Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text('${e.key} 출발: ${e.value.join(', ')}', style: const TextStyle(fontSize: 12, color: AppColors.red700)),
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text('같은 출발항의 섬끼리만 함께 선택해주세요.', style: TextStyle(fontSize: 12, color: AppColors.red700)),
-        ],
-      ),
     );
   }
 
@@ -401,6 +432,39 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         const Text('여행 날짜', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
         const Text('언제 떠나시나요?', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const SizedBox(height: 20),
+        const Text('빠른 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+        const SizedBox(height: 10),
+        GridView.count(
+          crossAxisCount: 3,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 2.2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: _quickDatePicks.map((pick) {
+            final isActive = _activeQuickPick == pick['label'];
+            return GestureDetector(
+              onTap: () => _applyQuickDatePick(pick),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isActive ? AppColors.blue600 : AppColors.gray200, width: 2),
+                  color: isActive ? AppColors.blue50 : Colors.white,
+                ),
+                child: Text(
+                  pick['label'] as String,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    color: isActive ? AppColors.blue600 : AppColors.gray600,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
         const SizedBox(height: 24),
         const Text('출발일', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
         const SizedBox(height: 8),
@@ -408,11 +472,10 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           value: _startDate,
           hint: '출발일 선택',
           onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
+            final picked = await _pickDate(
+              initialDate: _startDate ?? DateTime.now(),
               firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
+              lastDate: _endDate ?? DateTime.now().add(const Duration(days: 365)),
             );
             if (picked != null) setState(() => _startDate = picked);
           },
@@ -428,9 +491,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           value: _endDate,
           hint: '귀가일 선택',
           onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: _startDate ?? DateTime.now(),
+            final picked = await _pickDate(
+              initialDate: _endDate ?? _startDate ?? DateTime.now(),
               firstDate: _startDate ?? DateTime.now(),
               lastDate: DateTime.now().add(const Duration(days: 365)),
             );
@@ -520,6 +582,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           children: [
             {'id': '관광', 'emoji': '🏖️'}, {'id': '휴양', 'emoji': '😌'},
             {'id': '체험', 'emoji': '🎣'}, {'id': '사진', 'emoji': '📸'},
+            {'id': '생태', 'emoji': '🌿', 'badge': '생태관광'},
+            {'id': '무장애', 'emoji': '♿', 'badge': '무장애여행'},
+            {'id': '반려동물', 'emoji': '🐾', 'badge': '반려동물동반'},
           ].map((t) {
             final isSelected = _travelType == t['id'];
             return GestureDetector(
@@ -530,12 +595,34 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   border: Border.all(color: isSelected ? AppColors.blue600 : AppColors.gray200, width: 2),
                   color: isSelected ? AppColors.blue50 : Colors.white,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Stack(
                   children: [
-                    Text(t['emoji']!, style: const TextStyle(fontSize: 28)),
-                    const SizedBox(height: 6),
-                    Text(t['id']!, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.blue600 : AppColors.gray900)),
+                    if (t['badge'] != null)
+                      Positioned(
+                        top: 6, right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(999)),
+                          child: const Text('관광공사', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
+                        ),
+                      ),
+                    Positioned.fill(
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(t['emoji']!, style: const TextStyle(fontSize: 28)),
+                            const SizedBox(height: 6),
+                            Text(
+                              t['id']!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.blue600 : AppColors.gray900),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -570,25 +657,54 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           }).toList(),
         ),
         const SizedBox(height: 24),
-        const Text.rich(
-          TextSpan(children: [
-            TextSpan(text: 'AI에게 하고 싶은 말이 있나요? ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
-            TextSpan(text: '(선택)', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
-          ]),
-        ),
+        const Text('일정 생성 방식', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
         const SizedBox(height: 12),
-        TextField(
-          controller: _specialRequestsCtrl,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: '예: 아이랑 같이 가요, 낚시하고 싶어요, 걷는 건 최소화해주세요',
-            hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue500, width: 2)),
-            contentPadding: const EdgeInsets.all(14),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _GenerationModeCard(
+                emoji: '⚡',
+                label: '빠른 일정 생성',
+                description: 'AI 없이\n즉시 생성',
+                selected: _generationMode == 'quick',
+                recommended: true,
+                onTap: () => setState(() => _generationMode = 'quick'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _GenerationModeCard(
+                emoji: '✨',
+                label: 'AI 추천 일정',
+                description: '관광 데이터 기반\n맞춤 일정',
+                selected: _generationMode == 'ai',
+                onTap: () => setState(() => _generationMode = 'ai'),
+              ),
+            ),
+          ],
         ),
+        if (_generationMode == 'ai') ...[
+          const SizedBox(height: 24),
+          const Text.rich(
+            TextSpan(children: [
+              TextSpan(text: 'AI에게 하고 싶은 말이 있나요? ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+              TextSpan(text: '(선택)', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _specialRequestsCtrl,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: '예: 아이랑 같이 가요, 낚시하고 싶어요, 걷는 건 최소화해주세요',
+              hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue500, width: 2)),
+              contentPadding: const EdgeInsets.all(14),
+            ),
+          ),
+        ],
         if (_travelType.isNotEmpty) ...[
           const SizedBox(height: 24),
           SizedBox(
@@ -604,15 +720,21 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 elevation: 0,
               ),
               child: _isSubmitting
-                  ? const Row(
+                  ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                        SizedBox(width: 10),
-                        Text('AI가 일정을 만들고 있어요...', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                        const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                        const SizedBox(width: 10),
+                        Text(
+                          _generationMode == 'ai' ? 'AI가 일정을 만들고 있어요...' : '일정을 만들고 있어요...',
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        ),
                       ],
                     )
-                  : const Text('AI 일정 생성하기 ✨', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  : Text(
+                      _generationMode == 'ai' ? 'AI 일정 생성하기 ✨' : '빠른 일정 생성하기 ⚡',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
             ),
           ),
         ],
@@ -674,6 +796,62 @@ class _DateConfirm extends StatelessWidget {
             style: const TextStyle(fontSize: 13, color: AppColors.blue700, fontWeight: FontWeight.w500),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GenerationModeCard extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final String description;
+  final bool selected;
+  final bool recommended;
+  final VoidCallback onTap;
+  const _GenerationModeCard({
+    required this.emoji,
+    required this.label,
+    required this.description,
+    required this.selected,
+    this.recommended = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: selected ? AppColors.blue600 : AppColors.gray200, width: 2),
+          color: selected ? AppColors.blue50 : Colors.white,
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 24)),
+                const SizedBox(height: 6),
+                Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: selected ? AppColors.blue600 : AppColors.gray900)),
+                const SizedBox(height: 2),
+                Text(description, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+              ],
+            ),
+            if (recommended)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(color: AppColors.blue100, borderRadius: BorderRadius.circular(999)),
+                  child: const Text('추천', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.blue700)),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
