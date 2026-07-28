@@ -29,7 +29,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
   bool _ferryLoading = true;
   IslandCongestionData? _congestion;
   bool _congestionLoading = true;
-  WeatherCurrent? _weather;
+  WeatherResult? _weather;
   bool _weatherLoading = true;
 
   @override
@@ -68,7 +68,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               });
           WeatherService.getWeatherForIsland(widget.id, lat: islandData.lat, lng: islandData.lng)
               .then((result) {
-                if (mounted) setState(() { _weather = result?.current; _weatherLoading = false; });
+                if (mounted) setState(() { _weather = result; _weatherLoading = false; });
               })
               .catchError((_) {
                 if (mounted) setState(() => _weatherLoading = false);
@@ -474,7 +474,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
 
   Widget _buildWeatherSection() {
     final risk = _weather != null
-        ? WeatherService.assessFerryRisk(_weather!.windSpeed, _weather!.waveHeight)
+        ? WeatherService.assessFerryRisk(_weather!.current.windSpeed, _weather!.current.waveHeight)
         : null;
     final riskColor = switch (risk) {
       FerryRisk.safe => AppColors.green600,
@@ -492,55 +492,91 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       color: AppColors.blue50,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    _WeatherStat(
+                      icon: Icons.wb_sunny_rounded,
+                      iconColor: AppColors.orange500,
+                      label: '날씨',
+                      value: _weatherLoading
+                          ? '-'
+                          : _weather != null
+                              ? '${_weather!.current.temperature.round()}°C ${_weather!.current.condition}'
+                              : '정보 없음',
+                    ),
+                    const SizedBox(width: 16),
+                    _WeatherStat(
+                      icon: Icons.waves_rounded,
+                      iconColor: AppColors.blue600,
+                      label: '파고',
+                      value: _weatherLoading
+                          ? '-'
+                          : _weather != null
+                              ? '${_weather!.current.waveHeight.toStringAsFixed(1)}m'
+                              : '정보 없음',
+                    ),
+                    const SizedBox(width: 16),
+                    _WeatherStat(
+                      icon: Icons.air_rounded,
+                      iconColor: AppColors.gray500,
+                      label: '풍속',
+                      value: _weatherLoading
+                          ? '-'
+                          : _weather != null
+                              ? '${_weather!.current.windSpeed.round()}km/h'
+                              : '정보 없음',
+                    ),
+                  ],
+                ),
+              ),
+              if (!_weatherLoading && risk != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(color: riskBg, borderRadius: BorderRadius.circular(8)),
+                  child: Text(
+                    risk.label,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: riskColor),
+                  ),
+                ),
+            ],
+          ),
+          _buildTomorrowRiskBadge(),
+        ],
+      ),
+    );
+  }
+
+  // safe면 렌더링 자체를 하지 않음 — 위험할 때만 알리고, 안전할 땐 침묵하는 게 이 프로젝트의 원칙.
+  Widget _buildTomorrowRiskBadge() {
+    if (_weatherLoading || _weather == null || _weather!.forecast.isEmpty) return const SizedBox.shrink();
+    final tomorrow = _weather!.forecast[0];
+    if (tomorrow.windSpeed == null || tomorrow.waveHeight == null) return const SizedBox.shrink();
+
+    final risk = WeatherService.assessFerryRisk(tomorrow.windSpeed!, tomorrow.waveHeight!);
+    if (risk == FerryRisk.safe) return const SizedBox.shrink();
+
+    final isDanger = risk == FerryRisk.danger;
+    final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
+    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
+    final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
+    final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
+    final message = isDanger ? '내일 결항 가능성 있음 (예측, 확정 아님)' : '내일 기상 악화 가능 (예측, 확정 아님)';
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), border: Border.all(color: border)),
       child: Row(
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                _WeatherStat(
-                  icon: Icons.wb_sunny_rounded,
-                  iconColor: AppColors.orange500,
-                  label: '날씨',
-                  value: _weatherLoading
-                      ? '-'
-                      : _weather != null
-                          ? '${_weather!.temperature.round()}°C ${_weather!.condition}'
-                          : '정보 없음',
-                ),
-                const SizedBox(width: 16),
-                _WeatherStat(
-                  icon: Icons.waves_rounded,
-                  iconColor: AppColors.blue600,
-                  label: '파고',
-                  value: _weatherLoading
-                      ? '-'
-                      : _weather != null
-                          ? '${_weather!.waveHeight.toStringAsFixed(1)}m'
-                          : '정보 없음',
-                ),
-                const SizedBox(width: 16),
-                _WeatherStat(
-                  icon: Icons.air_rounded,
-                  iconColor: AppColors.gray500,
-                  label: '풍속',
-                  value: _weatherLoading
-                      ? '-'
-                      : _weather != null
-                          ? '${_weather!.windSpeed.round()}km/h'
-                          : '정보 없음',
-                ),
-              ],
-            ),
-          ),
-          if (!_weatherLoading && risk != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(color: riskBg, borderRadius: BorderRadius.circular(8)),
-              child: Text(
-                risk.label,
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: riskColor),
-              ),
-            ),
+          Icon(Icons.warning_amber_rounded, size: 18, color: iconColor),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor))),
         ],
       ),
     );

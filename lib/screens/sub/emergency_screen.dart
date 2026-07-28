@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../theme/app_colors.dart';
+import '../../services/island_service.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({super.key});
@@ -11,6 +13,13 @@ class EmergencyScreen extends StatefulWidget {
 class _EmergencyScreenState extends State<EmergencyScreen> {
   String _selectedIsland = '백령도';
   String? _expandedAid;
+  List<IslandModel> _islands = [];
+
+  @override
+  void initState() {
+    super.initState();
+    IslandService.getIslands().then((v) { if (mounted) setState(() => _islands = v); }).catchError((_) {});
+  }
 
   static const _contacts = [
     {
@@ -157,6 +166,47 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
+  Future<Position?> _getMyLocation() async {
+    try {
+      final enabled = await Geolocator.isLocationServiceEnabled();
+      if (!enabled) return null;
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
+      if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) return null;
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 8)),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _shareLocation() async {
+    final pos = await _getMyLocation();
+    if (pos != null) {
+      await Clipboard.setData(ClipboardData(text: 'https://maps.google.com/?q=${pos.latitude},${pos.longitude}'));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('내 위치 링크가 복사됐어요. 해경/보호자에게 붙여넣어 전달하세요')),
+      );
+      return;
+    }
+    final matches = _islands.where((i) => i.name == _selectedIsland);
+    final match = matches.isEmpty ? null : matches.first;
+    if (!mounted) return;
+    if (match?.lat != null && match?.lng != null) {
+      await Clipboard.setData(ClipboardData(text: 'https://maps.google.com/?q=${match!.lat},${match.lng}'));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('위치 확인 실패 — 대신 "$_selectedIsland" 대표 위치를 복사했어요. 정확한 위치는 직접 설명해주세요')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('위치 확인 실패 — 신고 시 "$_selectedIsland"에 있다고 말씀해주세요')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final contact = _contacts.firstWhere((c) => c['island'] == _selectedIsland, orElse: () => _contacts.first);
@@ -200,23 +250,75 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             color: AppColors.blue50,
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: _EmergencyBtn(
-                    icon: Icons.warning_amber_rounded,
-                    small: '화재·응급',
-                    number: '119',
-                    onTap: () => _call('119'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _EmergencyBtn(
+                        icon: Icons.warning_amber_rounded,
+                        small: '화재·응급',
+                        number: '119',
+                        onTap: () => _call('119'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _EmergencyBtn(
+                        icon: Icons.shield_rounded,
+                        small: '범죄·사고',
+                        number: '112',
+                        onTap: () => _call('112'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // 122 해양 응급 — 배 사고/조난 등 해상 응급은 119/112와 별도로 눈에 띄게
+                SizedBox(
+                  width: double.infinity,
+                  child: GestureDetector(
+                    onTap: () => _call('122'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(color: const Color(0xFF4F46E5), borderRadius: BorderRadius.circular(12)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.directions_boat_rounded, size: 24, color: Colors.white),
+                          const SizedBox(width: 10),
+                          Column(
+                            children: const [
+                              Text('해상 조난·사고', style: TextStyle(fontSize: 13, color: Colors.white)),
+                              Text('122 해양경찰 신고', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _EmergencyBtn(
-                    icon: Icons.shield_rounded,
-                    small: '범죄·사고',
-                    number: '112',
-                    onTap: () => _call('112'),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: GestureDetector(
+                    onTap: _shareLocation,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF4F46E5), width: 2),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.share_rounded, size: 20, color: Color(0xFF4F46E5)),
+                          SizedBox(width: 8),
+                          Text('내 위치 공유하기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5))),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],

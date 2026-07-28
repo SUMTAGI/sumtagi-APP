@@ -101,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
           slivers: [
             SliverToBoxAdapter(child: _buildHeroContent()),
             SliverToBoxAdapter(child: _buildFerryRiskBanner()),
+            SliverToBoxAdapter(child: _buildTomorrowFerryRiskBanner()),
             SliverToBoxAdapter(child: _buildQuickLinks()),
             SliverToBoxAdapter(child: _buildStatus()),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -216,6 +217,46 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 오늘 기준 배너(_buildFerryRiskBanner)와 별개로, 내일 예보 기반 예측 배너.
+  // WEB(FerryRiskBanner.tsx)과 문구를 동일하게 유지할 것 — "예측, 확정 아님" 명시.
+  Widget _buildTomorrowFerryRiskBanner() {
+    if (_weather == null || _weather!.forecast.isEmpty) return const SizedBox.shrink();
+    final tomorrow = _weather!.forecast[0];
+    if (tomorrow.windSpeed == null || tomorrow.waveHeight == null) return const SizedBox.shrink();
+
+    final risk = WeatherService.assessFerryRisk(tomorrow.windSpeed!, tomorrow.waveHeight!);
+    if (risk == FerryRisk.safe) return const SizedBox.shrink();
+
+    final isDanger = risk == FerryRisk.danger;
+    final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
+    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
+    final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
+    final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
+
+    final message = isDanger
+        ? '내일 결항 가능성 있음 (예측, 확정 아님)'
+        : '내일 기상 악화 가능 (예측, 확정 아님)';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: iconColor, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(message, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor)),
           ),
         ],
       ),

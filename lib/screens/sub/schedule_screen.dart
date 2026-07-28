@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/ferry_service.dart';
 import '../../services/island_service.dart';
+import '../../services/weather_service.dart';
 import '../../theme/app_colors.dart';
 
 class ScheduleScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   bool _showTimetable = false;
   List<_FerryGroup> _timetableGroups = [];
   bool _isTimetableLoading = false;
+  WeatherResult? _islandWeather;
 
   // 배편이 아예 없는 섬(다리로 연결됨)은 여객선 필터에서 제외 — 골라도 항상 결과가 없어 혼란만 줌
   List<IslandModel> get _ferryIslands => _islands.where((i) => i.ferryPrice != 0).toList();
@@ -145,7 +147,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   void _selectFerryIsland(String islandId) {
     setState(() => _selectedFerryIslandId = islandId);
     _loadFerrySchedule();
+    _loadIslandWeather();
     if (_showTimetable) _loadTimetable();
+  }
+
+  // "내일 결항 위험" 배지용 예보 — 섬 하나를 골랐을 때만 조회(전체 선택 시엔 비용 대비 실익이 낮아 생략)
+  Future<void> _loadIslandWeather() async {
+    if (_selectedFerryIslandId == _kAllFerryFilter) {
+      if (mounted) setState(() => _islandWeather = null);
+      return;
+    }
+    final island = _findIsland(_selectedFerryIslandId);
+    final result = await WeatherService.getWeatherForIsland(_selectedFerryIslandId, lat: island?.lat, lng: island?.lng);
+    if (mounted) setState(() => _islandWeather = result);
   }
 
   // "운항 시간표 보기" 버튼 — 실시간 조회 성공/실패와 무관하게 언제든 정기 시간표를 확인할 수 있게 함
@@ -275,6 +289,35 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  // safe면 렌더링 자체를 하지 않음 — 위험할 때만 알리고, 안전할 땐 침묵하는 게 이 프로젝트의 원칙.
+  Widget _buildFerryRiskBadge() {
+    final tomorrow = _islandWeather?.forecast.isNotEmpty == true ? _islandWeather!.forecast[0] : null;
+    if (tomorrow?.windSpeed == null || tomorrow?.waveHeight == null) return const SizedBox.shrink();
+
+    final risk = WeatherService.assessFerryRisk(tomorrow!.windSpeed!, tomorrow.waveHeight!);
+    if (risk == FerryRisk.safe) return const SizedBox.shrink();
+
+    final isDanger = risk == FerryRisk.danger;
+    final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
+    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
+    final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
+    final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
+    final message = isDanger ? '내일 결항 가능성 있음 (예측, 확정 아님)' : '내일 기상 악화 가능 (예측, 확정 아님)';
+
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), border: Border.all(color: border)),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 18, color: iconColor),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor))),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFerry() {
     return Column(
       children: [
@@ -322,6 +365,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   ],
                 ),
               ),
+              if (_selectedFerryIslandId != _kAllFerryFilter) _buildFerryRiskBadge(),
             ],
           ),
         ),
