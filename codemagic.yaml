@@ -21,7 +21,7 @@ workflows:
       events:
         - push
       branch_patterns:
-        - pattern: ios-build
+        - pattern: dev
           include: true
           source: true
     scripts:
