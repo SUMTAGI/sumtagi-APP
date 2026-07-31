@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_colors.dart';
-
-Future<void> _openUrl(String url) async {
-  final uri = Uri.parse(url);
-  if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
-}
 
 class AppSettingsScreen extends StatefulWidget {
   const AppSettingsScreen({super.key});
@@ -38,21 +32,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 items: ['한국어', 'English', '日本語'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
                 onChanged: (v) => setState(() => _language = v!),
               ),
-            ),
-          ]),
-          const SizedBox(height: 16),
-          _SectionTitle('약관 및 정책'),
-          _SettingCard(children: [
-            ListTile(
-              title: const Text('이용약관', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
-              onTap: () => _openUrl('https://sumtagi-web.vercel.app/terms'),
-            ),
-            const Divider(height: 1, indent: 16, color: AppColors.gray100),
-            ListTile(
-              title: const Text('개인정보 처리방침', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
-              onTap: () => _openUrl('https://sumtagi-web.vercel.app/privacy'),
             ),
           ]),
           const SizedBox(height: 16),

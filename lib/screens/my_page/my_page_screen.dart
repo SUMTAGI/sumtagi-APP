@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth_service.dart';
 import '../../services/trip_service.dart';
 import '../../services/favorite_service.dart';
@@ -113,6 +114,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
     final todayDate = DateTime(today.year, today.month, today.day);
     final start = DateTime.parse(startDate);
     return start.difference(todayDate).inDays;
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _handleLogout() async {
@@ -343,7 +349,9 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   _MenuCard(children: [
                     _MenuItem(icon: Icons.notifications_outlined, label: '알림 설정', onTap: () => context.push('/notification-settings')),
                     _MenuItem(icon: Icons.settings_outlined, label: '앱 설정', onTap: () => context.push('/app-settings')),
-                    _MenuItem(icon: Icons.help_outline_rounded, label: '고객센터', onTap: () => context.push('/support'), showDivider: false),
+                    _MenuItem(icon: Icons.help_outline_rounded, label: '고객센터', onTap: () => context.push('/support')),
+                    _MenuItem(icon: Icons.description_outlined, label: '이용약관', onTap: () => _openUrl('https://sumtagi-web.vercel.app/terms')),
+                    _MenuItem(icon: Icons.privacy_tip_outlined, label: '개인정보 처리방침', onTap: () => _openUrl('https://sumtagi-web.vercel.app/privacy'), showDivider: false),
                   ]),
                   const SizedBox(height: 20),
 

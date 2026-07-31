@@ -1,4 +1,4 @@
-package com.icisland.ic_island_app
+package com.icisland.icIslandApp
 
 import io.flutter.embedding.android.FlutterActivity
 
