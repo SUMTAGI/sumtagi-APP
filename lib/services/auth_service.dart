@@ -70,6 +70,14 @@ class AuthService {
     return _client.auth.signOut();
   }
 
+  static Future<void> deleteAccount() async {
+    final res = await _client.functions.invoke('delete-account');
+    if (res.status != 200) {
+      throw Exception('계정 삭제에 실패했어요');
+    }
+    await _client.auth.signOut();
+  }
+
   static String localizedError(String message) {
     if (message.contains('Invalid login credentials')) return '이메일 또는 비밀번호가 틀렸어요';
     if (message.contains('Email not confirmed')) return '이메일 인증이 필요해요';

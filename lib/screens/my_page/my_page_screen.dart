@@ -136,6 +136,45 @@ class _MyPageScreenState extends State<MyPageScreen> {
     }
   }
 
+  void _handleDeleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('회원 탈퇴'),
+        content: const Text('탈퇴하면 여행 일정, 즐겨찾기, 커뮤니티 게시물 등\n모든 데이터가 삭제되고 복구할 수 없어요.\n정말 탈퇴하시겠어요?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('탈퇴', style: TextStyle(color: AppColors.red500)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await AuthService.deleteAccount();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('회원 탈퇴가 완료됐어요'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            backgroundColor: AppColors.gray900,
+          ),
+        );
+        context.go('/login');
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('탈퇴 처리 중 오류가 발생했어요. 다시 시도해주세요'), backgroundColor: AppColors.red500),
+        );
+      }
+    }
+  }
+
   String get _displayName {
     final meta = _user?.userMetadata;
     if (meta != null && meta['nickname'] != null) return meta['nickname'] as String;
@@ -376,6 +415,12 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  Center(
+                    child: TextButton(
+                      onPressed: _handleDeleteAccount,
+                      child: const Text('회원 탈퇴', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                    ),
+                  ),
                   const Center(child: Text('버전 1.0.0', style: TextStyle(fontSize: 13, color: AppColors.gray500))),
                   const SizedBox(height: 100),
                 ],
