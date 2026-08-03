@@ -220,6 +220,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
+        centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
           statusBarColor: Colors.transparent,
         ),

@@ -19,6 +19,7 @@ class AuthService {
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: _redirectUrl,
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
   }
 
@@ -26,6 +27,7 @@ class AuthService {
     await _client.auth.signInWithOAuth(
       OAuthProvider.kakao,
       redirectTo: _redirectUrl,
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
   }
 
