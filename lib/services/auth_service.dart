@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const _redirectUrl = 'com.icisland.icislandapp://login-callback/';
@@ -28,30 +25,6 @@ class AuthService {
       OAuthProvider.kakao,
       redirectTo: _redirectUrl,
       authScreenLaunchMode: LaunchMode.externalApplication,
-    );
-  }
-
-  static Future<void> signInWithApple() async {
-    final rawNonce = _client.auth.generateRawNonce();
-    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
-
-    final credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-      nonce: hashedNonce,
-    );
-
-    final idToken = credential.identityToken;
-    if (idToken == null) {
-      throw const AuthException('Apple 로그인에 실패했어요 (identityToken 없음)');
-    }
-
-    await _client.auth.signInWithIdToken(
-      provider: OAuthProvider.apple,
-      idToken: idToken,
-      nonce: rawNonce,
     );
   }
 
