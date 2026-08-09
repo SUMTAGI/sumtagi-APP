@@ -11,6 +11,7 @@ class BudgetScreen extends StatefulWidget {
 
 class _BudgetScreenState extends State<BudgetScreen> {
   int _totalBudget = 500000;
+  final _budgetCtrl = TextEditingController(text: '500000');
   List<Map<String, dynamic>> _expenses = [];
   bool _isLoading = true;
   bool _showAddForm = false;
@@ -39,6 +40,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _budgetCtrl.dispose();
+    _amountCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -118,8 +127,38 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         children: [
                           const Text('총 예산', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
                           const SizedBox(height: 4),
-                          Text('${_totalBudget.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
-                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _budgetCtrl,
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (v) => setState(() => _totalBudget = int.tryParse(v) ?? 0),
+                                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    filled: true,
+                                    fillColor: Colors.white.withOpacity(0.2),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: Colors.white, width: 2),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text('원', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                            ],
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),

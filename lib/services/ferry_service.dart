@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FerrySchedule {
   final String ferryName;
@@ -138,10 +139,14 @@ class FerryService {
     return items;
   }
 
+  // 다리로 연결돼 여객선이 필요 없는 섬 — 운항 현황 집계에 넣으면 항상 '운항없음'만 나와
+  // 목록만 왜곡시키므로(WEB ferry.ts와 동일 기준) 홈 화면 집계에서 제외한다.
+  static const _bridgeConnectedIds = {'yeonghung', 'seonjae', 'sido', 'modo', 'soya'};
+
   static Future<List<FerryRouteStatus>> getHomeFerryStatus() async {
     final items = await _fetchAllToday();
     print('[Ferry Home] items: ${items.length}');
-    return _allIslands.map((island) {
+    return _allIslands.where((island) => !_bridgeConnectedIds.contains(island['id'])).map((island) {
       final keyword = _routeKeywords[island['id']] ?? '';
       final filtered = items.where((item) {
         final route = (item['lcns_seawy_nm'] ?? item['nvg_seawy_nm'] ?? '') as String;
@@ -195,6 +200,7 @@ class FerryService {
   static Future<List<IslandFerrySchedule>> getScheduleForAllIslands() async {
     final items = await _fetchAllToday();
     return _allIslands
+        .where((island) => !_bridgeConnectedIds.contains(island['id']))
         .map((island) {
           final keyword = _routeKeywords[island['id']];
           return IslandFerrySchedule(
@@ -206,6 +212,53 @@ class FerryService {
         .where((entry) => entry.schedules.isNotEmpty)
         .toList();
   }
+
+  // 정기 시간표(ferry_schedules 테이블) — 실시간 조회가 실패했을 때 조용히 대체하는 용도로도 쓰고,
+  // "운항 시간표 보기" 버튼으로 언제든 확인할 수 있게도 한다.
+  static Future<List<StaticFerrySchedule>> getStaticSchedules([String? islandId]) async {
+    final client = Supabase.instance.client;
+    var query = client
+        .from('ferry_schedules')
+        .select('island_id, departure_port, departure_time, arrival_time, ferry_name, days_of_week')
+        .eq('is_active', true);
+    if (islandId != null) {
+      query = query.eq('island_id', islandId);
+    }
+    final data = await query.order('departure_time');
+
+    final kstNow = DateTime.now().toUtc().add(const Duration(hours: 9));
+    final todayIdx = kstNow.weekday == DateTime.sunday ? 0 : kstNow.weekday;
+
+    return List<Map<String, dynamic>>.from(data as List)
+        .where((row) {
+          final days = row['days_of_week'];
+          if (days is! List) return true;
+          return days.contains(todayIdx);
+        })
+        .map((row) => StaticFerrySchedule(
+              islandId: row['island_id'] as String,
+              departurePort: row['departure_port'] as String,
+              departureTime: (row['departure_time'] as String).substring(0, 5),
+              arrivalTime: row['arrival_time'] != null ? (row['arrival_time'] as String).substring(0, 5) : null,
+              ferryName: row['ferry_name'] as String?,
+            ))
+        .toList();
+  }
+}
+
+class StaticFerrySchedule {
+  final String islandId;
+  final String departurePort;
+  final String departureTime;
+  final String? arrivalTime;
+  final String? ferryName;
+  const StaticFerrySchedule({
+    required this.islandId,
+    required this.departurePort,
+    required this.departureTime,
+    this.arrivalTime,
+    this.ferryName,
+  });
 }
 
 class IslandFerrySchedule {

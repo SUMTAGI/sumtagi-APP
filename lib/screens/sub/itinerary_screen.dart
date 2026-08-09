@@ -76,17 +76,26 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   Future<void> _loadItinerary() async {
     final data = await TripService.getTripById(widget.id);
     if (data != null && mounted) {
+      // WEB(CreateTrip.tsx)에서 만든 여행은 departure_port/total_cost/travel_type/days
+      // 개별 컬럼이 아니라 trips.plan(JSONB 전체 스냅샷)에만 저장됨 — plan을 먼저 확인하고,
+      // 없을 때만(APP이 만든 여행) 개별 컬럼 조합으로 폴백해야 WEB에서 만든 여행도 보임.
+      final plan = data['plan'] as Map<String, dynamic>?;
       setState(() {
-        _itinerary = {
-          ...data,
-          'departurePort': data['departure_port'],
-          'startDate': data['start_date'],
-          'endDate': data['end_date'],
-          'totalCost': data['total_cost'],
-          'travelType': data['travel_type'],
-          'days': (data['days'] as List?)?.cast<Map<String, dynamic>>() ?? [],
-        };
-        _isConfirmed = data['confirmed'] == true;
+        if (plan != null) {
+          _itinerary = {...data, ...plan};
+          _isConfirmed = plan['confirmed'] == true || data['confirmed'] == true;
+        } else {
+          _itinerary = {
+            ...data,
+            'departurePort': data['departure_port'],
+            'startDate': data['start_date'],
+            'endDate': data['end_date'],
+            'totalCost': data['total_cost'],
+            'travelType': data['travel_type'],
+            'days': (data['days'] as List?)?.cast<Map<String, dynamic>>() ?? [],
+          };
+          _isConfirmed = data['confirmed'] == true;
+        }
       });
       _loadBookingChecklist();
       if (_isConfirmed) _checkRisks();
@@ -96,8 +105,9 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   Future<void> _loadBookingChecklist() async {
     final islands = (_itinerary!['islands'] as List?)?.cast<String>() ?? [];
     final port = _itinerary!['departurePort'] as String? ?? '인천항';
+    final days = (_itinerary!['days'] as List?)?.cast<Map<String, dynamic>>();
     final bookings = await TripBookingService.getChecklist(
-      tripId: widget.id, islands: islands, departurePort: port,
+      tripId: widget.id, islands: islands, departurePort: port, days: days,
     );
     if (mounted) setState(() => _bookings = bookings);
   }
@@ -152,11 +162,14 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     }
   }
 
-  bool get _isFallbackGenerated {
+  String? get _generatedByMeta {
     final days = (_itinerary?['days'] as List?) ?? [];
-    if (days.isEmpty) return false;
-    return (days.first as Map<String, dynamic>)['generatedBy'] == 'fallback';
+    if (days.isEmpty) return null;
+    return (days.first as Map<String, dynamic>)['generatedBy'] as String?;
   }
+
+  bool get _isFallbackGenerated => _generatedByMeta == 'fallback';
+  bool get _isQuickGenerated => _generatedByMeta == 'quick';
 
   void _toggleBooking(Map<String, dynamic> booking) {
     final current = booking['is_done'] == true;
@@ -655,7 +668,10 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                   interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
                 ),
                 children: [
-                  TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.sumtagi.app',
+                  ),
                   PolylineLayer(polylines: [
                     Polyline(
                       points: route,
@@ -736,16 +752,19 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
   }
 
   Widget _buildFallbackNotice() {
-    if (!_isFallbackGenerated || _isEditMode) return const SizedBox.shrink();
+    if (_isEditMode || (!_isFallbackGenerated && !_isQuickGenerated)) return const SizedBox.shrink();
+    final message = _isFallbackGenerated
+        ? 'AI 응답에 실패해 기본 일정으로 생성됐어요'
+        : '빠른 생성으로 만든 기본 일정이에요 (AI 미사용)';
     return Container(
       width: double.infinity,
       color: AppColors.gray100,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray600),
-          SizedBox(width: 6),
-          Text('AI 응답에 실패해 기본 일정으로 생성됐어요', style: TextStyle(fontSize: 12, color: AppColors.gray600)),
+          const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray600),
+          const SizedBox(width: 6),
+          Text(message, style: const TextStyle(fontSize: 12, color: AppColors.gray600)),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/ferry_service.dart';
 import '../../services/island_service.dart';
+import '../../services/weather_service.dart';
 import '../../theme/app_colors.dart';
 
 class ScheduleScreen extends StatefulWidget {
@@ -25,6 +26,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   String _selectedFerryIslandId = _kAllFerryFilter;
   List<_FerryGroup> _ferryGroups = [];
   bool _isFerryLoading = true;
+  bool _showTimetable = false;
+  List<_FerryGroup> _timetableGroups = [];
+  bool _isTimetableLoading = false;
+  WeatherResult? _islandWeather;
+
+  // 배편이 아예 없는 섬(다리로 연결됨)은 여객선 필터에서 제외 — 골라도 항상 결과가 없어 혼란만 줌
+  List<IslandModel> get _ferryIslands => _islands.where((i) => i.ferryPrice != 0).toList();
 
   @override
   void initState() {
@@ -64,6 +72,40 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     };
   }
 
+  Map<String, dynamic> _toStaticScheduleMap(StaticFerrySchedule s, IslandModel? island) {
+    return {
+      'id': '${s.islandId}_${s.departureTime}',
+      'route': '${s.departurePort} ↔ ${island?.name ?? ''}',
+      'departure': s.departurePort,
+      'arrival': island?.name ?? '',
+      'departureTime': s.departureTime,
+      'duration': island?.ferryTime ?? '',
+      'price': island?.ferryPrice ?? 0,
+      'vessel': s.ferryName ?? '',
+      'status': '예정',
+    };
+  }
+
+  List<_FerryGroup> _buildStaticGroups(List<StaticFerrySchedule> rows) {
+    final byIsland = <String, List<StaticFerrySchedule>>{};
+    for (final row in rows) {
+      byIsland.putIfAbsent(row.islandId, () => []).add(row);
+    }
+    return byIsland.entries.map((e) {
+      final island = _findIsland(e.key);
+      return _FerryGroup(
+        islandName: island?.name ?? e.key,
+        schedules: e.value.map((r) => _toStaticScheduleMap(r, island)).toList(),
+      );
+    }).toList();
+  }
+
+  // 실시간 조회가 실패하면 조용히 정기 시간표로 대체 — 실패 사실 자체는 사용자에게 드러내지 않는다.
+  Future<void> _loadStaticFallback(String islandFilter) async {
+    final rows = await FerryService.getStaticSchedules(islandFilter == _kAllFerryFilter ? null : islandFilter);
+    if (mounted) setState(() => _ferryGroups = _buildStaticGroups(rows));
+  }
+
   Future<void> _loadFerrySchedule() async {
     setState(() => _isFerryLoading = true);
     try {
@@ -76,24 +118,62 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             schedules: g.schedules.map((s) => _toScheduleMap(s, island)).toList(),
           );
         }).toList();
-        if (mounted) setState(() { _ferryGroups = ferryGroups; _isFerryLoading = false; });
-        return;
+        // 실시간 조회 자체는 성공했지만 결과가 비어있는 경우(이른 시간대 등)도
+        // 정기 시간표로 채워준다 — "실패했을 때만" 대체하면 이 경우가 빠짐.
+        if (ferryGroups.every((g) => g.schedules.isEmpty)) {
+          await _loadStaticFallback(_selectedFerryIslandId);
+        } else if (mounted) {
+          setState(() => _ferryGroups = ferryGroups);
+        }
+      } else {
+        final live = await FerryService.getScheduleForIsland(_selectedFerryIslandId);
+        if (live.isEmpty) {
+          await _loadStaticFallback(_selectedFerryIslandId);
+        } else {
+          final island = _findIsland(_selectedFerryIslandId);
+          final ferryGroups = [
+            _FerryGroup(islandName: island?.name ?? '', schedules: live.map((s) => _toScheduleMap(s, island)).toList()),
+          ];
+          if (mounted) setState(() => _ferryGroups = ferryGroups);
+        }
       }
-
-      final live = await FerryService.getScheduleForIsland(_selectedFerryIslandId);
-      final island = _findIsland(_selectedFerryIslandId);
-      final ferryGroups = [
-        _FerryGroup(islandName: island?.name ?? '', schedules: live.map((s) => _toScheduleMap(s, island)).toList()),
-      ];
-      if (mounted) setState(() { _ferryGroups = ferryGroups; _isFerryLoading = false; });
     } catch (_) {
-      if (mounted) setState(() { _ferryGroups = []; _isFerryLoading = false; });
+      await _loadStaticFallback(_selectedFerryIslandId);
+    } finally {
+      if (mounted) setState(() => _isFerryLoading = false);
     }
   }
 
   void _selectFerryIsland(String islandId) {
     setState(() => _selectedFerryIslandId = islandId);
     _loadFerrySchedule();
+    _loadIslandWeather();
+    if (_showTimetable) _loadTimetable();
+  }
+
+  // "내일 결항 위험" 배지용 예보 — 섬 하나를 골랐을 때만 조회(전체 선택 시엔 비용 대비 실익이 낮아 생략)
+  Future<void> _loadIslandWeather() async {
+    if (_selectedFerryIslandId == _kAllFerryFilter) {
+      if (mounted) setState(() => _islandWeather = null);
+      return;
+    }
+    final island = _findIsland(_selectedFerryIslandId);
+    final result = await WeatherService.getWeatherForIsland(_selectedFerryIslandId, lat: island?.lat, lng: island?.lng);
+    if (mounted) setState(() => _islandWeather = result);
+  }
+
+  // "운항 시간표 보기" 버튼 — 실시간 조회 성공/실패와 무관하게 언제든 정기 시간표를 확인할 수 있게 함
+  Future<void> _loadTimetable() async {
+    setState(() => _isTimetableLoading = true);
+    final rows = await FerryService.getStaticSchedules(
+      _selectedFerryIslandId == _kAllFerryFilter ? null : _selectedFerryIslandId,
+    );
+    if (mounted) setState(() { _timetableGroups = _buildStaticGroups(rows); _isTimetableLoading = false; });
+  }
+
+  void _toggleTimetable() {
+    setState(() => _showTimetable = !_showTimetable);
+    if (_showTimetable && _timetableGroups.isEmpty) _loadTimetable();
   }
 
   static const _localTransport = [
@@ -209,6 +289,35 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  // safe면 렌더링 자체를 하지 않음 — 위험할 때만 알리고, 안전할 땐 침묵하는 게 이 프로젝트의 원칙.
+  Widget _buildFerryRiskBadge() {
+    final tomorrow = _islandWeather?.forecast.isNotEmpty == true ? _islandWeather!.forecast[0] : null;
+    if (tomorrow?.windSpeed == null || tomorrow?.waveHeight == null) return const SizedBox.shrink();
+
+    final risk = WeatherService.assessFerryRisk(tomorrow!.windSpeed!, tomorrow.waveHeight!);
+    if (risk == FerryRisk.safe) return const SizedBox.shrink();
+
+    final isDanger = risk == FerryRisk.danger;
+    final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
+    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
+    final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
+    final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
+    final message = isDanger ? '내일 결항 가능성 있음 (예측, 확정 아님)' : '내일 기상 악화 가능 (예측, 확정 아님)';
+
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), border: Border.all(color: border)),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 18, color: iconColor),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor))),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFerry() {
     return Column(
       children: [
@@ -237,7 +346,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         child: Text('전체', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _selectedFerryIslandId == _kAllFerryFilter ? Colors.white : AppColors.gray700)),
                       ),
                     ),
-                    ..._islands.map((island) {
+                    ..._ferryIslands.map((island) {
                     final selected = island.id == _selectedFerryIslandId;
                     return GestureDetector(
                       onTap: () => _selectFerryIsland(island.id),
@@ -256,6 +365,58 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   ],
                 ),
               ),
+              if (_selectedFerryIslandId != _kAllFerryFilter) _buildFerryRiskBadge(),
+            ],
+          ),
+        ),
+        // 운항 시간표 보기 — 실시간 조회 성공 여부와 무관하게 언제든 확인 가능
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+          child: Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _toggleTimetable,
+                  icon: Icon(_showTimetable ? Icons.close_rounded : Icons.calendar_month_rounded, size: 18),
+                  label: Text(_showTimetable ? '닫기' : '운항 시간표 보기'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.gray700,
+                    side: const BorderSide(color: AppColors.gray200),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+              if (_showTimetable)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+                  child: _isTimetableLoading
+                      ? const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator()))
+                      : _timetableGroups.isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24),
+                              child: Center(child: Text('아직 등록된 시간표가 없는 섬이에요', style: TextStyle(fontSize: 13, color: AppColors.gray500))),
+                            )
+                          : Column(
+                              children: [
+                                for (final group in _timetableGroups) ...[
+                                  if (_selectedFerryIslandId == _kAllFerryFilter)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 6),
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(group.islandName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray500)),
+                                      ),
+                                    ),
+                                  ...group.schedules.map((s) => _FerryCard(schedule: s)),
+                                ],
+                              ],
+                            ),
+                ),
             ],
           ),
         ),
@@ -272,9 +433,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     children: const [
                       Icon(Icons.directions_boat_filled_rounded, size: 64, color: AppColors.gray300),
                       SizedBox(height: 16),
-                      Text('오늘은 운항이 없는 날이에요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
+                      Text('지금은 표시할 출항 정보가 없어요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
                       SizedBox(height: 4),
-                      Text('다른 섬을 선택해보세요', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                      Text('이른 시간대이거나 오늘 운항이 없을 수 있어요 · 위 "운항 시간표 보기"로 정기 시간을 확인해보세요', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppColors.gray400)),
                     ],
                   ),
                 )

@@ -7,6 +7,8 @@ import '../../services/island_service.dart';
 import '../../services/favorite_service.dart';
 import '../../services/ferry_service.dart';
 import '../../services/congestion_service.dart';
+import '../../services/weather_service.dart';
+import '../sub/ai_chat_screen.dart';
 
 
 class IslandDetailScreen extends StatefulWidget {
@@ -27,6 +29,8 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
   bool _ferryLoading = true;
   IslandCongestionData? _congestion;
   bool _congestionLoading = true;
+  WeatherResult? _weather;
+  bool _weatherLoading = true;
 
   @override
   void initState() {
@@ -62,8 +66,15 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               .catchError((_, __) {
                 if (mounted) setState(() => _congestionLoading = false);
               });
+          WeatherService.getWeatherForIsland(widget.id, lat: islandData.lat, lng: islandData.lng)
+              .then((result) {
+                if (mounted) setState(() { _weather = result; _weatherLoading = false; });
+              })
+              .catchError((_) {
+                if (mounted) setState(() => _weatherLoading = false);
+              });
         } else {
-          setState(() { _ferryLoading = false; _congestionLoading = false; });
+          setState(() { _ferryLoading = false; _congestionLoading = false; _weatherLoading = false; });
         }
       }
     } catch (_) {
@@ -109,6 +120,13 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
             ),
             actions: [
               IconButton(
+                icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+                tooltip: '${island.name}에 대해 AI에게 물어보기',
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => AiChatScreen(initialQuestion: '${island.name}에 대해 알려줘'),
+                )),
+              ),
+              IconButton(
                 icon: _favLoading
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : Icon(_isFavorited ? Icons.favorite : Icons.favorite_border, color: Colors.white),
@@ -152,6 +170,8 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildWeatherSection(),
+
                 // Info row
                 Padding(
                   padding: const EdgeInsets.all(24),
@@ -450,6 +470,143 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
       default:
         return const SizedBox();
     }
+  }
+
+  Widget _buildWeatherSection() {
+    final risk = _weather != null
+        ? WeatherService.assessFerryRisk(_weather!.current.windSpeed, _weather!.current.waveHeight)
+        : null;
+    final riskColor = switch (risk) {
+      FerryRisk.safe => AppColors.green600,
+      FerryRisk.caution => AppColors.orange600,
+      FerryRisk.danger => AppColors.red700,
+      null => AppColors.gray500,
+    };
+    final riskBg = switch (risk) {
+      FerryRisk.safe => const Color(0xFFDCFCE7),
+      FerryRisk.caution => AppColors.orange100,
+      FerryRisk.danger => AppColors.red100,
+      null => AppColors.gray100,
+    };
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      color: AppColors.blue50,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    _WeatherStat(
+                      icon: Icons.wb_sunny_rounded,
+                      iconColor: AppColors.orange500,
+                      label: '날씨',
+                      value: _weatherLoading
+                          ? '-'
+                          : _weather != null
+                              ? '${_weather!.current.temperature.round()}°C ${_weather!.current.condition}'
+                              : '정보 없음',
+                    ),
+                    const SizedBox(width: 16),
+                    _WeatherStat(
+                      icon: Icons.waves_rounded,
+                      iconColor: AppColors.blue600,
+                      label: '파고',
+                      value: _weatherLoading
+                          ? '-'
+                          : _weather != null
+                              ? '${_weather!.current.waveHeight.toStringAsFixed(1)}m'
+                              : '정보 없음',
+                    ),
+                    const SizedBox(width: 16),
+                    _WeatherStat(
+                      icon: Icons.air_rounded,
+                      iconColor: AppColors.gray500,
+                      label: '풍속',
+                      value: _weatherLoading
+                          ? '-'
+                          : _weather != null
+                              ? '${_weather!.current.windSpeed.round()}km/h'
+                              : '정보 없음',
+                    ),
+                  ],
+                ),
+              ),
+              if (!_weatherLoading && risk != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(color: riskBg, borderRadius: BorderRadius.circular(8)),
+                  child: Text(
+                    risk.label,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: riskColor),
+                  ),
+                ),
+            ],
+          ),
+          _buildTomorrowRiskBadge(),
+        ],
+      ),
+    );
+  }
+
+  // safe면 렌더링 자체를 하지 않음 — 위험할 때만 알리고, 안전할 땐 침묵하는 게 이 프로젝트의 원칙.
+  Widget _buildTomorrowRiskBadge() {
+    if (_weatherLoading || _weather == null || _weather!.forecast.isEmpty) return const SizedBox.shrink();
+    final tomorrow = _weather!.forecast[0];
+    if (tomorrow.windSpeed == null || tomorrow.waveHeight == null) return const SizedBox.shrink();
+
+    final risk = WeatherService.assessFerryRisk(tomorrow.windSpeed!, tomorrow.waveHeight!);
+    if (risk == FerryRisk.safe) return const SizedBox.shrink();
+
+    final isDanger = risk == FerryRisk.danger;
+    final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
+    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
+    final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
+    final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
+    final message = isDanger ? '내일 결항 가능성 있음 (예측, 확정 아님)' : '내일 기상 악화 가능 (예측, 확정 아님)';
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), border: Border.all(color: border)),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 18, color: iconColor),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor))),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeatherStat extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+  const _WeatherStat({required this.icon, required this.iconColor, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 20, color: iconColor),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray600)),
+            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+          ],
+        ),
+      ],
+    );
   }
 }
 

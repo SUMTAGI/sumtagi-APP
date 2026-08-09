@@ -71,6 +71,7 @@ class _TravelScreenState extends State<TravelScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
+        centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
         flexibleSpace: Container(
           decoration: const BoxDecoration(

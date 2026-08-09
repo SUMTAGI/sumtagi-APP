@@ -1,11 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-// 히어로 배너 위에 얹는 장식용 바다 애니메이션(파도 + 배 + 물고기 + 물방울 + 초록 섬).
-// sumtagi-WEB의 OceanScene.tsx와 같은 구성을 Flutter로 옮긴 것.
+// 히어로 배너 위에 얹는 장식용 바다 애니메이션(파도 + 물방울 + 초록 섬).
 class OceanScene extends StatefulWidget {
   final Color waveColor;
-  final Color creatureColor;
   final Color islandColor;
   final double waveHeight;
   final bool showWave;
@@ -14,7 +12,6 @@ class OceanScene extends StatefulWidget {
   const OceanScene({
     super.key,
     this.waveColor = const Color(0xFFF5F6F8),
-    this.creatureColor = const Color(0x8CFFFFFF),
     this.islandColor = const Color(0xFF2F9E5C),
     this.waveHeight = 40,
     this.showWave = true,
@@ -26,9 +23,6 @@ class OceanScene extends StatefulWidget {
 }
 
 class _OceanSceneState extends State<OceanScene> with TickerProviderStateMixin {
-  late final AnimationController _boat;
-  late final AnimationController _fish1;
-  late final AnimationController _fish2;
   late final AnimationController _wave1;
   late final AnimationController _wave2;
   late final AnimationController _island;
@@ -37,9 +31,6 @@ class _OceanSceneState extends State<OceanScene> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _boat = AnimationController(vsync: this, duration: const Duration(seconds: 16))..repeat();
-    _fish1 = AnimationController(vsync: this, duration: const Duration(seconds: 11))..repeat();
-    _fish2 = AnimationController(vsync: this, duration: const Duration(seconds: 13))..repeat();
     _wave1 = AnimationController(vsync: this, duration: const Duration(seconds: 9))..repeat();
     _wave2 = AnimationController(vsync: this, duration: const Duration(seconds: 14))..repeat();
     _island = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat(reverse: true);
@@ -48,9 +39,6 @@ class _OceanSceneState extends State<OceanScene> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _boat.dispose();
-    _fish1.dispose();
-    _fish2.dispose();
     _wave1.dispose();
     _wave2.dispose();
     _island.dispose();
@@ -64,7 +52,6 @@ class _OceanSceneState extends State<OceanScene> with TickerProviderStateMixin {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final w = constraints.maxWidth;
-          final h = constraints.maxHeight;
           return ClipRect(
             child: Stack(
               children: [
@@ -85,36 +72,6 @@ class _OceanSceneState extends State<OceanScene> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-
-                _driftingIcon(
-                  controller: _boat,
-                  icon: Icons.directions_boat_filled_rounded,
-                  size: 26,
-                  top: h * 0.16,
-                  width: w,
-                  bobAmplitude: 5,
-                  bobCycles: 2,
-                ),
-                _driftingIcon(
-                  controller: _fish1,
-                  icon: Icons.set_meal_rounded,
-                  size: 18,
-                  top: h * 0.42,
-                  width: w,
-                  bobAmplitude: 8,
-                  bobCycles: 1,
-                ),
-                _driftingIcon(
-                  controller: _fish2,
-                  icon: Icons.set_meal_rounded,
-                  size: 14,
-                  top: h * 0.58,
-                  width: w,
-                  bobAmplitude: 6,
-                  bobCycles: 1,
-                  reverse: true,
-                  opacity: 0.7,
-                ),
 
                 if (widget.showIsland)
                   AnimatedBuilder(
@@ -167,36 +124,6 @@ class _OceanSceneState extends State<OceanScene> with TickerProviderStateMixin {
           );
         },
       ),
-    );
-  }
-
-  Widget _driftingIcon({
-    required AnimationController controller,
-    required IconData icon,
-    required double size,
-    required double top,
-    required double width,
-    required double bobAmplitude,
-    required int bobCycles,
-    bool reverse = false,
-    double opacity = 1,
-  }) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (_, __) {
-        final t = reverse ? 1 - controller.value : controller.value;
-        final x = -0.1 * width + t * (1.2 * width);
-        final y = top + math.sin(t * 2 * math.pi * bobCycles) * bobAmplitude;
-        return Positioned(
-          left: x,
-          top: y,
-          child: Transform(
-            alignment: Alignment.center,
-            transform: reverse ? (Matrix4.identity()..scale(-1.0, 1.0)) : Matrix4.identity(),
-            child: Icon(icon, size: size, color: widget.creatureColor.withOpacity(widget.creatureColor.opacity * opacity)),
-          ),
-        );
-      },
     );
   }
 

@@ -172,19 +172,12 @@ class _SplashScreenState extends State<SplashScreen>
                     .fadeIn(delay: 200.ms, duration: 400.ms)
                     .slideY(begin: 0.3, end: 0),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.waves, color: Color(0xFFBFDBFE), size: 16),
-                    const SizedBox(width: 6),
-                    Text(
-                      '당신의 완벽한 섬 여행 파트너',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.85),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                Text(
+                  '섬 여행엔 섬타기!',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 14,
+                  ),
                 )
                     .animate()
                     .fadeIn(delay: 400.ms, duration: 400.ms),

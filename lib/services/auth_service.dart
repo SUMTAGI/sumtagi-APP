@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const _redirectUrl = 'com.icisland.icislandapp://login-callback/';
@@ -19,6 +16,7 @@ class AuthService {
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: _redirectUrl,
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
   }
 
@@ -26,30 +24,7 @@ class AuthService {
     await _client.auth.signInWithOAuth(
       OAuthProvider.kakao,
       redirectTo: _redirectUrl,
-    );
-  }
-
-  static Future<void> signInWithApple() async {
-    final rawNonce = _client.auth.generateRawNonce();
-    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
-
-    final credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-      nonce: hashedNonce,
-    );
-
-    final idToken = credential.identityToken;
-    if (idToken == null) {
-      throw const AuthException('Apple 로그인에 실패했어요 (identityToken 없음)');
-    }
-
-    await _client.auth.signInWithIdToken(
-      provider: OAuthProvider.apple,
-      idToken: idToken,
-      nonce: rawNonce,
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
   }
 
@@ -68,6 +43,14 @@ class AuthService {
 
   static Future<void> signOut() {
     return _client.auth.signOut();
+  }
+
+  static Future<void> deleteAccount() async {
+    final res = await _client.functions.invoke('delete-account');
+    if (res.status != 200) {
+      throw Exception('계정 삭제에 실패했어요');
+    }
+    await _client.auth.signOut();
   }
 
   static String localizedError(String message) {

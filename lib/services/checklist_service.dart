@@ -71,4 +71,12 @@ class ChecklistService {
   static Future<void> deleteItem(String id) async {
     await _client.from('checklist_items').delete().eq('id', id);
   }
+
+  static Future<void> reset({String? tripId}) async {
+    if (_userId == null) return;
+    var deleteQuery = _client.from('checklist_items').delete().eq('user_id', _userId!);
+    deleteQuery = tripId != null ? deleteQuery.eq('trip_id', tripId) : deleteQuery.isFilter('trip_id', null);
+    await deleteQuery;
+    await _seedDefaults(tripId: tripId);
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import 'ai_chat_screen.dart';
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -66,7 +67,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('채팅 상담은 곧 추가될 예정이에요'))),
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen())),
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
@@ -133,7 +134,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('이메일 문의', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                      Text('support@icisland.kr', style: TextStyle(fontSize: 13, color: AppColors.blue600)),
+                      Text('kimsungil322@gmail.com', style: TextStyle(fontSize: 13, color: AppColors.blue600)),
                     ],
                   ),
                 ),
