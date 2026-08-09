@@ -21,7 +21,6 @@ import '../screens/sub/group_join_screen.dart';
 import '../screens/sub/community_write_screen.dart';
 import '../screens/sub/app_settings_screen.dart';
 import '../screens/sub/support_screen.dart';
-import '../screens/sub/experiences_screen.dart';
 import '../screens/sub/profile_edit_screen.dart';
 import '../screens/sub/notification_settings_screen.dart';
 import '../screens/sub/payment_methods_screen.dart';
@@ -134,10 +133,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/support',
       builder: (context, state) => const SupportScreen(),
-    ),
-    GoRoute(
-      path: '/experiences',
-      builder: (context, state) => const ExperiencesScreen(),
     ),
     GoRoute(
       path: '/profile-edit',

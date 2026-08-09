@@ -10,6 +10,8 @@ class TripFormData {
   final String travelType;
   final List<String> islands;
   final String budget;
+  // 경비관리에서 설정한 여행 총예산 상한(원). 있으면 이 금액을 넘지 않도록 숙소 등급을 자동 하향 조정한다.
+  final int? totalBudgetCap;
 
   const TripFormData({
     required this.departurePort,
@@ -19,7 +21,19 @@ class TripFormData {
     required this.travelType,
     required this.islands,
     required this.budget,
+    this.totalBudgetCap,
   });
+
+  TripFormData copyWith({String? budget}) => TripFormData(
+        departurePort: departurePort,
+        startDate: startDate,
+        endDate: endDate,
+        travelers: travelers,
+        travelType: travelType,
+        islands: islands,
+        budget: budget ?? this.budget,
+        totalBudgetCap: totalBudgetCap,
+      );
 }
 
 class FerrySchedule {
@@ -52,6 +66,9 @@ class GeneratedItinerary {
   final List<ItineraryDay> days;
   final int totalCost;
   final List<String> islands;
+  // totalBudgetCap 적용 결과: 숙소 등급을 낮춰 예산에 맞췄으면 최종 등급명, 못 맞췄으면 budgetCapExceeded
+  final String? budgetAdjustedTier;
+  final bool budgetCapExceeded;
 
   const GeneratedItinerary({
     required this.title,
@@ -62,6 +79,8 @@ class GeneratedItinerary {
     required this.days,
     required this.totalCost,
     required this.islands,
+    this.budgetAdjustedTier,
+    this.budgetCapExceeded = false,
   });
 }
 
@@ -337,8 +356,44 @@ int _parseDurationText(String text) {
   return (((low + high) / 2) * 60).round();
 }
 
+const List<String> _budgetTierOrder = ['여유', '보통', '알뜰'];
+
+String _normalizeBudgetTier(String b) {
+  if (b == '여유있게') return '여유';
+  if (b == '경제적') return '알뜰';
+  return b;
+}
+
 /// 규칙 기반 일정 생성 (AI 실패 시 fallback, 또는 직접 호출)
+/// totalBudgetCap이 있고 기본 등급으로 초과하면 숙소 등급을 낮춰가며 재시도한다.
 GeneratedItinerary generateItinerary(TripFormData formData, List<Attraction> allAttractions) {
+  final result = _generateItineraryCore(formData, allAttractions);
+
+  final cap = formData.totalBudgetCap;
+  if (cap == null || cap <= 0 || result.totalCost <= cap) return result;
+
+  var tierIdx = _budgetTierOrder.indexOf(_normalizeBudgetTier(formData.budget));
+  var best = result;
+  while (tierIdx < _budgetTierOrder.length - 1 && best.totalCost > cap) {
+    tierIdx++;
+    best = _generateItineraryCore(formData.copyWith(budget: _budgetTierOrder[tierIdx]), allAttractions);
+  }
+
+  if (best.totalCost <= cap) {
+    return GeneratedItinerary(
+      title: best.title, departurePort: best.departurePort, startDate: best.startDate, endDate: best.endDate,
+      travelers: best.travelers, days: best.days, totalCost: best.totalCost, islands: best.islands,
+      budgetAdjustedTier: identical(best, result) ? null : _budgetTierOrder[tierIdx],
+    );
+  }
+  return GeneratedItinerary(
+    title: best.title, departurePort: best.departurePort, startDate: best.startDate, endDate: best.endDate,
+    travelers: best.travelers, days: best.days, totalCost: best.totalCost, islands: best.islands,
+    budgetCapExceeded: true,
+  );
+}
+
+GeneratedItinerary _generateItineraryCore(TripFormData formData, List<Attraction> allAttractions) {
   final numDays = _getDaysBetween(formData.startDate, formData.endDate);
   final selectedIslands = _selectIslands(formData, numDays);
 

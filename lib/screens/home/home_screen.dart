@@ -529,7 +529,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildQuickLinks() {
     final links = [
-      {'icon': Icons.photo_camera_rounded, 'title': '체험', 'route': '/experiences'},
       {'icon': Icons.people_rounded, 'title': '리뷰', 'route': '/community'},
       {'icon': Icons.security_rounded, 'title': '체크리스트', 'route': '/checklist'},
       {'icon': Icons.attach_money_rounded, 'title': '경비관리', 'route': '/budget'},
