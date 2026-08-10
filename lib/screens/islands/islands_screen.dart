@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../services/island_service.dart';
 import '../../services/congestion_service.dart';
+import '../../widgets/tap_feedback.dart';
 
 enum _ViewMode { list, map }
 
@@ -90,6 +91,15 @@ const _routes = [
   ['incheon', 'guleop'],
   ['yeonghung', 'seonjae'],
 ];
+
+// 원본 관광지 사진의 채도/대비가 낮은 경우가 많아(흐린 날 촬영 등) 카드 대표
+// 이미지에 은은한 보정을 걸어 전체 카드 목록의 톤을 통일하고 화사하게 보이게 함.
+const _photoEnhanceFilter = ColorFilter.matrix(<double>[
+  1.12, -0.06, -0.06, 0, 4,
+  -0.06, 1.12, -0.06, 0, 4,
+  -0.06, -0.06, 1.12, 0, 4,
+  0, 0, 0, 1, 0,
+]);
 
 const _congestionLabels = {'low': '여유', 'medium': '보통', 'high': '혼잡'};
 const _congestionColors = {
@@ -457,8 +467,9 @@ class _IslandsScreenState extends State<IslandsScreen> {
           ),
           if (_viewMode == _ViewMode.map) ...[
             const SizedBox(height: 12),
-            GestureDetector(
+            TapFeedback(
               onTap: () => setState(() => _showRoutes = !_showRoutes),
+              borderRadius: BorderRadius.circular(12),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -735,11 +746,14 @@ class _IslandsScreenState extends State<IslandsScreen> {
             SizedBox(
               height: 110,
               width: double.infinity,
-              child: CachedNetworkImage(
-                imageUrl: marker.image!,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) =>
-                    Container(color: AppColors.gray100),
+              child: ColorFiltered(
+                colorFilter: _photoEnhanceFilter,
+                child: CachedNetworkImage(
+                  imageUrl: marker.image!,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) =>
+                      Container(color: AppColors.gray100),
+                ),
               ),
             ),
           Padding(
@@ -839,8 +853,8 @@ class _IslandsScreenState extends State<IslandsScreen> {
                           _congestionLabels[marker.congestion] ?? '',
                           style: const TextStyle(
                             fontSize: 13,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
+                            color: AppColors.gray900,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -1032,8 +1046,9 @@ class _IslandCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return TapFeedback(
       onTap: () => context.push('/island/${island.id}'),
+      borderRadius: BorderRadius.circular(24),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -1054,11 +1069,14 @@ class _IslandCard extends StatelessWidget {
                 SizedBox(
                   height: 240,
                   width: double.infinity,
-                  child: CachedNetworkImage(
-                    imageUrl: island.image,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) =>
-                        Container(color: AppColors.gray100),
+                  child: ColorFiltered(
+                    colorFilter: _photoEnhanceFilter,
+                    child: CachedNetworkImage(
+                      imageUrl: island.image,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          Container(color: AppColors.gray100),
+                    ),
                   ),
                 ),
                 Positioned.fill(
@@ -1105,8 +1123,8 @@ class _IslandCard extends StatelessWidget {
                           _congestionLabel,
                           style: const TextStyle(
                             fontSize: 13,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
+                            color: AppColors.gray900,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

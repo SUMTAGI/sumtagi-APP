@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../services/trip_service.dart';
 import '../../services/checklist_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/tap_feedback.dart';
 
 class TravelScreen extends StatefulWidget {
   const TravelScreen({super.key});
@@ -155,20 +156,22 @@ class _TravelScreenState extends State<TravelScreen> {
                               child: Text(dday == 0 ? '오늘 출발!' : 'D-$dday', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                             ),
                           const SizedBox(width: 8),
-                          GestureDetector(
+                          TapFeedback(
                             onTap: () => context.push('/itinerary/$_currentItineraryId?edit=true'),
+                            borderRadius: BorderRadius.circular(8),
                             child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                              padding: const EdgeInsets.all(9),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
                               child: const Icon(Icons.edit_rounded, color: Colors.white, size: 16),
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
+                          const SizedBox(width: 8),
+                          TapFeedback(
                             onTap: _deleteItinerary,
+                            borderRadius: BorderRadius.circular(8),
                             child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                              padding: const EdgeInsets.all(9),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
                               child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 16),
                             ),
                           ),
@@ -189,8 +192,9 @@ class _TravelScreenState extends State<TravelScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      GestureDetector(
+                      TapFeedback(
                         onTap: () => context.push('/itinerary/$_currentItineraryId'),
+                        borderRadius: BorderRadius.circular(8),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
@@ -216,8 +220,9 @@ class _TravelScreenState extends State<TravelScreen> {
             ),
             if (_currentItinerary!['confirmed'] != true) ...[
               const SizedBox(height: 12),
-              GestureDetector(
+              TapFeedback(
                 onTap: () => context.push('/itinerary/$_currentItineraryId'),
+                borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -295,8 +300,9 @@ class _TravelScreenState extends State<TravelScreen> {
             const SizedBox(height: 16),
 
             // New trip button
-            GestureDetector(
+            TapFeedback(
               onTap: () => context.push('/create-trip'),
+              borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -320,11 +326,11 @@ class _TravelScreenState extends State<TravelScreen> {
     }
 
     // No itinerary
-    return Center(
+    return Align(
+      alignment: Alignment.topCenter,
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.fromLTRB(32, 56, 32, 32),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               width: 80, height: 80,
@@ -335,7 +341,7 @@ class _TravelScreenState extends State<TravelScreen> {
             const Text('AI 맞춤 일정 생성', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.gray900)),
             const SizedBox(height: 8),
             const Text(
-              '여행 날짜와 스타일을 선택하면\n최적의 일정을 자동으로 만들어드려요',
+              '일정을 만들면 체크리스트·경비 관리까지\n이 화면에서 한 번에 준비할 수 있어요',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: AppColors.gray600, height: 1.5),
             ),
@@ -363,16 +369,19 @@ class _TravelScreenState extends State<TravelScreen> {
 
   Widget _buildVisitedTab() {
     if (_visitedTrips.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.directions_boat_rounded, size: 64, color: AppColors.gray300),
-            SizedBox(height: 16),
-            Text('첫 여행을 계획해보세요', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-            SizedBox(height: 8),
-            Text('여행을 다녀오면 여기에 기록돼요', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
-          ],
+      return const Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: EdgeInsets.only(top: 72),
+          child: Column(
+            children: [
+              Icon(Icons.directions_boat_rounded, size: 64, color: AppColors.gray300),
+              SizedBox(height: 16),
+              Text('첫 여행을 계획해보세요', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.gray900)),
+              SizedBox(height: 8),
+              Text('여행을 다녀오면 여기에 기록돼요', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+            ],
+          ),
         ),
       );
     }
@@ -400,9 +409,13 @@ class _TravelScreenState extends State<TravelScreen> {
                   Expanded(
                     child: Text(trip['title'] as String? ?? '여행', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 15)),
                   ),
-                  GestureDetector(
+                  TapFeedback(
                     onTap: () => _deleteVisitedTrip(trip['id'] as String),
-                    child: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.gray400),
+                    customBorder: const CircleBorder(),
+                    child: const Padding(
+                      padding: EdgeInsets.all(9),
+                      child: Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.gray400),
+                    ),
                   ),
                 ],
               ),
@@ -419,9 +432,13 @@ class _TravelScreenState extends State<TravelScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('${trip['start_date']} ~ ${trip['end_date']}', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
-                  GestureDetector(
+                  TapFeedback(
                     onTap: () => context.push('/itinerary/${trip['id']}'),
-                    child: const Text('일정보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w600)),
+                    borderRadius: BorderRadius.circular(6),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                      child: Text('일정보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w600)),
+                    ),
                   ),
                 ],
               ),
@@ -467,7 +484,7 @@ class _TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
+      child: TapFeedback(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -504,8 +521,9 @@ class _QuickBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
+      child: TapFeedback(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8)),

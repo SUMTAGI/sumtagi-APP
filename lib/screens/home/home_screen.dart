@@ -11,6 +11,7 @@ import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/ocean_scene.dart';
 import '../../widgets/ai_island_search_bar.dart';
+import '../../widgets/tap_feedback.dart';
 import '../sub/ai_chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -319,8 +320,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         _userName.isNotEmpty ? '안녕하세요, $_userName님!' : '인천 섬 여행',
                         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
-                      GestureDetector(
+                      TapFeedback(
                         onTap: () => context.push('/notifications'),
+                        customBorder: const CircleBorder(),
                         child: Stack(
                           children: [
                             ClipOval(
@@ -408,11 +410,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(width: 10),
                   ],
-                  GestureDetector(
+                  TapFeedback(
                     onTap: () => context.push('/itinerary/${itin['id']}'),
-                    child: const Text(
-                      '전체보기',
-                      style: TextStyle(fontSize: 12, color: Color(0xFFDBEAFE), decoration: TextDecoration.underline),
+                    borderRadius: BorderRadius.circular(4),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                      child: Text(
+                        '전체보기',
+                        style: TextStyle(fontSize: 12, color: Color(0xFFDBEAFE), decoration: TextDecoration.underline),
+                      ),
                     ),
                   ),
                 ],
@@ -503,8 +509,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        GestureDetector(
+        TapFeedback(
           onTap: () => context.push('/create-trip'),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -530,7 +537,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildQuickLinks() {
     final links = [
       {'icon': Icons.people_rounded, 'title': '리뷰', 'route': '/community'},
-      {'icon': Icons.security_rounded, 'title': '체크리스트', 'route': '/checklist'},
+      {'icon': Icons.checklist_rounded, 'title': '체크리스트', 'route': '/checklist'},
       {'icon': Icons.attach_money_rounded, 'title': '경비관리', 'route': '/budget'},
     ];
 
@@ -540,8 +547,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: links.map((link) {
-          return GestureDetector(
+          return TapFeedback(
             onTap: () => context.push(link['route'] as String),
+            borderRadius: BorderRadius.circular(12),
             child: Column(
               children: [
                 _GlassOrb(icon: link['icon'] as IconData),
@@ -650,9 +658,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
-                    GestureDetector(
+                    TapFeedback(
                       onTap: () => _showAllFerryStatus(context),
-                      child: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
+                      customBorder: const CircleBorder(),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray400),
+                      ),
                     ),
                   ],
                 ),
