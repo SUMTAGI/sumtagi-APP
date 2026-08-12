@@ -17,13 +17,6 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: dev
-          include: true
-          source: true
     scripts:
       - name: Set up .env
         script: |
