@@ -1,9 +1,14 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
+
+bool get _isApplePlatform => !kIsWeb && Platform.isIOS;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,8 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _keepLoggedIn = false;
   bool _isLoading = false;
   late final _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-    if (data.session != null && mounted) {
-      context.go('/');
+    if (data.session != null) {
+      closeInAppWebView();
+      if (mounted) context.go('/');
     }
   });
 
@@ -76,6 +82,17 @@ class _LoginScreenState extends State<LoginScreen> {
       await AuthService.signInWithGoogle();
     } catch (_) {
       if (mounted) _showSnack('구글 로그인 중 오류가 발생했어요');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _handleAppleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.signInWithApple();
+    } catch (_) {
+      if (mounted) _showSnack('Apple 로그인 중 오류가 발생했어요');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -231,6 +248,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 20),
 
                     // Social login
+                    if (_isApplePlatform) ...[
+                      _SocialButton(
+                        color: Colors.black,
+                        textColor: Colors.white,
+                        label: 'Apple로 시작하기',
+                        leading: const Icon(Icons.apple, color: Colors.white, size: 20),
+                        onTap: _isLoading ? () {} : _handleAppleLogin,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     _SocialButton(
                       color: const Color(0xFFFEE500),
                       textColor: AppColors.gray900,
