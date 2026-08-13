@@ -653,15 +653,6 @@ class _FerryCard extends StatelessWidget {
             decoration: BoxDecoration(color: _statusColor(), borderRadius: BorderRadius.circular(20)),
             child: Text(schedule['status'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _statusTextColor())),
           ),
-          const SizedBox(width: 6),
-          GestureDetector(
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${schedule['departureTime']} 출항 1시간 전에 알림을 드릴게요'))),
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.notifications_outlined, size: 14, color: AppColors.gray700),
-            ),
-          ),
         ],
       ),
     );

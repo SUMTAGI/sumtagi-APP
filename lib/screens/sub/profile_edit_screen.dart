@@ -104,11 +104,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     decoration: const BoxDecoration(color: AppColors.blue100, shape: BoxShape.circle),
                     child: const Icon(Icons.person_rounded, size: 44, color: AppColors.blue600),
                   ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('프로필 사진 변경 기능은 곧 추가될 예정이에요'))),
-                    child: const Text('사진 변경', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue600)),
-                  ),
                   const SizedBox(height: 32),
 
                   _FormSection(

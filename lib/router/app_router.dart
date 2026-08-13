@@ -24,7 +24,6 @@ import '../screens/sub/app_settings_screen.dart';
 import '../screens/sub/support_screen.dart';
 import '../screens/sub/profile_edit_screen.dart';
 import '../screens/sub/notification_settings_screen.dart';
-import '../screens/sub/payment_methods_screen.dart';
 import '../screens/sub/favorites_screen.dart';
 import '../screens/sub/notifications_screen.dart';
 import '../screens/sub/host_apply_screen.dart';
@@ -42,7 +41,6 @@ const _accountOnlyPaths = [
   '/notifications',
   '/notification-settings',
   '/profile-edit',
-  '/payment-methods',
   '/host-apply',
   '/admin',
 ];
@@ -167,10 +165,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/notification-settings',
       builder: (context, state) => const NotificationSettingsScreen(),
-    ),
-    GoRoute(
-      path: '/payment-methods',
-      builder: (context, state) => const PaymentMethodsScreen(),
     ),
     GoRoute(
       path: '/favorites',
