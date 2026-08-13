@@ -24,7 +24,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   final _totalBudgetCtrl = TextEditingController();
   final _specialRequestsCtrl = TextEditingController();
   bool _isSubmitting = false;
-  String _generationMode = 'quick'; // 'ai' | 'quick'
+  String _generationMode = 'ai'; // 'ai' | 'quick'
 
   static const _allIslands = [
     '백령도', '대청도', '소청도', '연평도',
@@ -694,22 +694,22 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           children: [
             Expanded(
               child: _GenerationModeCard(
-                emoji: '⚡',
-                label: '빠른 일정 생성',
-                description: 'AI 없이\n즉시 생성',
-                selected: _generationMode == 'quick',
-                onTap: () => setState(() => _generationMode = 'quick'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _GenerationModeCard(
                 emoji: '✨',
                 label: 'AI 추천 일정',
                 description: '관광 데이터 기반\n맞춤 일정',
                 selected: _generationMode == 'ai',
                 recommended: true,
                 onTap: () => setState(() => _generationMode = 'ai'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _GenerationModeCard(
+                emoji: '⚡',
+                label: '빠른 일정 생성',
+                description: 'AI 없이\n즉시 생성',
+                selected: _generationMode == 'quick',
+                onTap: () => setState(() => _generationMode = 'quick'),
               ),
             ),
           ],
