@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../screens/splash_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -29,8 +30,33 @@ import '../screens/sub/notifications_screen.dart';
 import '../screens/sub/host_apply_screen.dart';
 import '../screens/sub/admin_host_applications_screen.dart';
 
+const _accountOnlyPaths = [
+  '/create-trip',
+  '/itinerary',
+  '/checklist',
+  '/budget',
+  '/community-write',
+  '/group-trip',
+  '/group-join',
+  '/favorites',
+  '/notifications',
+  '/notification-settings',
+  '/profile-edit',
+  '/payment-methods',
+  '/host-apply',
+  '/admin',
+];
+
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
+  redirect: (context, state) {
+    final path = state.matchedLocation;
+    final requiresAccount = _accountOnlyPaths.any((p) => path.startsWith(p));
+    if (requiresAccount && Supabase.instance.client.auth.currentSession == null) {
+      return '/login';
+    }
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/splash',
