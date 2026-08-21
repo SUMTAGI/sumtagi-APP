@@ -1,9 +1,20 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const _redirectUrl = 'com.icisland.icislandapp://login-callback/';
+
+// iOS는 App Store 가이드라인 4(외부 브라우저 이탈 금지) 대응을 위해
+// SFSafariViewController 기반 inAppWebView를 쓰지만, Android는 Google이
+// OAuth 로그인을 임베디드 WebView로 하는 걸 정책상 차단하므로 외부
+// 브라우저(Custom Tabs)를 써야 한다.
+LaunchMode get _oauthLaunchMode {
+  if (!kIsWeb && Platform.isIOS) return LaunchMode.inAppWebView;
+  return LaunchMode.externalApplication;
+}
 
 class AuthService {
   static final _client = Supabase.instance.client;
@@ -19,7 +30,7 @@ class AuthService {
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: _redirectUrl,
-      authScreenLaunchMode: LaunchMode.inAppWebView,
+      authScreenLaunchMode: _oauthLaunchMode,
     );
   }
 
@@ -27,7 +38,7 @@ class AuthService {
     await _client.auth.signInWithOAuth(
       OAuthProvider.kakao,
       redirectTo: _redirectUrl,
-      authScreenLaunchMode: LaunchMode.inAppWebView,
+      authScreenLaunchMode: _oauthLaunchMode,
     );
   }
 
