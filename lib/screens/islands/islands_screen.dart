@@ -756,6 +756,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                 child: CachedNetworkImage(
                   imageUrl: marker.image!,
                   fit: BoxFit.cover,
+                  memCacheWidth: 400,
                   errorWidget: (_, __, ___) =>
                       Container(color: AppColors.gray100),
                 ),
@@ -1079,6 +1080,7 @@ class _IslandCard extends StatelessWidget {
                     child: CachedNetworkImage(
                       imageUrl: island.image,
                       fit: BoxFit.cover,
+                      memCacheWidth: 800,
                       errorWidget: (_, __, ___) =>
                           Container(color: AppColors.gray100),
                     ),
@@ -1147,6 +1149,7 @@ class _IslandCard extends StatelessWidget {
                       imageUrl: island.image,
                       fit: BoxFit.cover,
                       alignment: Alignment.bottomCenter,
+                      memCacheWidth: 400,
                       errorWidget: (_, __, ___) =>
                           Container(color: AppColors.gray100),
                     ),
