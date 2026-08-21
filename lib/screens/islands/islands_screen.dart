@@ -1,3 +1,4 @@
+import 'dart:math' show Random;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
@@ -157,6 +158,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
   Future<void> _loadIslands() async {
     try {
       final islands = await IslandService.getIslands();
+      islands.shuffle(Random());
       if (mounted)
         setState(() {
           _islands = islands;
@@ -523,7 +525,9 @@ class _IslandsScreenState extends State<IslandsScreen> {
         ),
       );
     }
-    return ListView.builder(
+    return RefreshIndicator(
+      onRefresh: _loadIslands,
+      child: ListView.builder(
       // top padding clears the floating header; bottom padding clears the floating nav bar
       padding: EdgeInsets.fromLTRB(24, _headerHeight + 24, 24, 124),
       itemCount: filtered.length + 1,
@@ -585,6 +589,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
           ),
         );
       },
+      ),
     );
   }
 
