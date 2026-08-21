@@ -102,6 +102,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => CreateTripScreen(
         preSelectedIsland: state.uri.queryParameters['name'],
         preSelectedStyle: state.uri.queryParameters['style'],
+        recommendReason: state.uri.queryParameters['reason'],
       ),
     ),
     GoRoute(

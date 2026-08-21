@@ -123,8 +123,8 @@ const List<FerrySchedule> _ferrySchedules = [
   FerrySchedule(id: 's3', from: '덕적도', to: '굴업도', departureTime: '11:20', arrivalTime: '12:00', price: 7500),
   FerrySchedule(id: 's4', from: '굴업도', to: '덕적도', departureTime: '14:00', arrivalTime: '14:40', price: 7500),
   // 삼목항 출발
-  FerrySchedule(id: 'p1', from: '삼목항', to: '신도', departureTime: '09:00', arrivalTime: '09:10', price: 3400),
-  FerrySchedule(id: 'p2', from: '신도', to: '삼목항', departureTime: '15:30', arrivalTime: '15:40', price: 3400),
+  FerrySchedule(id: 'p1', from: '삼목항', to: '신시모도', departureTime: '09:00', arrivalTime: '09:10', price: 3400),
+  FerrySchedule(id: 'p2', from: '신시모도', to: '삼목항', departureTime: '15:30', arrivalTime: '15:40', price: 3400),
   FerrySchedule(id: 'p3', from: '삼목항', to: '장봉도', departureTime: '09:00', arrivalTime: '09:40', price: 3400),
   FerrySchedule(id: 'p4', from: '장봉도', to: '삼목항', departureTime: '15:00', arrivalTime: '15:40', price: 3400),
 ];
@@ -230,7 +230,7 @@ const Map<String, String> islandIdToKor = {
   'yeonpyeong': '연평도', 'deokjeok': '덕적도', 'jawol': '자월도',
   'seungbong': '승봉도', 'daeijak': '대이작도', 'soijak': '소이작도',
   'yeonghung': '영흥도', 'pungdo': '풍도', 'guleop': '굴업도',
-  'yukdo': '육도', 'seonjae': '선재도', 'sindo': '신도', 'sido': '시도',
+  'yukdo': '육도', 'seonjae': '선재도', 'sindo': '신시모도', 'sido': '시도',
   'modo': '모도', 'jangbongdo': '장봉도', 'soya': '소야도',
   'mungap': '문갑도', 'baegado': '백아도', 'uldo': '울도',
 };
@@ -266,9 +266,9 @@ List<String> _selectIslands(TripFormData formData, int numDays) {
     if (numDays >= 3) return ['풍도', '소이작도'];
     return ['자월도'];
   } else if (formData.departurePort == '삼목항') {
-    if (numDays == 1) return ['신도'];
-    if (numDays >= 2) return ['신도', '장봉도'];
-    return ['신도'];
+    if (numDays == 1) return ['신시모도'];
+    if (numDays >= 2) return ['신시모도', '장봉도'];
+    return ['신시모도'];
   } else {
     if (numDays == 1) return ['덕적도'];
     if (numDays == 2) return ['덕적도'];

@@ -7,7 +7,8 @@ import '../../theme/app_colors.dart';
 class CreateTripScreen extends StatefulWidget {
   final String? preSelectedIsland;
   final String? preSelectedStyle;
-  const CreateTripScreen({super.key, this.preSelectedIsland, this.preSelectedStyle});
+  final String? recommendReason;
+  const CreateTripScreen({super.key, this.preSelectedIsland, this.preSelectedStyle, this.recommendReason});
 
   @override
   State<CreateTripScreen> createState() => _CreateTripScreenState();
@@ -29,7 +30,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   static const _allIslands = [
     '백령도', '대청도', '소청도', '연평도',
     '덕적도', '자월도', '승봉도', '대이작도',
-    '소이작도', '풍도', '육도', '신도', '장봉도',
+    '소이작도', '풍도', '육도', '신시모도', '장봉도',
     '영흥도', '선재도', '굴업도', '시도', '모도', '소야도',
     '문갑도', '백아도', '울도',
   ];
@@ -38,7 +39,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     '백령도': '인천항', '대청도': '인천항', '소청도': '인천항', '연평도': '인천항',
     '덕적도': '인천항', '자월도': '인천항', '승봉도': '인천항', '대이작도': '인천항',
     '소이작도': '대부도', '풍도': '대부도', '육도': '대부도',
-    '신도': '삼목항', '장봉도': '삼목항',
+    '신시모도': '삼목항', '장봉도': '삼목항',
     // 다리로 연결돼 여객선이 필요 없는 섬 (자동차로 이동)
     '영흥도': '육로 이동', '선재도': '육로 이동', '시도': '육로 이동',
     '모도': '육로 이동', '소야도': '육로 이동',
@@ -438,6 +439,16 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   widget.preSelectedIsland!,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.blue700),
                 ),
+                if (widget.recommendReason != null && widget.recommendReason!.isNotEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 1, color: AppColors.blue200),
+                  ),
+                  Text(
+                    '✨ ${widget.recommendReason!}',
+                    style: const TextStyle(fontSize: 13, color: AppColors.blue700),
+                  ),
+                ],
               ],
             ),
           ),
