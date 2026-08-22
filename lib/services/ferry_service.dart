@@ -66,7 +66,7 @@ const _allIslands = [
   {'id': 'yeonghung',   'name': '영흥도'},
   {'id': 'seonjae',     'name': '선재도'},
   {'id': 'guleop',      'name': '굴업도'},
-  {'id': 'sindo',       'name': '신도'},
+  {'id': 'sindo',       'name': '신시모도'},
   {'id': 'sido',        'name': '시도'},
   {'id': 'modo',        'name': '모도'},
   {'id': 'jangbongdo',  'name': '장봉도'},

@@ -140,6 +140,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                   CachedNetworkImage(
                     imageUrl: island.image,
                     fit: BoxFit.cover,
+                    memCacheWidth: 800,
                     errorWidget: (_, __, ___) => Container(color: AppColors.blue200),
                   ),
                   Container(
@@ -454,7 +455,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                CachedNetworkImage(imageUrl: s.image, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(color: AppColors.gray200)),
+                CachedNetworkImage(imageUrl: s.image, fit: BoxFit.cover, memCacheWidth: 400, errorWidget: (_, __, ___) => Container(color: AppColors.gray200)),
                 Container(decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Color(0xCC000000)]))),
                 Positioned(bottom: 10, left: 10, right: 10, child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,7 +656,7 @@ class _PlaceCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
               width: 80, height: 80,
-              child: CachedNetworkImage(imageUrl: image, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(color: AppColors.gray200)),
+              child: CachedNetworkImage(imageUrl: image, fit: BoxFit.cover, memCacheWidth: 160, errorWidget: (_, __, ___) => Container(color: AppColors.gray200)),
             ),
           ),
           const SizedBox(width: 12),

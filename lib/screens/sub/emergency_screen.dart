@@ -103,7 +103,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       'coastGuard': {'name': '해양경찰(공통)', 'phone': '122'},
     },
     {
-      'island': '신도',
+      'island': '신시모도',
       'hospital': {'name': '북도보건지소(북도면 관할)', 'phone': '032-899-3120', 'address': '북도면 시도리'},
       'police': {'name': '북도파출소', 'phone': '112', 'address': '북도면 시도리'},
       'coastGuard': {'name': '해양경찰(공통)', 'phone': '122'},

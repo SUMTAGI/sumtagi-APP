@@ -39,7 +39,10 @@ class _AiIslandSearchBarState extends State<AiIslandSearchBar> {
       );
       final nameParam = Uri.encodeComponent(result.island);
       final styleParam = Uri.encodeComponent(result.travelStyle);
-      context.push('/create-trip?name=$nameParam&style=$styleParam');
+      final reasonQuery = result.reason.isNotEmpty
+          ? '&reason=${Uri.encodeComponent(result.reason)}'
+          : '';
+      context.push('/create-trip?name=$nameParam&style=$styleParam$reasonQuery');
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

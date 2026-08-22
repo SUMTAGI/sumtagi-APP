@@ -7,6 +7,7 @@ import 'demand_intensity_service.dart' show getIslandsDemandLevels;
 // WEB의 ISLAND_NAME_TO_ID(aiItinerary.ts)와 동일 — islandIdToKor(itinerary_generator.dart)를 뒤집어 재사용.
 final Map<String, String> _islandNameToId = {
   for (final e in islandIdToKor.entries) e.value: e.key,
+  '신도': 'sindo', // 신시모도로 개칭 이전 표기도 자연어 인식되게 유지
 };
 
 class AIItineraryRequest {
