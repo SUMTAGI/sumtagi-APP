@@ -7,6 +7,7 @@ import 'demand_intensity_service.dart' show getIslandsDemandLevels;
 // WEB의 ISLAND_NAME_TO_ID(aiItinerary.ts)와 동일 — islandIdToKor(itinerary_generator.dart)를 뒤집어 재사용.
 final Map<String, String> _islandNameToId = {
   for (final e in islandIdToKor.entries) e.value: e.key,
+  '신도': 'sindo', // 신시모도로 개칭 이전 표기도 자연어 인식되게 유지
 };
 
 class AIItineraryRequest {
@@ -17,6 +18,7 @@ class AIItineraryRequest {
   final int travelers;
   final String travelStyle;
   final String budget;
+  final int? totalBudgetCap;
   final String? specialRequests;
   final String provider;
   // 관광공사 OpenAPI 컨텍스트 (Edge Function에서 프롬프트 강화에 사용, WEB aiItinerary.ts 미러링)
@@ -32,6 +34,7 @@ class AIItineraryRequest {
     required this.travelers,
     required this.travelStyle,
     required this.budget,
+    this.totalBudgetCap,
     this.specialRequests,
     this.provider = 'gemini',
     this.routingHints,
@@ -51,6 +54,7 @@ class AIItineraryRequest {
     travelers: travelers,
     travelStyle: travelStyle,
     budget: budget,
+    totalBudgetCap: totalBudgetCap,
     specialRequests: specialRequests,
     provider: provider,
     routingHints: routingHints ?? this.routingHints,
@@ -66,6 +70,7 @@ class AIItineraryRequest {
     'travelers': travelers,
     'travelStyle': travelStyle,
     'budget': budget,
+    if (totalBudgetCap != null && totalBudgetCap! > 0) 'totalBudgetCap': totalBudgetCap,
     if (specialRequests != null && specialRequests!.isNotEmpty) 'specialRequests': specialRequests,
     'provider': provider,
     if (routingHints != null) 'routingHints': routingHints,
@@ -155,6 +160,7 @@ Future<AIItineraryResult> _buildScriptItinerary(AIItineraryRequest req, String g
     travelType: req.travelStyle,
     islands: req.islands,
     budget: req.budget,
+    totalBudgetCap: req.totalBudgetCap,
   );
   final itinerary = generateItinerary(formData, allAttractions);
 
@@ -191,7 +197,14 @@ Future<AIItineraryResult> generateAIItinerary(
     if (data is! Map || data['ok'] != true || data['itinerary'] == null) {
       throw Exception('LLM 응답 오류');
     }
-    final itinerary = _transformLLMResponse(data['itinerary'] as Map<String, dynamic>, req);
+    var itinerary = _transformLLMResponse(data['itinerary'] as Map<String, dynamic>, req);
+    if (req.totalBudgetCap != null && req.totalBudgetCap! > 0 && itinerary.totalCost > req.totalBudgetCap!) {
+      itinerary = GeneratedItinerary(
+        title: itinerary.title, departurePort: itinerary.departurePort, startDate: itinerary.startDate,
+        endDate: itinerary.endDate, travelers: itinerary.travelers, days: itinerary.days,
+        totalCost: itinerary.totalCost, islands: itinerary.islands, budgetCapExceeded: true,
+      );
+    }
     return AIItineraryResult(itinerary: itinerary, generatedBy: 'llm');
   } catch (e) {
     onFallback?.call(e.toString());

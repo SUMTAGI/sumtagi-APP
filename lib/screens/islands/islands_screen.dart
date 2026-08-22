@@ -1,3 +1,4 @@
+import 'dart:math' show Random;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
@@ -9,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../services/island_service.dart';
 import '../../services/congestion_service.dart';
+import '../../widgets/tap_feedback.dart';
 
 enum _ViewMode { list, map }
 
@@ -91,6 +93,15 @@ const _routes = [
   ['yeonghung', 'seonjae'],
 ];
 
+// 원본 관광지 사진의 채도/대비가 낮은 경우가 많아(흐린 날 촬영 등) 카드 대표
+// 이미지에 은은한 보정을 걸어 전체 카드 목록의 톤을 통일하고 화사하게 보이게 함.
+const _photoEnhanceFilter = ColorFilter.matrix(<double>[
+  1.12, -0.06, -0.06, 0, 4,
+  -0.06, 1.12, -0.06, 0, 4,
+  -0.06, -0.06, 1.12, 0, 4,
+  0, 0, 0, 1, 0,
+]);
+
 const _congestionLabels = {'low': '여유', 'medium': '보통', 'high': '혼잡'};
 const _congestionColors = {
   'low': AppColors.green500,
@@ -147,6 +158,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
   Future<void> _loadIslands() async {
     try {
       final islands = await IslandService.getIslands();
+      islands.shuffle(Random());
       if (mounted)
         setState(() {
           _islands = islands;
@@ -383,6 +395,10 @@ class _IslandsScreenState extends State<IslandsScreen> {
   }
 
   Widget _buildFilters() {
+    // 지도 화면은 위쪽 공간을 지도에 최대한 내주기 위해 필터 영역 자체를 안 그림
+    // (항로 보기/숨기기 토글은 지도 위 범례 옆으로 옮김 -> _buildMapOverlay)
+    if (_viewMode == _ViewMode.map) return const SizedBox.shrink();
+
     final total = _islands.length;
     final incheon = _islands.where((i) => i.ports.contains('인천항')).length;
     final daebudo = _islands.where((i) => i.ports.contains('대부도')).length;
@@ -398,103 +414,104 @@ class _IslandsScreenState extends State<IslandsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '출발 항구',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.gray500,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '출발 항구',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.gray500,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    _FilterDropdown(
-                      value: _portFilter,
-                      items: [
-                        ('all', '전체 ($total)'),
-                        ('인천항', '인천항 ($incheon)'),
-                        ('대부도', '대부도 ($daebudo)'),
-                        ('삼목선착장', '삼목항 ($samok)'),
-                      ],
-                      onChanged: (v) => setState(() => _portFilter = v),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '혼잡도',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.gray500,
+                      const SizedBox(height: 8),
+                      _FilterDropdown(
+                        value: _portFilter,
+                        items: [
+                          ('all', '전체 ($total)'),
+                          ('인천항', '인천항 ($incheon)'),
+                          ('대부도', '대부도 ($daebudo)'),
+                          ('삼목선착장', '삼목항 ($samok)'),
+                        ],
+                        onChanged: (v) => setState(() => _portFilter = v),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    _FilterDropdown(
-                      value: _congestionFilter,
-                      items: const [
-                        ('all', '전체'),
-                        ('low', '여유'),
-                        ('medium', '보통'),
-                        ('high', '혼잡'),
-                      ],
-                      onChanged: (v) => setState(() => _congestionFilter = v),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          if (_viewMode == _ViewMode.map) ...[
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () => setState(() => _showRoutes = !_showRoutes),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: _showRoutes ? AppColors.blue100 : AppColors.gray100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.directions_boat_rounded,
-                      size: 15,
-                      color: _showRoutes
-                          ? AppColors.blue700
-                          : AppColors.gray700,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '항로 ${_showRoutes ? "숨기기" : "보기"}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: _showRoutes
-                            ? AppColors.blue700
-                            : AppColors.gray700,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '혼잡도',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.gray500,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      _FilterDropdown(
+                        value: _congestionFilter,
+                        items: const [
+                          ('all', '전체'),
+                          ('low', '여유'),
+                          ('medium', '보통'),
+                          ('high', '혼잡'),
+                        ],
+                        onChanged: (v) => setState(() => _congestionFilter = v),
+                      ),
+                    ],
+                  ),
                 ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRouteToggle() {
+    return TapFeedback(
+      onTap: () => setState(() => _showRoutes = !_showRoutes),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: (_showRoutes ? AppColors.blue100 : AppColors.gray100)
+              .withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 6,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.directions_boat_rounded,
+              size: 15,
+              color: _showRoutes ? AppColors.blue700 : AppColors.gray700,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '항로 ${_showRoutes ? "숨기기" : "보기"}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: _showRoutes ? AppColors.blue700 : AppColors.gray700,
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -512,7 +529,9 @@ class _IslandsScreenState extends State<IslandsScreen> {
         ),
       );
     }
-    return ListView.builder(
+    return RefreshIndicator(
+      onRefresh: _loadIslands,
+      child: ListView.builder(
       // top padding clears the floating header; bottom padding clears the floating nav bar
       padding: EdgeInsets.fromLTRB(24, _headerHeight + 24, 24, 124),
       itemCount: filtered.length + 1,
@@ -574,6 +593,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
           ),
         );
       },
+      ),
     );
   }
 
@@ -605,11 +625,16 @@ class _IslandsScreenState extends State<IslandsScreen> {
                   ),
                 ],
               ),
-              _buildLegend(),
+              _buildMapOverlay(),
             ],
           ),
         ),
-        if (_selected != null) _buildInfoPanel(),
+        if (_selected != null)
+          Padding(
+            // 하단 플로팅 내비게이션 바에 가려지지 않도록 여백 확보
+            padding: const EdgeInsets.only(bottom: 124),
+            child: _buildInfoPanel(),
+          ),
       ],
     );
   }
@@ -685,35 +710,47 @@ class _IslandsScreenState extends State<IslandsScreen> {
     );
   }
 
-  Widget _buildLegend() {
+  // 항로 토글 + 범례를 지도 오른쪽 위에 세로로 겹쳐 배치 (가로 폭 차지 안 하게)
+  Widget _buildMapOverlay() {
     return Align(
       alignment: Alignment.topRight,
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.92),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 6,
-              ),
-            ],
-          ),
-          child: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _LegendItem(color: Color(0xFFEF4444), label: '인천항'),
-              SizedBox(height: 4),
-              _LegendItem(color: Color(0xFFF97316), label: '대부도항'),
-              SizedBox(height: 4),
-              _LegendItem(color: Color(0xFF3B82F6), label: '섬'),
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _buildRouteToggle(),
+            const SizedBox(height: 8),
+            _buildLegend(),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLegend() {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _LegendItem(color: Color(0xFFEF4444), label: '인천항'),
+          SizedBox(height: 4),
+          _LegendItem(color: Color(0xFFF97316), label: '대부도항'),
+          SizedBox(height: 4),
+          _LegendItem(color: Color(0xFF3B82F6), label: '섬'),
+        ],
       ),
     );
   }
@@ -735,11 +772,15 @@ class _IslandsScreenState extends State<IslandsScreen> {
             SizedBox(
               height: 110,
               width: double.infinity,
-              child: CachedNetworkImage(
-                imageUrl: marker.image!,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) =>
-                    Container(color: AppColors.gray100),
+              child: ColorFiltered(
+                colorFilter: _photoEnhanceFilter,
+                child: CachedNetworkImage(
+                  imageUrl: marker.image!,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 400,
+                  errorWidget: (_, __, ___) =>
+                      Container(color: AppColors.gray100),
+                ),
               ),
             ),
           Padding(
@@ -839,8 +880,8 @@ class _IslandsScreenState extends State<IslandsScreen> {
                           _congestionLabels[marker.congestion] ?? '',
                           style: const TextStyle(
                             fontSize: 13,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
+                            color: AppColors.gray900,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -1032,8 +1073,9 @@ class _IslandCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return TapFeedback(
       onTap: () => context.push('/island/${island.id}'),
+      borderRadius: BorderRadius.circular(24),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -1054,11 +1096,15 @@ class _IslandCard extends StatelessWidget {
                 SizedBox(
                   height: 240,
                   width: double.infinity,
-                  child: CachedNetworkImage(
-                    imageUrl: island.image,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) =>
-                        Container(color: AppColors.gray100),
+                  child: ColorFiltered(
+                    colorFilter: _photoEnhanceFilter,
+                    child: CachedNetworkImage(
+                      imageUrl: island.image,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 800,
+                      errorWidget: (_, __, ___) =>
+                          Container(color: AppColors.gray100),
+                    ),
                   ),
                 ),
                 Positioned.fill(
@@ -1105,8 +1151,8 @@ class _IslandCard extends StatelessWidget {
                           _congestionLabel,
                           style: const TextStyle(
                             fontSize: 13,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
+                            color: AppColors.gray900,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -1124,6 +1170,7 @@ class _IslandCard extends StatelessWidget {
                       imageUrl: island.image,
                       fit: BoxFit.cover,
                       alignment: Alignment.bottomCenter,
+                      memCacheWidth: 400,
                       errorWidget: (_, __, ___) =>
                           Container(color: AppColors.gray100),
                     ),

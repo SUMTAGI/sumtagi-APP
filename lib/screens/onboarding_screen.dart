@@ -45,7 +45,7 @@ const _slides = [
   _SlideData(
     icon: Icons.auto_awesome_rounded,
     title: '통합 예약 관리',
-    description: '여객선, 숙박, 체험까지\n모든 예약을 한 곳에서\n간편하게 관리하세요',
+    description: '여객선, 숙박 예약부터\n일정과 경비까지\n한 곳에서 간편하게 관리하세요',
     gradient: [Color(0xFFFB923C), Color(0xFFEA580C)],
     emoji: '🎉',
   ),
@@ -83,7 +83,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('hasSeenOnboarding', true);
-      if (mounted) context.go('/login');
+      if (mounted) context.go('/');
     }
   }
 
@@ -99,7 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _skip() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenOnboarding', true);
-    if (mounted) context.go('/login');
+    if (mounted) context.go('/');
   }
 
   void _goToPage(int index) {

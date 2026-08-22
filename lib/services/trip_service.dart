@@ -16,6 +16,7 @@ class TripService {
     required String budget,
     required int totalCost,
     required List<Map<String, dynamic>> days,
+    int? totalBudget,
   }) async {
     final data = await _client.from('trips').insert({
       'user_id': _userId,
@@ -29,9 +30,15 @@ class TripService {
       'budget': budget,
       'total_cost': totalCost,
       'days': days,
+      'total_budget': totalBudget != null && totalBudget > 0 ? totalBudget : null,
       'confirmed': false,
     }).select('id').single();
     return data['id'] as String;
+  }
+
+  static Future<void> updateTotalBudget(String id, int totalBudget) async {
+    if (_userId == null) return;
+    await _client.from('trips').update({'total_budget': totalBudget}).eq('id', id).eq('user_id', _userId!);
   }
 
   static Future<Map<String, dynamic>?> getUpcomingTrip() async {

@@ -12,6 +12,7 @@ class BudgetScreen extends StatefulWidget {
 class _BudgetScreenState extends State<BudgetScreen> {
   int _totalBudget = 500000;
   final _budgetCtrl = TextEditingController(text: '500000');
+  final _budgetFocus = FocusNode();
   List<Map<String, dynamic>> _expenses = [];
   bool _isLoading = true;
   bool _showAddForm = false;
@@ -39,15 +40,24 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   void initState() {
     super.initState();
+    _budgetFocus.addListener(() {
+      if (!_budgetFocus.hasFocus) _commitBudget();
+    });
     _load();
   }
 
   @override
   void dispose() {
     _budgetCtrl.dispose();
+    _budgetFocus.dispose();
     _amountCtrl.dispose();
     _descCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _commitBudget() async {
+    if (_tripId == null) return;
+    await TripService.updateTotalBudget(_tripId!, _totalBudget);
   }
 
   Future<void> _load() async {
@@ -57,11 +67,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
         : await TripService.getUpcomingTrip();
     final tripId = trip?['id'] as String? ?? widget.tripId;
     final data = await BudgetService.getExpenses(tripId: tripId);
+    final tb = (trip?['total_budget'] as num?)?.toInt();
     if (mounted) {
       setState(() {
         _tripId = tripId;
         _tripTitle = trip?['title'] as String?;
         _expenses = data;
+        _totalBudget = tb != null && tb > 0 ? tb : 500000;
+        _budgetCtrl.text = _totalBudget.toString();
         _isLoading = false;
       });
     }
@@ -132,8 +145,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
                               Expanded(
                                 child: TextField(
                                   controller: _budgetCtrl,
+                                  focusNode: _budgetFocus,
                                   keyboardType: TextInputType.number,
                                   onChanged: (v) => setState(() => _totalBudget = int.tryParse(v) ?? 0),
+                                  onSubmitted: (_) => _commitBudget(),
                                   style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                                   decoration: InputDecoration(
                                     isDense: true,
@@ -161,6 +176,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           ),
                         ],
                       ),
+                      if (_tripId == null) ...[
+                        const SizedBox(height: 6),
+                        const Text('예정된 여행이 없어 이 총예산은 저장되지 않아요. 여행을 만들면 자동 저장돼요.',
+                          style: TextStyle(fontSize: 11, color: Color(0xFFBFDBFE))),
+                      ],
                       const SizedBox(height: 16),
                       Row(
                         children: [

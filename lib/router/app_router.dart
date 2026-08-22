@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../screens/splash_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -21,17 +22,39 @@ import '../screens/sub/group_join_screen.dart';
 import '../screens/sub/community_write_screen.dart';
 import '../screens/sub/app_settings_screen.dart';
 import '../screens/sub/support_screen.dart';
-import '../screens/sub/experiences_screen.dart';
 import '../screens/sub/profile_edit_screen.dart';
 import '../screens/sub/notification_settings_screen.dart';
-import '../screens/sub/payment_methods_screen.dart';
 import '../screens/sub/favorites_screen.dart';
 import '../screens/sub/notifications_screen.dart';
 import '../screens/sub/host_apply_screen.dart';
 import '../screens/sub/admin_host_applications_screen.dart';
 
+const _accountOnlyPaths = [
+  '/create-trip',
+  '/itinerary',
+  '/checklist',
+  '/budget',
+  '/community-write',
+  '/group-trip',
+  '/group-join',
+  '/favorites',
+  '/notifications',
+  '/notification-settings',
+  '/profile-edit',
+  '/host-apply',
+  '/admin',
+];
+
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
+  redirect: (context, state) {
+    final path = state.matchedLocation;
+    final requiresAccount = _accountOnlyPaths.any((p) => path.startsWith(p));
+    if (requiresAccount && Supabase.instance.client.auth.currentSession == null) {
+      return '/login';
+    }
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/splash',
@@ -79,6 +102,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => CreateTripScreen(
         preSelectedIsland: state.uri.queryParameters['name'],
         preSelectedStyle: state.uri.queryParameters['style'],
+        recommendReason: state.uri.queryParameters['reason'],
       ),
     ),
     GoRoute(
@@ -136,20 +160,12 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SupportScreen(),
     ),
     GoRoute(
-      path: '/experiences',
-      builder: (context, state) => const ExperiencesScreen(),
-    ),
-    GoRoute(
       path: '/profile-edit',
       builder: (context, state) => const ProfileEditScreen(),
     ),
     GoRoute(
       path: '/notification-settings',
       builder: (context, state) => const NotificationSettingsScreen(),
-    ),
-    GoRoute(
-      path: '/payment-methods',
-      builder: (context, state) => const PaymentMethodsScreen(),
     ),
     GoRoute(
       path: '/favorites',

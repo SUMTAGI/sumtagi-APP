@@ -7,7 +7,8 @@ import '../../theme/app_colors.dart';
 class CreateTripScreen extends StatefulWidget {
   final String? preSelectedIsland;
   final String? preSelectedStyle;
-  const CreateTripScreen({super.key, this.preSelectedIsland, this.preSelectedStyle});
+  final String? recommendReason;
+  const CreateTripScreen({super.key, this.preSelectedIsland, this.preSelectedStyle, this.recommendReason});
 
   @override
   State<CreateTripScreen> createState() => _CreateTripScreenState();
@@ -21,14 +22,15 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   int _travelers = 2;
   String _travelType = '';
   String _budget = '보통';
+  final _totalBudgetCtrl = TextEditingController();
   final _specialRequestsCtrl = TextEditingController();
   bool _isSubmitting = false;
-  String _generationMode = 'quick'; // 'ai' | 'quick'
+  String _generationMode = 'ai'; // 'ai' | 'quick'
 
   static const _allIslands = [
     '백령도', '대청도', '소청도', '연평도',
     '덕적도', '자월도', '승봉도', '대이작도',
-    '소이작도', '풍도', '육도', '신도', '장봉도',
+    '소이작도', '풍도', '육도', '신시모도', '장봉도',
     '영흥도', '선재도', '굴업도', '시도', '모도', '소야도',
     '문갑도', '백아도', '울도',
   ];
@@ -37,7 +39,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     '백령도': '인천항', '대청도': '인천항', '소청도': '인천항', '연평도': '인천항',
     '덕적도': '인천항', '자월도': '인천항', '승봉도': '인천항', '대이작도': '인천항',
     '소이작도': '대부도', '풍도': '대부도', '육도': '대부도',
-    '신도': '삼목항', '장봉도': '삼목항',
+    '신시모도': '삼목항', '장봉도': '삼목항',
     // 다리로 연결돼 여객선이 필요 없는 섬 (자동차로 이동)
     '영흥도': '육로 이동', '선재도': '육로 이동', '시도': '육로 이동',
     '모도': '육로 이동', '소야도': '육로 이동',
@@ -145,6 +147,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   @override
   void dispose() {
     _specialRequestsCtrl.dispose();
+    _totalBudgetCtrl.dispose();
     super.dispose();
   }
 
@@ -168,6 +171,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         travelers: _travelers,
         travelStyle: _travelType,
         budget: _budget,
+        totalBudgetCap: int.tryParse(_totalBudgetCtrl.text.trim()),
         specialRequests: _specialRequestsCtrl.text.trim(),
       );
 
@@ -206,8 +210,19 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         budget: _budget,
         totalCost: itinerary.totalCost,
         days: days,
+        totalBudget: request.totalBudgetCap,
       );
 
+      if (mounted && itinerary.budgetCapExceeded) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('가장 저렴한 숙소로도 설정하신 총예산을 넘어요. 일정을 확인해보세요.'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            backgroundColor: AppColors.gray900,
+          ),
+        );
+      }
       if (mounted) context.pushReplacement('/itinerary/$id');
     } catch (_) {
       if (mounted) {
@@ -424,6 +439,16 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   widget.preSelectedIsland!,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.blue700),
                 ),
+                if (widget.recommendReason != null && widget.recommendReason!.isNotEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 1, color: AppColors.blue200),
+                  ),
+                  Text(
+                    '✨ ${widget.recommendReason!}',
+                    style: const TextStyle(fontSize: 13, color: AppColors.blue700),
+                  ),
+                ],
               ],
             ),
           ),
@@ -657,28 +682,45 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           }).toList(),
         ),
         const SizedBox(height: 24),
+        const Text('총 예산 (선택)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _totalBudgetCtrl,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: '예: 300000',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text('입력하면 이 금액에 맞춰 숙소 등급을 자동으로 조정하고, 경비관리 화면의 총예산으로도 저장돼요.',
+          style: TextStyle(fontSize: 12, color: AppColors.gray500)),
+        const SizedBox(height: 24),
         const Text('일정 생성 방식', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: _GenerationModeCard(
-                emoji: '⚡',
-                label: '빠른 일정 생성',
-                description: 'AI 없이\n즉시 생성',
-                selected: _generationMode == 'quick',
+                emoji: '✨',
+                label: 'AI 추천 일정',
+                description: '관광 데이터 기반\n맞춤 일정',
+                selected: _generationMode == 'ai',
                 recommended: true,
-                onTap: () => setState(() => _generationMode = 'quick'),
+                onTap: () => setState(() => _generationMode = 'ai'),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _GenerationModeCard(
-                emoji: '✨',
-                label: 'AI 추천 일정',
-                description: '관광 데이터 기반\n맞춤 일정',
-                selected: _generationMode == 'ai',
-                onTap: () => setState(() => _generationMode = 'ai'),
+                emoji: '⚡',
+                label: '빠른 일정 생성',
+                description: 'AI 없이\n즉시 생성',
+                selected: _generationMode == 'quick',
+                onTap: () => setState(() => _generationMode = 'quick'),
               ),
             ),
           ],

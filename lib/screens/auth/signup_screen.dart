@@ -32,7 +32,7 @@ class _SignupScreenState extends State<SignupScreen> {
   void initState() {
     super.initState();
     if (widget.method != null &&
-        ['kakao', 'google'].contains(widget.method)) {
+        ['kakao', 'google', 'apple'].contains(widget.method)) {
       _signupMethod = widget.method;
       _step = 2;
     }
