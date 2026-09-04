@@ -220,7 +220,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
         automaticallyImplyLeading: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)])),
+          decoration: BoxDecoration(gradient: AppGradients.blueFade),
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -306,9 +306,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color(0xFFEEF2FF),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF4F46E5), width: 2),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -328,7 +327,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           // Island selector
           Container(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
-            decoration: const BoxDecoration(color: Colors.white, border: Border(bottom: BorderSide(color: AppColors.gray200))),
+            color: Colors.white,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -393,7 +392,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                           final expanded = _expandedAid == aid['id'];
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                             clipBehavior: Clip.hardEdge,
                             child: Column(
                               children: [
@@ -408,7 +407,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                                     child: Container(
                                       padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.blue100)),
+                                      decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8)),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
@@ -442,7 +441,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     color: const Color(0xFFFFF7ED),
                     child: Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFED7AA))),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -488,10 +487,8 @@ class _EmergencyBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.blue50,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.blue500, width: 2),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -525,13 +522,13 @@ class _ContactCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+      decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.gray200)),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, size: 20, color: iconColor),
           ),
           const SizedBox(width: 12),

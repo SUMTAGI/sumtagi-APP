@@ -128,7 +128,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   const SizedBox(height: 16),
 
                   Container(
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                     child: Column(
                       children: [
                         ListTile(
@@ -166,7 +166,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
           Container(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-            decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.gray200))),
+            color: Colors.white,
             child: ElevatedButton(
               onPressed: _isSaving ? null : _save,
               style: ElevatedButton.styleFrom(
@@ -200,7 +200,7 @@ class _FormSection extends StatelessWidget {
           child: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray500)),
         ),
         Container(
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
           clipBehavior: Clip.hardEdge,
           child: Column(children: children),
         ),
@@ -229,7 +229,7 @@ class _FormField extends StatelessWidget {
           TextField(
             controller: controller,
             style: const TextStyle(fontSize: 15, color: AppColors.gray900),
-            decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: AppColors.gray400), isDense: true, contentPadding: EdgeInsets.zero, border: InputBorder.none),
+            decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: AppColors.gray400), isDense: true, contentPadding: EdgeInsets.zero, filled: false, border: InputBorder.none),
           ),
         ])),
       ]),
@@ -255,9 +255,9 @@ class _PwFieldState extends State<_PwField> {
         labelText: widget.label,
         hintText: widget.hint,
         suffixIcon: IconButton(icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20, color: AppColors.gray400), onPressed: () => setState(() => _obscure = !_obscure)),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
     );

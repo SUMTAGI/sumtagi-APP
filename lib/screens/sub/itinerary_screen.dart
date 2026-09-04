@@ -396,9 +396,9 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: AppColors.gray400, fontSize: 13),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             isDense: true,
           ),
@@ -467,9 +467,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
 
   Widget _buildHeader() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)]),
-      ),
+      decoration: BoxDecoration(gradient: AppGradients.blueFade),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -496,14 +494,14 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: _isEditMode ? Colors.green.shade400 : Colors.white.withValues(alpha: 0.2),
+                        color: _isEditMode ? Colors.green.shade400 : Colors.white.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(children: [
-                        Icon(_isEditMode ? Icons.check_rounded : Icons.edit_rounded, size: 14, color: Colors.white),
+                        Icon(_isEditMode ? Icons.check_rounded : Icons.edit_rounded, size: 14, color: _isEditMode ? Colors.white : AppColors.gray900),
                         const SizedBox(width: 4),
                         Text(_isEditMode ? '저장' : '편집',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isEditMode ? Colors.white : AppColors.gray900)),
                       ]),
                     ),
                   ),
@@ -578,7 +576,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     const weekdays = ['', '월', '화', '수', '목', '금', '토', '일'];
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-      decoration: const BoxDecoration(color: Colors.white, border: Border(bottom: BorderSide(color: AppColors.gray200))),
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -619,7 +617,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                 margin: const EdgeInsets.only(top: 8),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.blue200, width: 2, style: BorderStyle.solid),
+                  color: AppColors.blue50,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Row(
@@ -685,7 +683,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                       point: portCoord,
                       width: 28, height: 28,
                       child: Container(
-                        decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                        decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                         child: const Center(child: Text('출', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))),
                       ),
                     ),
@@ -693,7 +691,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                       point: e.value,
                       width: 28, height: 28,
                       child: Container(
-                        decoration: BoxDecoration(color: AppColors.blue600, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                        decoration: BoxDecoration(color: AppColors.blue600, shape: BoxShape.circle),
                         child: Center(child: Text('${e.key + 1}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))),
                       ),
                     )),
@@ -857,7 +855,6 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                 final url = b['external_url'] as String?;
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.gray100, width: b == _bookings.first ? 0 : 1))),
                   child: Row(children: [
                     GestureDetector(
                       onTap: () => _toggleBooking(b),
@@ -865,8 +862,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                         width: 22, height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isDone ? AppColors.blue600 : Colors.transparent,
-                          border: Border.all(color: isDone ? AppColors.blue600 : AppColors.gray300, width: 2),
+                          color: isDone ? AppColors.blue600 : AppColors.gray200,
                         ),
                         child: isDone ? const Icon(Icons.check, size: 13, color: Colors.white) : null,
                       ),
@@ -930,7 +926,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
         padding: const EdgeInsets.all(24),
         child: Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.green100, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFBBF7D0))),
+          decoration: BoxDecoration(color: AppColors.green100, borderRadius: BorderRadius.circular(12)),
           child: const Row(children: [
             Icon(Icons.check_circle_rounded, color: AppColors.green600, size: 24),
             SizedBox(width: 12),
@@ -1009,7 +1005,7 @@ class _ActivityCard extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray100), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6)]),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(activity['time'] as String? ?? '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue600)),
               const SizedBox(height: 4),
@@ -1101,9 +1097,9 @@ class _ActivityEditCardState extends State<_ActivityEditCard> {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: AppColors.gray400, fontSize: 13),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.gray200)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.gray200)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         isDense: true,
       ),
@@ -1118,10 +1114,8 @@ class _ActivityEditCardState extends State<_ActivityEditCard> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.blue50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.blue200, width: 2),
-        boxShadow: [BoxShadow(color: AppColors.blue600.withValues(alpha: 0.06), blurRadius: 8)],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [

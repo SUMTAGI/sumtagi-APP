@@ -8,6 +8,7 @@ import '../../services/trip_service.dart';
 import '../../services/favorite_service.dart';
 import '../../services/group_trip_service.dart';
 import '../../services/host_service.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   int _groupCount = 0;
   HostApplication? _hostApplication;
   String _role = 'user';
+  int _unreadNotifications = 0;
 
   @override
   void initState() {
@@ -34,6 +36,24 @@ class _MyPageScreenState extends State<MyPageScreen> {
     _user = AuthService.currentUser;
     _loadCounts();
     _loadDashboard();
+    _loadUnreadCount();
+    NotificationService.subscribe(_handleNewNotification);
+  }
+
+  @override
+  void dispose() {
+    NotificationService.unsubscribe();
+    super.dispose();
+  }
+
+  void _handleNewNotification(Map<String, dynamic> notification) {
+    if (!mounted) return;
+    setState(() => _unreadNotifications++);
+  }
+
+  Future<void> _loadUnreadCount() async {
+    final count = await NotificationService.getUnreadCount().catchError((_) => 0);
+    if (mounted) setState(() => _unreadNotifications = count);
   }
 
   Future<void> _loadCounts() async {
@@ -233,7 +253,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
             floating: false,
             expandedHeight: 200,
             toolbarHeight: 0,
-            backgroundColor: const Color(0xFF2563EB),
+            backgroundColor: AppColors.gray50,
             elevation: 0,
             scrolledUnderElevation: 0,
             systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
@@ -318,7 +338,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.gray200),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,7 +421,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.gray200),
                       ),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -434,7 +452,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
   Widget _buildHeader() {
     return Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)])),
+      decoration: BoxDecoration(gradient: AppGradients.blueFadeTo(AppColors.gray50)),
       child: SafeArea(
         bottom: false,
         child: Stack(
@@ -447,8 +465,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     children: [
                       Container(
                         width: 64, height: 64,
-                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                        child: const Icon(Icons.person_rounded, size: 32, color: AppColors.blue600),
+                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), shape: BoxShape.circle),
+                        child: const Icon(Icons.person_rounded, size: 32, color: AppColors.gray900),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -477,9 +495,19 @@ class _MyPageScreenState extends State<MyPageScreen> {
             Positioned(
               top: 16,
               right: 24,
-              child: _HeaderIconButton(
-                icon: Icons.edit_rounded,
-                onTap: () => context.push('/profile-edit'),
+              child: Row(
+                children: [
+                  _HeaderIconButton(
+                    icon: Icons.notifications_outlined,
+                    onTap: () => context.push('/notifications'),
+                    showBadge: _unreadNotifications > 0,
+                  ),
+                  const SizedBox(width: 8),
+                  _HeaderIconButton(
+                    icon: Icons.edit_rounded,
+                    onTap: () => context.push('/profile-edit'),
+                  ),
+                ],
               ),
             ),
           ],
@@ -492,20 +520,36 @@ class _MyPageScreenState extends State<MyPageScreen> {
 class _HeaderIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const _HeaderIconButton({required this.icon, required this.onTap});
+  final bool showBadge;
+  const _HeaderIconButton({required this.icon, required this.onTap, this.showBadge = false});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.18),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, size: 18, color: Colors.white),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.7),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 18, color: AppColors.gray900),
+          ),
+          if (showBadge)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                width: 9,
+                height: 9,
+                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -520,14 +564,14 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 13, color: Colors.white70)),
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         ],
       ),
     );
@@ -550,7 +594,6 @@ class _StatTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.gray200),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -604,7 +647,6 @@ class _HostMenuItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.gray200),
         ),
         child: Row(
           children: [
@@ -668,7 +710,6 @@ class _MenuCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.gray200),
       ),
       clipBehavior: Clip.hardEdge,
       child: Column(children: children),

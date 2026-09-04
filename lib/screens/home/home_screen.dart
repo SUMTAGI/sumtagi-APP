@@ -1,9 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/auth_service.dart';
 import '../../services/trip_service.dart';
 import '../../services/weather_service.dart';
 import '../../services/ferry_service.dart';
@@ -11,6 +8,7 @@ import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/ocean_scene.dart';
 import '../../widgets/ai_island_search_bar.dart';
+import '../../widgets/illust_icons.dart';
 import '../../widgets/tap_feedback.dart';
 import '../sub/ai_chat_screen.dart';
 
@@ -22,9 +20,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _unreadNotifications = 0;
   Map<String, dynamic>? _upcomingTrip;
-  String _userName = '';
   WeatherResult? _weather;
   List<FerryRouteStatus> _ferryStatus = [];
 
@@ -43,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleNewNotification(Map<String, dynamic> notification) {
     if (!mounted) return;
-    setState(() => _unreadNotifications++);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(notification['message'] as String? ?? '새 알림이 있어요'),
@@ -54,22 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    final user = AuthService.currentUser;
-    final meta = user?.userMetadata;
-    final name = (meta != null && meta['nickname'] != null)
-        ? meta['nickname'] as String
-        : user?.email?.split('@')[0] ?? '';
     final results = await Future.wait([
       TripService.getUpcomingTrip().catchError((_) => null),
       WeatherService.getWeather().catchError((_) => null),
-      NotificationService.getUnreadCount().catchError((_) => 0),
     ]);
     if (mounted) {
       setState(() {
-        _userName = name;
         _upcomingTrip = results[0] as Map<String, dynamic>?;
         _weather = results[1] as WeatherResult?;
-        _unreadNotifications = results[2] as int;
       });
       FerryService.getHomeFerryStatus()
           .then((status) { if (mounted) setState(() => _ferryStatus = status); })
@@ -116,7 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: FloatingActionButton(
           heroTag: 'ai_chat_fab',
           backgroundColor: AppColors.blue600,
-          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen())),
+          shape: const CircleBorder(),
+          // 루트 네비게이터로 띄워야 탭 셸(하단 네비바) 위를 덮는 전체 화면이 됨
+          onPressed: () => Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(builder: (_) => const AiChatScreen())),
           child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
         ),
       ),
@@ -189,7 +178,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final isDanger = risk == FerryRisk.danger;
     final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
-    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
     final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
     final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
     final icon     = isDanger ? Icons.warning_rounded : Icons.info_outline_rounded;
@@ -200,7 +188,6 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: border),
       ),
       child: Row(
         children: [
@@ -236,7 +223,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final isDanger = risk == FerryRisk.danger;
     final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
-    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
     final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
     final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
 
@@ -250,7 +236,6 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: border),
       ),
       child: Row(
         children: [
@@ -273,36 +258,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHeroContainer() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-        ),
-      ),
+      decoration: BoxDecoration(gradient: AppGradients.blueFade),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.3,
-              child: CachedNetworkImage(
-                imageUrl: 'https://images.unsplash.com/photo-1700621497504-d241a3803bbd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => const SizedBox(),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xCC2563EB), Color(0xCC1D4ED8)],
-                ),
-              ),
-            ),
-          ),
           const Positioned.fill(
             child: OceanScene(waveColor: Colors.white, waveHeight: 28),
           ),
@@ -313,49 +271,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _userName.isNotEmpty ? '안녕하세요, $_userName님!' : '인천 섬 여행',
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      TapFeedback(
-                        onTap: () => context.push('/notifications'),
-                        customBorder: const CircleBorder(),
-                        child: Stack(
-                          children: [
-                            ClipOval(
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                child: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.25),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
-                                  ),
-                                  child: const Icon(Icons.notifications_outlined, size: 20, color: Colors.white),
-                                ),
-                              ),
-                            ),
-                            if (_unreadNotifications > 0)
-                              Positioned(
-                                top: 0,
-                                right: 0,
-                                child: Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
                   const AiIslandSearchBar(),
                   const SizedBox(height: 16),
                   if (_upcomingTrip != null)
@@ -387,29 +302,29 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.directions_boat_rounded, color: Colors.white, size: 18),
-                  SizedBox(width: 6),
-                  Text('오늘의 여행', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
-                ],
-              ),
               Row(
                 children: [
+                  const Icon(Icons.directions_boat_rounded, color: AppColors.gray900, size: 18),
+                  const SizedBox(width: 6),
+                  const Text('오늘의 여행', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
                   if (dday >= 0) ...[
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: AppColors.blue100,
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: Text(
                         dday == 0 ? 'D-Day' : 'D-$dday',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900),
                       ),
                     ),
-                    const SizedBox(width: 10),
                   ],
+                ],
+              ),
+              Row(
+                children: [
                   TapFeedback(
                     onTap: () => context.push('/itinerary/${itin['id']}'),
                     borderRadius: BorderRadius.circular(4),
@@ -417,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
                       child: Text(
                         '전체보기',
-                        style: TextStyle(fontSize: 12, color: Color(0xFFDBEAFE), decoration: TextDecoration.underline),
+                        style: TextStyle(fontSize: 12, color: AppColors.gray900, decoration: TextDecoration.underline),
                       ),
                     ),
                   ),
@@ -428,12 +343,12 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 8),
           Text(
             itin['title'] as String? ?? '',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.gray900),
           ),
           const SizedBox(height: 4),
           Text(
             _getDDayMessage(dday),
-            style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.85)),
+            style: const TextStyle(fontSize: 13, color: AppColors.gray700),
           ),
           if (activities.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -444,13 +359,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         a['time'] as String? ?? '',
-                        style: const TextStyle(fontSize: 13, color: Color(0xFFBFDBFE)),
+                        style: const TextStyle(fontSize: 13, color: AppColors.gray600),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           a['title'] as String? ?? '',
-                          style: const TextStyle(fontSize: 13, color: Color(0xFFEFF6FF)),
+                          style: const TextStyle(fontSize: 13, color: AppColors.gray900),
                         ),
                       ),
                     ],
@@ -461,21 +376,18 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               margin: const EdgeInsets.only(top: 6),
               padding: const EdgeInsets.only(top: 12),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.white24)),
-              ),
               child: Row(
                 children: [
-                  const Icon(Icons.directions_boat_rounded, color: Color(0xFFBFDBFE), size: 16),
+                  const Icon(Icons.directions_boat_rounded, color: AppColors.gray700, size: 16),
                   const SizedBox(width: 6),
-                  Text(departurePort, style: const TextStyle(fontSize: 13, color: Color(0xFFDBEAFE))),
-                  const Text(' → ', style: TextStyle(color: Color(0xFFBFDBFE))),
-                  const Icon(Icons.location_on_rounded, color: Color(0xFFBFDBFE), size: 16),
+                  Text(departurePort, style: const TextStyle(fontSize: 13, color: AppColors.gray900)),
+                  const Text(' → ', style: TextStyle(color: AppColors.gray700)),
+                  const Icon(Icons.location_on_rounded, color: AppColors.gray700, size: 16),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       islands.join(', '),
-                      style: const TextStyle(fontSize: 13, color: Color(0xFFDBEAFE)),
+                      style: const TextStyle(fontSize: 13, color: AppColors.gray900),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -495,13 +407,13 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Center(
             child: Column(
               children: [
-                const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 48),
+                const Icon(Icons.auto_awesome_rounded, color: AppColors.gray900, size: 48),
                 const SizedBox(height: 8),
-                const Text('아직 계획이 없으신가요?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
+                const Text('아직 계획이 없으신가요?', style: TextStyle(color: AppColors.gray900, fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 4),
-                Text(
+                const Text(
                   '여객선 정보 기반으로 자동 일정을 생성해드려요',
-                  style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
+                  style: TextStyle(color: AppColors.gray700, fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -516,16 +428,15 @@ class _HomeScreenState extends State<HomeScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.white.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
             ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.calendar_month_rounded, color: AppColors.blue600, size: 20),
+                Icon(Icons.calendar_month_rounded, color: AppColors.gray900, size: 20),
                 SizedBox(width: 8),
-                Text('여행 계획 시작하기', style: TextStyle(color: AppColors.blue600, fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('여행 계획 시작하기', style: TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
           ),
@@ -536,14 +447,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildQuickLinks() {
     final links = [
-      {'icon': Icons.people_rounded, 'title': '리뷰', 'route': '/community'},
-      {'icon': Icons.checklist_rounded, 'title': '체크리스트', 'route': '/checklist'},
-      {'icon': Icons.attach_money_rounded, 'title': '경비관리', 'route': '/budget'},
+      {'illust': const ChecklistIllust(size: 48), 'title': '체크리스트', 'route': '/checklist'},
+      {'illust': const BudgetIllust(size: 48), 'title': '경비관리', 'route': '/budget'},
+      {'illust': const FavoriteIllust(size: 48), 'title': '즐겨찾기', 'route': '/favorites'},
+      {'illust': const ReviewIllust(size: 48), 'title': '리뷰', 'route': '/community'},
     ];
 
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 40),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: links.map((link) {
@@ -552,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(12),
             child: Column(
               children: [
-                _GlassOrb(icon: link['icon'] as IconData),
+                link['illust'] as Widget,
                 const SizedBox(height: 6),
                 Text(
                   link['title'] as String,
@@ -574,7 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Weather widget
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -583,57 +495,45 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Expanded(
-                      child: Text('인천 앞바다', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                    Container(
-                      width: 76,
-                      height: 76,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Colors.white.withValues(alpha: 0.35), Colors.white.withValues(alpha: 0.1)],
+            // 좌: 장소 / 10px / 온도 / 6px / 체감 (고정 간격), 우: 일러스트(상단) / 파고·풍속(하단)
+            // 왼쪽 열 높이에 오른쪽 열을 맞춰 파고·풍속이 체감온도와 하단 정렬됨
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('인천 앞바다', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
+                        Text(
+                          '${(_weather?.current.temperature ?? 22).round()}°C',
+                          style: const TextStyle(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold, height: 1.0),
                         ),
-                        boxShadow: [
-                          BoxShadow(color: Colors.white.withValues(alpha: 0.18), blurRadius: 24, spreadRadius: 2),
-                        ],
-                      ),
-                      child: Icon(
-                        _weatherIcon(_weather?.current.condition ?? '맑음'),
-                        color: Colors.white,
-                        size: 42,
-                      ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '체감 ${(_weather?.current.apparentTemperature ?? 20).round()}°C',
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, height: 1.0),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '${(_weather?.current.temperature ?? 22).round()}°C',
-                  style: const TextStyle(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold, height: 1.0),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '체감 ${(_weather?.current.apparentTemperature ?? 20).round()}°C',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11),
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    '파고 ${(_weather?.current.waveHeight ?? 0.5).toStringAsFixed(1)}m · 풍속 ${(_weather?.current.windSpeed ?? 3).toStringAsFixed(0)}m/s',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      WeatherIllust(condition: _weather?.current.condition ?? '맑음', size: 76),
+                      Text(
+                        '파고 ${(_weather?.current.waveHeight ?? 0.5).toStringAsFixed(1)}m · 풍속 ${(_weather?.current.windSpeed ?? 3).toStringAsFixed(0)}m/s',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, height: 1.0),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -648,8 +548,6 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.gray100),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -760,8 +658,6 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.gray200),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -830,78 +726,13 @@ class _GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.14),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.35), width: 1.2),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, 6)),
-            ],
-          ),
-          child: child,
-        ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(16),
       ),
-    );
-  }
-}
-
-class _GlassOrb extends StatelessWidget {
-  final IconData icon;
-  const _GlassOrb({required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 48,
-      height: 48,
-      child: ClipOval(
-        child: Stack(
-          children: [
-            // 거의 투명한 물방울 몸체 - 파란빛은 아주 살짝만
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white.withOpacity(0.3),
-                    AppColors.blue50.withOpacity(0.2),
-                  ],
-                ),
-              ),
-            ),
-            // 물방울 가장자리 얇은 테두리
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.blue100.withOpacity(0.6), width: 1),
-                ),
-              ),
-            ),
-            // 아주 옅은 광택
-            Positioned(
-              top: 5, left: 6,
-              child: Container(
-                width: 16, height: 10,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft, end: Alignment.bottomRight,
-                    colors: [Colors.white.withOpacity(0.4), Colors.white.withOpacity(0.0)],
-                  ),
-                ),
-              ),
-            ),
-            Center(child: Icon(icon, color: AppColors.blue700, size: 22)),
-          ],
-        ),
-      ),
+      child: child,
     );
   }
 }

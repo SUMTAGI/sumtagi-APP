@@ -75,16 +75,14 @@ class _TravelScreenState extends State<TravelScreen> {
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)]),
-          ),
+          decoration: BoxDecoration(gradient: AppGradients.blueFade),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('여행 계획', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-            Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
+            const Text('여행 계획', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+            const Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 13, color: AppColors.gray700)),
           ],
         ),
         titleSpacing: 24,
@@ -101,10 +99,7 @@ class _TravelScreenState extends State<TravelScreen> {
 
   Widget _buildTabs() {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.gray200)),
-      ),
+      color: Colors.white,
       child: Row(
         children: [
           _TabButton(
@@ -152,8 +147,8 @@ class _TravelScreenState extends State<TravelScreen> {
                           if (dday >= 0)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(50)),
-                              child: Text(dday == 0 ? '오늘 출발!' : 'D-$dday', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(50)),
+                              child: Text(dday == 0 ? '오늘 출발!' : 'D-$dday', style: const TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 13)),
                             ),
                           const SizedBox(width: 8),
                           TapFeedback(
@@ -161,8 +156,8 @@ class _TravelScreenState extends State<TravelScreen> {
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               padding: const EdgeInsets.all(9),
-                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
-                              child: const Icon(Icons.edit_rounded, color: Colors.white, size: 16),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.edit_rounded, color: AppColors.gray900, size: 16),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -171,8 +166,8 @@ class _TravelScreenState extends State<TravelScreen> {
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               padding: const EdgeInsets.all(9),
-                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
-                              child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 16),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.delete_outline_rounded, color: AppColors.gray900, size: 16),
                             ),
                           ),
                         ],
@@ -197,8 +192,8 @@ class _TravelScreenState extends State<TravelScreen> {
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                          child: const Text('일정 전체보기', style: TextStyle(color: AppColors.blue600, fontWeight: FontWeight.w600, fontSize: 14)),
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(8)),
+                          child: const Text('일정 전체보기', style: TextStyle(color: AppColors.gray900, fontWeight: FontWeight.w600, fontSize: 14)),
                         ),
                       ),
                       if (_currentItinerary!['confirmed'] != true) ...[
@@ -206,11 +201,10 @@ class _TravelScreenState extends State<TravelScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
                           ),
-                          child: const Text('미확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                          child: const Text('미확정', style: TextStyle(color: AppColors.gray900, fontWeight: FontWeight.w600, fontSize: 13)),
                         ),
                       ],
                     ],
@@ -228,7 +222,6 @@ class _TravelScreenState extends State<TravelScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFDE68A)),
                   ),
                   child: const Row(
                     children: [
@@ -254,7 +247,6 @@ class _TravelScreenState extends State<TravelScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.gray200),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,7 +299,7 @@ class _TravelScreenState extends State<TravelScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.gray300, width: 2, style: BorderStyle.solid),
+                  color: AppColors.gray100,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Row(
@@ -398,7 +390,6 @@ class _TravelScreenState extends State<TravelScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.gray200),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,9 +479,7 @@ class _TabButton extends StatelessWidget {
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: isActive ? AppColors.blue600 : Colors.transparent, width: 2)),
-          ),
+          color: isActive ? AppColors.blue50 : Colors.transparent,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

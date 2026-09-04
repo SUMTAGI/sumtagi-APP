@@ -127,7 +127,6 @@ class _AdminHostApplicationsScreenState extends State<AdminHostApplicationsScree
                       decoration: BoxDecoration(
                         color: isActive ? AppColors.blue600 : Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: isActive ? AppColors.blue600 : AppColors.gray200),
                       ),
                       child: Text(
                         '$label ${counts[key] ?? 0}',
@@ -182,7 +181,6 @@ class _AdminHostApplicationsScreenState extends State<AdminHostApplicationsScree
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: AppColors.gray200),
                                   ),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,14 +229,14 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bg, border, fg, label, icon) = switch (status) {
-      'approved' => (AppColors.blue50, AppColors.blue100, AppColors.blue700, '승인', Icons.check_circle_outline_rounded),
-      'rejected' => (AppColors.red50, AppColors.red100, AppColors.red500, '반려', Icons.cancel_outlined),
-      _ => (const Color(0xFFFFFBEB), const Color(0xFFFDE68A), const Color(0xFFB45309), '검토 중', Icons.fact_check_outlined),
+    final (bg, fg, label, icon) = switch (status) {
+      'approved' => (AppColors.blue50, AppColors.blue700, '승인', Icons.check_circle_outline_rounded),
+      'rejected' => (AppColors.red50, AppColors.red500, '반려', Icons.cancel_outlined),
+      _ => (const Color(0xFFFFFBEB), const Color(0xFFB45309), '검토 중', Icons.fact_check_outlined),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999), border: Border.all(color: border)),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -405,7 +403,7 @@ class _HostApplicationDetailScreenState extends State<_HostApplicationDetailScre
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(color: AppColors.red50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.red100)),
+                decoration: BoxDecoration(color: AppColors.red50, borderRadius: BorderRadius.circular(12)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -439,7 +437,8 @@ class _HostApplicationDetailScreenState extends State<_HostApplicationDetailScre
                       onPressed: _processing ? null : _openRejectDialog,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.red500,
-                        side: const BorderSide(color: AppColors.red100, width: 2),
+                        backgroundColor: AppColors.red50,
+                        side: BorderSide.none,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -52,24 +53,10 @@ class _SplashScreenState extends State<SplashScreen>
           elevation: 0,
           scrolledUnderElevation: 0,
           systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF3B82F6), Color(0xFF2563EB), Color(0xFF1D4ED8)],
-              ),
-            ),
-          ),
+          flexibleSpace: Container(color: AppColors.blue600),
         ),
         body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF3B82F6), Color(0xFF2563EB), Color(0xFF1D4ED8)],
-            ),
-          ),
+          decoration: BoxDecoration(gradient: AppGradients.blueFade),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -84,10 +71,7 @@ class _SplashScreenState extends State<SplashScreen>
                       height: 140,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 4,
-                        ),
+                        color: Colors.white.withOpacity(0.12),
                       ),
                     )
                         .animate(onPlay: (c) => c.repeat())
@@ -98,13 +82,10 @@ class _SplashScreenState extends State<SplashScreen>
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 2,
-                        ),
+                        color: Colors.white.withOpacity(0.1),
                       ),
                     ),
-                    // Icon container
+                    // App icon
                     Container(
                       width: 128,
                       height: 128,
@@ -119,10 +100,13 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.directions_boat_rounded,
-                        size: 64,
-                        color: Color(0xFF2563EB),
+                      clipBehavior: Clip.antiAlias,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Image.asset(
+                          'assets/icon/app_icon.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     )
                         .animate()
@@ -132,25 +116,6 @@ class _SplashScreenState extends State<SplashScreen>
                           duration: 600.ms,
                           curve: Curves.elasticOut,
                         ),
-                    // Sparkle top-right
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: Container(
-                        width: 20,
-                        height: 20,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFBBF24),
-                          shape: BoxShape.circle,
-                        ),
-                      )
-                          .animate(onPlay: (c) => c.repeat())
-                          .fade(
-                            begin: 0.6,
-                            end: 1.0,
-                            duration: 1.seconds,
-                          ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 32),

@@ -235,16 +235,16 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                 fillColor: const Color(0xFFF9FAFB),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.gray200),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.gray200),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide:
-                      const BorderSide(color: AppColors.blue600, width: 1.5),
+                      BorderSide.none,
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 14),
@@ -278,16 +278,16 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                 fillColor: const Color(0xFFF9FAFB),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.gray200),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.gray200),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide:
-                      const BorderSide(color: AppColors.blue600, width: 1.5),
+                      BorderSide.none,
                 ),
                 contentPadding: const EdgeInsets.all(16),
               ),
@@ -332,11 +332,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                       width: 96,
                       height: 96,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
-                        border: Border.all(
-                            color: AppColors.gray200,
-                            style: BorderStyle.solid,
-                            width: 1.5),
+                        color: AppColors.gray100,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(Icons.add_photo_alternate_outlined,

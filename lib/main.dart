@@ -40,24 +40,35 @@ class ICIslandApp extends StatelessWidget {
           primary: const Color(0xFF2563EB),
         ),
         scaffoldBackgroundColor: Colors.white,
+        // 색을 따로 지정하지 않은 텍스트도 앱 공통 블랙(#01060F)으로
+        textTheme: ThemeData.light().textTheme.apply(
+          bodyColor: const Color(0xFF01060F),
+          displayColor: const Color(0xFF01060F),
+        ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
-          foregroundColor: Color(0xFF111827),
+          foregroundColor: Color(0xFF01060F),
           elevation: 0,
           scrolledUnderElevation: 0,
         ),
         inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: WidgetStateColor.resolveWith(
+            (states) => states.contains(WidgetState.focused)
+                ? const Color(0xFFEFF6FF)
+                : const Color(0xFFF3F4F6),
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+            borderSide: BorderSide.none,
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),

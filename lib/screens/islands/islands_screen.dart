@@ -1,5 +1,4 @@
 import 'dart:math' show Random;
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/services.dart';
@@ -237,11 +236,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
           statusBarColor: Colors.transparent,
         ),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3B82F6), Color(0xFF3B82F6)],
-            ),
-          ),
+          decoration: BoxDecoration(gradient: AppGradients.blueFade),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,14 +247,14 @@ class _IslandsScreenState extends State<IslandsScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.gray900,
               ),
             ),
-            Text(
+            const Text(
               '인천의 아름다운 섬들을 탐색해보세요',
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.white.withValues(alpha: 0.85),
+                color: AppColors.gray700,
               ),
             ),
           ],
@@ -319,10 +314,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.gray200)),
-      ),
+      color: Colors.white,
       child: TextField(
         controller: _searchCtrl,
         onChanged: (v) => setState(() => _searchQuery = v),
@@ -346,15 +338,15 @@ class _IslandsScreenState extends State<IslandsScreen> {
           fillColor: AppColors.gray50,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.gray200),
+            borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.gray200),
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.blue600, width: 2),
+            borderSide: BorderSide.none,
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -367,10 +359,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
 
   Widget _buildViewTabBar() {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.gray200)),
-      ),
+      color: Colors.white,
       child: Row(
         children: [
           Expanded(
@@ -399,17 +388,13 @@ class _IslandsScreenState extends State<IslandsScreen> {
     // (항로 보기/숨기기 토글은 지도 위 범례 옆으로 옮김 -> _buildMapOverlay)
     if (_viewMode == _ViewMode.map) return const SizedBox.shrink();
 
-    final total = _islands.length;
     final incheon = _islands.where((i) => i.ports.contains('인천항')).length;
     final daebudo = _islands.where((i) => i.ports.contains('대부도')).length;
     final samok = _islands.where((i) => i.ports.contains('삼목선착장')).length;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.gray200)),
-      ),
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -417,56 +402,28 @@ class _IslandsScreenState extends State<IslandsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '출발 항구',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.gray500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _FilterDropdown(
-                        value: _portFilter,
-                        items: [
-                          ('all', '전체 ($total)'),
-                          ('인천항', '인천항 ($incheon)'),
-                          ('대부도', '대부도 ($daebudo)'),
-                          ('삼목선착장', '삼목항 ($samok)'),
-                        ],
-                        onChanged: (v) => setState(() => _portFilter = v),
-                      ),
+                  child: _FilterDropdown(
+                    value: _portFilter,
+                    items: [
+                      ('all', '출발 항구'),
+                      ('인천항', '인천항 ($incheon)'),
+                      ('대부도', '대부도 ($daebudo)'),
+                      ('삼목선착장', '삼목항 ($samok)'),
                     ],
+                    onChanged: (v) => setState(() => _portFilter = v),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '혼잡도',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.gray500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _FilterDropdown(
-                        value: _congestionFilter,
-                        items: const [
-                          ('all', '전체'),
-                          ('low', '여유'),
-                          ('medium', '보통'),
-                          ('high', '혼잡'),
-                        ],
-                        onChanged: (v) => setState(() => _congestionFilter = v),
-                      ),
+                  child: _FilterDropdown(
+                    value: _congestionFilter,
+                    items: const [
+                      ('all', '혼잡도'),
+                      ('low', '여유'),
+                      ('medium', '보통'),
+                      ('high', '혼잡'),
                     ],
+                    onChanged: (v) => setState(() => _congestionFilter = v),
                   ),
                 ),
               ],
@@ -543,7 +500,6 @@ class _IslandsScreenState extends State<IslandsScreen> {
             decoration: BoxDecoration(
               color: AppColors.blue100,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.blue200),
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -682,7 +638,6 @@ class _IslandsScreenState extends State<IslandsScreen> {
               decoration: BoxDecoration(
                 color: marker.color,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.2),
@@ -758,10 +713,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
   Widget _buildInfoPanel() {
     final marker = _selected!;
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.gray200)),
-      ),
+      color: Colors.white,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -973,14 +925,7 @@ class _ViewTab extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: active ? AppColors.blue600 : Colors.transparent,
-              width: 2,
-            ),
-          ),
-        ),
+        color: active ? AppColors.blue50 : Colors.transparent,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1018,7 +963,6 @@ class _FilterDropdown extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.gray50,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.gray200),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -1079,7 +1023,6 @@ class _IslandCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.10),
@@ -1161,31 +1104,9 @@ class _IslandCard extends StatelessWidget {
                 ),
               ],
             ),
-            Stack(
-              children: [
-                Positioned.fill(
-                  child: ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                    child: CachedNetworkImage(
-                      imageUrl: island.image,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.bottomCenter,
-                      memCacheWidth: 400,
-                      errorWidget: (_, __, ___) =>
-                          Container(color: AppColors.gray100),
-                    ),
-                  ),
-                ),
-                Container(
+            Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.68),
-                    border: Border(
-                      top: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.55),
-                      ),
-                    ),
-                  ),
+                  color: Colors.white,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1311,8 +1232,6 @@ class _IslandCard extends StatelessWidget {
                     ],
                   ),
                 ),
-              ],
-            ),
           ],
         ),
       ),

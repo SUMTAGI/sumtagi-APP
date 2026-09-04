@@ -203,11 +203,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.gray200),
+                        borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.gray200),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
@@ -1048,13 +1048,11 @@ class _PostCardState extends State<_PostCard> {
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
-                              borderSide: const BorderSide(
-                                  color: AppColors.gray200),
+                              borderSide: BorderSide.none,
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
-                              borderSide: const BorderSide(
-                                  color: AppColors.gray200),
+                              borderSide: BorderSide.none,
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 10),
@@ -1129,10 +1127,8 @@ class _SortChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? AppColors.blue50 : Colors.transparent,
+          color: selected ? AppColors.blue50 : AppColors.gray100,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-              color: selected ? AppColors.blue200 : AppColors.gray200),
         ),
         child: Text(label,
             style: TextStyle(

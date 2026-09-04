@@ -132,7 +132,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-                  decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)])),
+                  decoration: BoxDecoration(gradient: AppGradients.blueFade),
                   child: Column(
                     children: [
                       Column(
@@ -149,23 +149,23 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                   keyboardType: TextInputType.number,
                                   onChanged: (v) => setState(() => _totalBudget = int.tryParse(v) ?? 0),
                                   onSubmitted: (_) => _commitBudget(),
-                                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.gray900),
                                   decoration: InputDecoration(
                                     isDense: true,
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                     filled: true,
-                                    fillColor: Colors.white.withOpacity(0.2),
+                                    fillColor: Colors.white.withValues(alpha: 0.7),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                      borderSide: BorderSide.none,
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                      borderSide: BorderSide.none,
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(color: Colors.white, width: 2),
+                                      borderSide: BorderSide.none,
                                     ),
                                   ),
                                 ),
@@ -208,8 +208,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       const SizedBox(height: 4),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(value: progress, backgroundColor: Colors.white.withOpacity(0.2),
-                          color: totalExpense > _totalBudget ? const Color(0xFFF87171) : Colors.white, minHeight: 8),
+                        child: LinearProgressIndicator(value: progress, backgroundColor: Colors.white.withValues(alpha: 0.7),
+                          color: totalExpense > _totalBudget ? const Color(0xFFF87171) : AppColors.gray900, minHeight: 8),
                       ),
                     ],
                   ),
@@ -230,7 +230,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.blue100)),
+                          decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(12)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -242,7 +242,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                 value: _newCategory,
                                 items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                                 onChanged: (v) => setState(() => _newCategory = v!),
-                                decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.gray300)), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.gray300)), filled: true, fillColor: Colors.white, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
+                                decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), filled: true, fillColor: Colors.white, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
                               ),
                               const SizedBox(height: 10),
                               const Text('금액', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
@@ -279,7 +279,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+                            decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12)),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

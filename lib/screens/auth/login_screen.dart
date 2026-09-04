@@ -267,10 +267,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 12),
                     _SocialButton(
-                      color: Colors.white,
+                      color: AppColors.gray100,
                       textColor: AppColors.gray900,
                       label: '구글로 시작하기',
-                      border: Border.all(color: AppColors.gray300, width: 2),
                       leading: SvgPicture.asset('assets/images/google_logo.svg', width: 20, height: 20),
                       onTap: _isLoading ? () {} : _handleGoogleLogin,
                     ),
@@ -283,9 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
             // Footer
             Container(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: AppColors.gray200)),
-              ),
+              color: AppColors.gray50,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -328,7 +325,6 @@ class _SocialButton extends StatelessWidget {
   final Color? dotColor;
   final double dotRadius;
   final Widget? leading;
-  final Border? border;
   final bool useGoogleDot;
   final VoidCallback onTap;
 
@@ -339,7 +335,6 @@ class _SocialButton extends StatelessWidget {
     this.leading,
     this.dotColor,
     this.dotRadius = 10,
-    this.border,
     this.useGoogleDot = false,
     required this.onTap,
   });
@@ -354,7 +349,6 @@ class _SocialButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(12),
-          border: border,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

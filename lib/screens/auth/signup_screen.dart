@@ -133,9 +133,6 @@ class _SignupScreenState extends State<SignupScreen> {
             // Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.gray200)),
-              ),
               child: Row(
                 children: [
                   GestureDetector(
@@ -341,11 +338,7 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected ? AppColors.blue600 : AppColors.gray200,
-                    width: 2,
-                  ),
-                  color: isSelected ? AppColors.blue50 : Colors.white,
+                  color: isSelected ? AppColors.blue50 : AppColors.gray100,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

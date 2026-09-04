@@ -326,10 +326,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 4),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(5),
-                              gradient: i == _currentSlide
-                                  ? LinearGradient(colors: slide.gradient)
-                                  : null,
-                              color: i != _currentSlide ? AppColors.gray300 : null,
+                              color: i == _currentSlide ? AppColors.blue600 : AppColors.gray300,
                             ),
                           ),
                         ),

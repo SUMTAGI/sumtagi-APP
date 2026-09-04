@@ -126,7 +126,10 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               headerBackgroundColor: AppColors.blue600,
               headerForegroundColor: Colors.white,
-              todayBorder: const BorderSide(color: AppColors.blue600),
+              todayBorder: BorderSide.none,
+              todayBackgroundColor: WidgetStateProperty.resolveWith(
+                (s) => s.contains(WidgetState.selected) ? AppColors.blue600 : AppColors.blue50,
+              ),
             ),
           ),
           child: child!,
@@ -275,7 +278,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
       child: Row(
         children: [
           IconButton(
@@ -304,7 +306,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   Widget _buildProgressBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
       child: Row(
         children: List.generate(_totalSteps, (i) {
           final filled = i <= _step;
@@ -344,8 +345,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: selected ? AppColors.blue600 : AppColors.gray200, width: 2),
-                  color: selected ? AppColors.blue50 : Colors.white,
+                  color: selected ? AppColors.blue50 : AppColors.gray100,
                 ),
                 child: Center(
                   child: Text(
@@ -364,7 +364,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             decoration: BoxDecoration(
               color: AppColors.blue50,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.blue100),
             ),
             child: Text(
               '${_selectedIslands.first} 선택됨',
@@ -401,7 +400,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       decoration: BoxDecoration(
         color: AppColors.blue50,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.blue100),
       ),
       child: const Row(
         children: [
@@ -428,7 +426,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             decoration: BoxDecoration(
               color: AppColors.blue50,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.blue200),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -475,8 +472,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isActive ? AppColors.blue600 : AppColors.gray200, width: 2),
-                  color: isActive ? AppColors.blue50 : Colors.white,
+                  color: isActive ? AppColors.blue50 : AppColors.gray100,
                 ),
                 child: Text(
                   pick['label'] as String,
@@ -535,7 +531,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             decoration: BoxDecoration(
               color: AppColors.blue50,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.blue100),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -617,8 +612,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isSelected ? AppColors.blue600 : AppColors.gray200, width: 2),
-                  color: isSelected ? AppColors.blue50 : Colors.white,
+                  color: isSelected ? AppColors.blue50 : AppColors.gray100,
                 ),
                 child: Stack(
                   children: [
@@ -668,8 +662,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isSelected ? AppColors.blue600 : AppColors.gray200, width: 2),
-                    color: isSelected ? AppColors.blue50 : Colors.white,
+                    color: isSelected ? AppColors.blue50 : AppColors.gray100,
                   ),
                   child: Text(
                     b,
@@ -689,9 +682,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             hintText: '예: 300000',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
         ),
@@ -740,9 +733,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             decoration: InputDecoration(
               hintText: '예: 아이랑 같이 가요, 낚시하고 싶어요, 걷는 건 최소화해주세요',
               hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue500, width: 2)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               contentPadding: const EdgeInsets.all(14),
             ),
           ),
@@ -799,9 +792,8 @@ class _DatePicker extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.gray300, width: 2),
           borderRadius: BorderRadius.circular(12),
-          color: Colors.white,
+          color: AppColors.gray100,
         ),
         child: Row(
           children: [
@@ -867,8 +859,7 @@ class _GenerationModeCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: selected ? AppColors.blue600 : AppColors.gray200, width: 2),
-          color: selected ? AppColors.blue50 : Colors.white,
+          color: selected ? AppColors.blue50 : AppColors.gray100,
         ),
         child: Stack(
           children: [

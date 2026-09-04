@@ -80,7 +80,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         onTap: () => context.push('/island/${island.id}'),
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Row(

@@ -122,7 +122,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               IconButton(
                 icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
                 tooltip: '${island.name}에 대해 AI에게 물어보기',
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                onPressed: () => Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(
                   builder: (_) => AiChatScreen(initialQuestion: '${island.name}에 대해 알려줘'),
                 )),
               ),
@@ -206,7 +206,6 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                           decoration: BoxDecoration(
                             color: port == '인천항' ? AppColors.red50 : AppColors.orange50,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: port == '인천항' ? AppColors.red100 : const Color(0xFFFFEDD5)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -231,7 +230,6 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                 // Tabs
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
                   child: Row(
                     children: [
                       _TabBtn(label: '관광지', tabKey: 'attractions', activeTab: _activeTab, onTap: (t) => setState(() => _activeTab = t)),
@@ -287,7 +285,6 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
           end: Alignment.bottomRight,
           colors: [Color(0xFFF8FAFC), Color(0xFFEFF6FF)],
         ),
-        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,7 +341,6 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray200))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -377,7 +373,6 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                 itemBuilder: (_, i) {
                   final f = _ferrySchedule[i];
                   final bg = f.isCancelled ? AppColors.red50 : f.isDone ? AppColors.gray100 : f.isActive ? const Color(0xFFF0FDF4) : AppColors.blue50;
-                  final borderColor = f.isCancelled ? AppColors.red100 : f.isDone ? AppColors.gray200 : f.isActive ? const Color(0xFFBBF7D0) : AppColors.blue100;
                   final labelColor = f.isCancelled ? AppColors.red700 : f.isDone ? AppColors.gray400 : f.isActive ? const Color(0xFF16A34A) : AppColors.blue600;
                   final timeColor = f.isCancelled ? AppColors.red500 : f.isDone ? AppColors.gray400 : AppColors.gray900;
                   return Container(
@@ -386,7 +381,6 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                     decoration: BoxDecoration(
                       color: bg,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: borderColor),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,7 +558,6 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
 
     final isDanger = risk == FerryRisk.danger;
     final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
-    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
     final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
     final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
     final message = isDanger ? '내일 결항 가능성 있음 (예측, 확정 아님)' : '내일 기상 악화 가능 (예측, 확정 아님)';
@@ -572,7 +565,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), border: Border.all(color: border)),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
       child: Row(
         children: [
           Icon(Icons.warning_amber_rounded, size: 18, color: iconColor),
@@ -830,9 +823,8 @@ class _CongestionPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
+        color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -181,14 +181,9 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
                     ? AppColors.red50
                     : done
                         ? AppColors.blue600
-                        : Colors.white;
-                final borderColor = isRejectedFork
-                    ? const Color(0xFFFCA5A5)
-                    : done
-                        ? AppColors.blue600
                         : current
-                            ? AppColors.blue600
-                            : AppColors.gray200;
+                            ? AppColors.blue50
+                            : AppColors.gray100;
                 final iconColor = isRejectedFork
                     ? AppColors.red500
                     : done
@@ -218,7 +213,6 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: circleColor,
-                              border: Border.all(color: borderColor, width: 2),
                             ),
                             child: Icon(_steps[i]['icon'] as IconData, size: 16, color: iconColor),
                           ),
@@ -245,7 +239,6 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
               decoration: BoxDecoration(
                 color: _statusBg(status),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _statusBorder(status)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +270,6 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
               decoration: BoxDecoration(
                 color: AppColors.blue50,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.blue100),
               ),
               child: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,11 +364,6 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
         'approved' => AppColors.blue50,
         _ => AppColors.red50,
       };
-  Color _statusBorder(String status) => switch (status) {
-        'pending' => const Color(0xFFFDE68A),
-        'approved' => AppColors.blue100,
-        _ => AppColors.red100,
-      };
   Color _statusText(String status) => switch (status) {
         'pending' => const Color(0xFFB45309),
         'approved' => AppColors.blue700,
@@ -431,12 +418,12 @@ class _Field extends StatelessWidget {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            filled: !enabled,
-            fillColor: AppColors.gray50,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: error != null ? AppColors.red500 : AppColors.gray200, width: 2)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: error != null ? AppColors.red500 : AppColors.gray200, width: 2)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
-            disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray200, width: 2)),
+            filled: true,
+            fillColor: error != null ? AppColors.red50 : (enabled ? AppColors.gray100 : AppColors.gray50),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
         ),

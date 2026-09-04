@@ -52,7 +52,7 @@ class _SupportScreenState extends State<SupportScreen> {
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiChatScreen())),
+                        onTap: () => Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(builder: (_) => const AiChatScreen())),
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
@@ -78,7 +78,7 @@ class _SupportScreenState extends State<SupportScreen> {
             final expanded = _expandedFaq == faq['id'];
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
               clipBehavior: Clip.hardEdge,
               child: Column(
                 children: [
@@ -92,7 +92,7 @@ class _SupportScreenState extends State<SupportScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       child: Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.blue100)),
+                        decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8)),
                         child: Text(faq['answer']!, style: const TextStyle(fontSize: 13, color: AppColors.gray700, height: 1.5)),
                       ),
                     ),
@@ -105,7 +105,7 @@ class _SupportScreenState extends State<SupportScreen> {
           // Email
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
             child: Row(
               children: [
                 Container(

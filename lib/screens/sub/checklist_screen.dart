@@ -131,9 +131,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isChecked ? AppColors.blue50 : Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isChecked ? AppColors.blue200 : AppColors.gray200),
                         ),
                         child: CheckboxListTile(
                           value: isChecked,
@@ -160,14 +159,14 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                 ),
                 Container(
                   padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-                  decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.gray200))),
+                  color: Colors.white,
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
+                          color: AppColors.gray100,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.gray300),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
@@ -188,9 +187,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                           controller: _textCtrl,
                           decoration: InputDecoration(
                             hintText: '항목 추가...',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           ),
                           onSubmitted: (_) => _addItem(),

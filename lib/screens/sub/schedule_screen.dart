@@ -240,7 +240,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         automaticallyImplyLeading: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)])),
+          decoration: BoxDecoration(gradient: AppGradients.blueFade),
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -299,7 +299,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     final isDanger = risk == FerryRisk.danger;
     final bgColor  = isDanger ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
-    final border   = isDanger ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
     final iconColor= isDanger ? const Color(0xFFDC2626) : const Color(0xFFD97706);
     final textColor= isDanger ? const Color(0xFF991B1B) : const Color(0xFF92400E);
     final message = isDanger ? '내일 결항 가능성 있음 (예측, 확정 아님)' : '내일 기상 악화 가능 (예측, 확정 아님)';
@@ -307,7 +306,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return Container(
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), border: Border.all(color: border)),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
       child: Row(
         children: [
           Icon(Icons.warning_amber_rounded, size: 18, color: iconColor),
@@ -341,7 +340,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         decoration: BoxDecoration(
                           color: _selectedFerryIslandId == _kAllFerryFilter ? AppColors.blue600 : Colors.white,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: _selectedFerryIslandId == _kAllFerryFilter ? AppColors.blue600 : AppColors.gray200),
                         ),
                         child: Text('전체', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _selectedFerryIslandId == _kAllFerryFilter ? Colors.white : AppColors.gray700)),
                       ),
@@ -356,7 +354,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         decoration: BoxDecoration(
                           color: selected ? AppColors.blue600 : Colors.white,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: selected ? AppColors.blue600 : AppColors.gray200),
                         ),
                         child: Text(island.name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
                       ),
@@ -382,7 +379,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   label: Text(_showTimetable ? '닫기' : '운항 시간표 보기'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.gray700,
-                    side: const BorderSide(color: AppColors.gray200),
+                    backgroundColor: AppColors.gray100,
+                    side: BorderSide.none,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -393,7 +391,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   width: double.infinity,
                   margin: const EdgeInsets.only(top: 10),
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+                  decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(12)),
                   child: _isTimetableLoading
                       ? const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator()))
                       : _timetableGroups.isEmpty
@@ -450,7 +448,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ],
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: const Color(0xFFFEFCE8), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFEF08A))),
+                decoration: BoxDecoration(color: const Color(0xFFFEFCE8), borderRadius: BorderRadius.circular(12)),
                 child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -503,7 +501,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         decoration: BoxDecoration(
                           color: selected ? AppColors.blue600 : Colors.white,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: selected ? AppColors.blue600 : AppColors.gray200),
                         ),
                         child: Text(island, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
                       ),
@@ -610,7 +607,7 @@ class _FerryCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.gray200)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
       child: Row(
         children: [
           SizedBox(
@@ -673,7 +670,7 @@ class _TransportCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

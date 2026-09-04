@@ -89,7 +89,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.blue100)),
+            decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(10)),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -120,7 +120,7 @@ class _NotifCard extends StatelessWidget {
   const _NotifCard({required this.children});
   @override
   Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
     clipBehavior: Clip.hardEdge,
     child: Column(children: children),
   );

@@ -262,8 +262,8 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                     counterText: '',
                     hintText: 'XXXXXX',
                     hintStyle: const TextStyle(fontSize: 28, letterSpacing: 8, color: AppColors.gray300),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.gray300)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onSubmitted: (_) => join(),
@@ -274,9 +274,10 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(ctx),
                       style: OutlinedButton.styleFrom(
+                        backgroundColor: AppColors.gray100,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        side: const BorderSide(color: AppColors.gray300),
+                        side: BorderSide.none,
                       ),
                       child: const Text('취소', style: TextStyle(color: AppColors.gray700, fontWeight: FontWeight.w600)),
                     ),
@@ -355,7 +356,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                 _field('금액', amtCtrl, '10000', type: TextInputType.number),
                 const SizedBox(height: 20),
                 Row(children: [
-                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), side: const BorderSide(color: AppColors.gray300)), child: const Text('취소', style: TextStyle(color: AppColors.gray700, fontWeight: FontWeight.w600)))),
+                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), style: OutlinedButton.styleFrom(backgroundColor: AppColors.gray100, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), side: BorderSide.none), child: const Text('취소', style: TextStyle(color: AppColors.gray700, fontWeight: FontWeight.w600)))),
                   const SizedBox(width: 12),
                   Expanded(child: ElevatedButton(onPressed: saving ? null : save, style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0), child: saving ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('추가', style: TextStyle(fontWeight: FontWeight.bold)))),
                 ]),
@@ -422,7 +423,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                 _field('선택지 2', opt2Ctrl, '예: 백반집'),
                 const SizedBox(height: 20),
                 Row(children: [
-                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), side: const BorderSide(color: AppColors.gray300)), child: const Text('취소', style: TextStyle(color: AppColors.gray700, fontWeight: FontWeight.w600)))),
+                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), style: OutlinedButton.styleFrom(backgroundColor: AppColors.gray100, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), side: BorderSide.none), child: const Text('취소', style: TextStyle(color: AppColors.gray700, fontWeight: FontWeight.w600)))),
                   const SizedBox(width: 12),
                   Expanded(child: ElevatedButton(onPressed: saving ? null : save, style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue600, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0), child: saving ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('만들기', style: TextStyle(fontWeight: FontWeight.bold)))),
                 ]),
@@ -443,9 +444,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
         children: [
           // Blue gradient header — matches FE design
           Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)]),
-            ),
+            decoration: BoxDecoration(gradient: AppGradients.blueFadeTo(AppColors.gray50)),
             child: SafeArea(
               bottom: false,
               child: Padding(
@@ -479,13 +478,13 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: Colors.white.withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Row(children: [
-                              Icon(Icons.login_rounded, size: 14, color: Colors.white),
+                              Icon(Icons.login_rounded, size: 14, color: AppColors.gray900),
                               SizedBox(width: 6),
-                              Text('코드 참여', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+                              Text('코드 참여', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray900)),
                             ]),
                           ),
                         ),
@@ -538,7 +537,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                 onPressed: _showJoinSheet,
                 icon: const Icon(Icons.login_rounded),
                 label: const Text('초대 코드로 참여', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: OutlinedButton.styleFrom(foregroundColor: AppColors.blue600, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), side: const BorderSide(color: AppColors.blue600, width: 2)),
+                style: OutlinedButton.styleFrom(foregroundColor: AppColors.blue600, backgroundColor: AppColors.blue50, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), side: BorderSide.none),
               ),
             ),
           ],
@@ -580,7 +579,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.gray300, width: 1.5, style: BorderStyle.solid),
+                      color: AppColors.gray100,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text('+ 새 그룹', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray600)),
@@ -653,7 +652,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
             onTap: () => _copyCode(code),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(color: Colors.white, border: Border.all(color: AppColors.blue200), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8)),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -819,7 +818,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray200)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -852,8 +851,8 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                 margin: const EdgeInsets.only(bottom: 8),
                 clipBehavior: Clip.hardEdge,
                 decoration: BoxDecoration(
+                  color: hasVoted ? AppColors.blue50 : AppColors.gray50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: hasVoted ? AppColors.blue600 : AppColors.gray200, width: hasVoted ? 2 : 1),
                 ),
                 child: Stack(
                   children: [
@@ -898,9 +897,9 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: AppColors.gray400),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.gray300)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.blue600, width: 2)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

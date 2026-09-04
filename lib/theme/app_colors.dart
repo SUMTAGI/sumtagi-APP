@@ -22,7 +22,7 @@ class AppColors {
   static const Color gray500 = Color(0xFF6B7280);
   static const Color gray600 = Color(0xFF4B5563);
   static const Color gray700 = Color(0xFF374151);
-  static const Color gray900 = Color(0xFF111827);
+  static const Color gray900 = Color(0xFF01060F); // 앱 전역 '블랙' 텍스트 색
 
   static const Color green100 = Color(0xFFDCFCE7);
   static const Color green500 = Color(0xFF22C55E);
@@ -47,12 +47,22 @@ class AppColors {
   static const Color purple600 = Color(0xFF9333EA);
 
   static const Color white = Colors.white;
-  static const Color black = Colors.black;
+  static const Color black = Color(0xFF01060F);
 
   static const Color kakao = Color(0xFFFEE500);
 }
 
 class AppGradients {
+  /// 페이지 상단 파란 배경 — 아래로 갈수록 #D5F0FF를 거쳐 페이지 배경색으로 풀림
+  static LinearGradient blueFadeTo(Color end) => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [const Color(0xFF2563EB), const Color(0xFF3B82F6), const Color(0xFFD5F0FF), end],
+        stops: const [0.0, 0.5, 0.85, 1.0],
+      );
+
+  static final LinearGradient blueFade = blueFadeTo(Colors.white);
+
   static const LinearGradient blueHeader = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

@@ -78,8 +78,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text('AI 챗봇 상담', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('무엇이든 물어보세요', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+            Text('AI 챗봇 상담', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19)),
+            Text('무엇이든 물어보세요', style: TextStyle(fontSize: 15, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -102,7 +102,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                           Text(
                             '예약, 취소, 섬 여행 정보 등\n무엇이든 물어보세요',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14, color: AppColors.gray400),
+                            style: TextStyle(fontSize: 16, color: AppColors.gray400),
                           ),
                         ],
                       ),
@@ -123,10 +123,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
           ),
           Container(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: AppColors.gray200)),
-            ),
+            color: Colors.white,
             child: SafeArea(
               top: false,
               child: Row(
@@ -136,21 +133,21 @@ class _AiChatScreenState extends State<AiChatScreen> {
                       controller: _inputCtrl,
                       decoration: InputDecoration(
                         hintText: '궁금한 점을 물어보세요',
-                        hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
+                        hintStyle: const TextStyle(fontSize: 15, color: AppColors.gray400),
                         filled: true,
                         fillColor: AppColors.gray50,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
-                          borderSide: const BorderSide(color: AppColors.gray200),
+                          borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
-                          borderSide: const BorderSide(color: AppColors.gray200),
+                          borderSide: BorderSide.none,
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         isDense: true,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(fontSize: 15),
                       onSubmitted: (_) => _send(),
                     ),
                   ),
@@ -204,7 +201,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   : Text(
                       text,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         height: 1.4,
                         color: isUser ? Colors.white : AppColors.gray900,
                       ),
