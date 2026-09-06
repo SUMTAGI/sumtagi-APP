@@ -68,21 +68,18 @@ class _TravelScreenState extends State<TravelScreen> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 60,
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.blue600,
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(gradient: AppGradients.blueFade),
-        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('여행 계획', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.gray900)),
-            const Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 13, color: AppColors.gray700)),
+            const Text('여행 계획', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
           ],
         ),
         titleSpacing: 24,
@@ -99,21 +96,27 @@ class _TravelScreenState extends State<TravelScreen> {
 
   Widget _buildTabs() {
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(gradient: AppGradients.blueFade),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
       child: Row(
         children: [
-          _TabButton(
-            icon: Icons.calendar_month_rounded,
-            label: '일정 생성',
-            isActive: _tabIndex == 0,
-            onTap: () => setState(() => _tabIndex = 0),
+          Expanded(
+            child: _TabButton(
+              icon: Icons.calendar_month_rounded,
+              label: '일정 생성',
+              isActive: _tabIndex == 0,
+              onTap: () => setState(() => _tabIndex = 0),
+            ),
           ),
-          _TabButton(
-            icon: Icons.directions_boat_rounded,
-            label: '지난 여행',
-            isActive: _tabIndex == 1,
-            badge: _visitedTrips.isNotEmpty ? '${_visitedTrips.length}' : null,
-            onTap: () => setState(() => _tabIndex = 1),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _TabButton(
+              icon: Icons.directions_boat_rounded,
+              label: '지난 여행',
+              isActive: _tabIndex == 1,
+              badge: _visitedTrips.isNotEmpty ? '${_visitedTrips.length}' : null,
+              onTap: () => setState(() => _tabIndex = 1),
+            ),
           ),
         ],
       ),
@@ -474,28 +477,31 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: TapFeedback(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          color: isActive ? AppColors.blue50 : Colors.transparent,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 18, color: isActive ? AppColors.blue600 : AppColors.gray500),
+    final color = isActive ? AppColors.blue600 : AppColors.gray500;
+    return TapFeedback(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: color)),
+            if (badge != null) ...[
               const SizedBox(width: 6),
-              Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: isActive ? AppColors.blue600 : AppColors.gray500)),
-              if (badge != null) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(color: AppColors.blue600, borderRadius: BorderRadius.circular(50)),
-                  child: Text(badge!, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                ),
-              ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: AppColors.blue600, borderRadius: BorderRadius.circular(50)),
+                child: Text(badge!, style: const TextStyle(color: Colors.white, fontSize: 11)),
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );

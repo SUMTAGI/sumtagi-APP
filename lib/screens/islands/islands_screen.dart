@@ -123,8 +123,6 @@ class _IslandsScreenState extends State<IslandsScreen> {
   _ViewMode _viewMode = _ViewMode.list;
   _Marker? _selected;
   bool _showRoutes = true;
-  String _portFilter = 'all';
-  String _congestionFilter = 'all';
   String _searchQuery = '';
   final _searchCtrl = TextEditingController();
 
@@ -179,17 +177,12 @@ class _IslandsScreenState extends State<IslandsScreen> {
       _congestionMap[island.id]?.todayLevel ?? island.congestion;
 
   List<IslandModel> get _filtered => _islands.where((island) {
-    final portMatch =
-        _portFilter == 'all' || island.ports.contains(_portFilter);
-    final congestionMatch =
-        _congestionFilter == 'all' ||
-        _effectiveCongestion(island) == _congestionFilter;
     final searchMatch =
         _searchQuery.isEmpty ||
         island.name.contains(_searchQuery) ||
         island.description.contains(_searchQuery) ||
         island.features.any((f) => f.contains(_searchQuery));
-    return portMatch && congestionMatch && searchMatch;
+    return searchMatch;
   }).toList();
 
   List<IslandModel> get _mappable =>
@@ -227,16 +220,13 @@ class _IslandsScreenState extends State<IslandsScreen> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 60,
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.blue600,
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
           statusBarColor: Colors.transparent,
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(gradient: AppGradients.blueFade),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,14 +237,14 @@ class _IslandsScreenState extends State<IslandsScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.gray900,
+                color: Colors.white,
               ),
             ),
-            const Text(
+            Text(
               '인천의 아름다운 섬들을 탐색해보세요',
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.gray700,
+                color: Colors.white.withValues(alpha: 0.85),
               ),
             ),
           ],
@@ -305,53 +295,56 @@ class _IslandsScreenState extends State<IslandsScreen> {
   }
 
   Widget _buildHeaderContent() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [_buildSearchBar(), _buildViewTabBar(), _buildFilters()],
+    return Container(
+      decoration: BoxDecoration(gradient: AppGradients.blueFade),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [_buildSearchBar(), _buildViewTabBar()],
+      ),
     );
   }
 
   Widget _buildSearchBar() {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
-      color: Colors.white,
-      child: TextField(
-        controller: _searchCtrl,
-        onChanged: (v) => setState(() => _searchQuery = v),
-        decoration: InputDecoration(
-          hintText: '섬 이름, 특징으로 검색...',
-          prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.close,
-                    color: AppColors.gray400,
-                    size: 18,
-                  ),
-                  onPressed: () {
-                    _searchCtrl.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: AppColors.gray50,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 6, 14, 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (v) => setState(() => _searchQuery = v),
+                style: const TextStyle(color: AppColors.gray900, fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: '섬 이름, 특징으로 검색...',
+                  hintStyle: TextStyle(color: AppColors.gray500, fontSize: 13),
+                  filled: false,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            if (_searchQuery.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  _searchCtrl.clear();
+                  setState(() => _searchQuery = '');
+                },
+                child: const Padding(
+                  padding: EdgeInsets.only(right: 6),
+                  child: Icon(Icons.close, size: 18, color: AppColors.gray900),
+                ),
+              ),
+            const Icon(Icons.search, size: 22, color: AppColors.gray900),
+          ],
         ),
       ),
     );
@@ -359,7 +352,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
 
   Widget _buildViewTabBar() {
     return Container(
-      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
       child: Row(
         children: [
           Expanded(
@@ -370,6 +363,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
               onTap: () => setState(() => _viewMode = _ViewMode.list),
             ),
           ),
+          const SizedBox(width: 12),
           Expanded(
             child: _ViewTab(
               icon: Icons.map_rounded,
@@ -378,56 +372,6 @@ class _IslandsScreenState extends State<IslandsScreen> {
               onTap: () => setState(() => _viewMode = _ViewMode.map),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilters() {
-    // 지도 화면은 위쪽 공간을 지도에 최대한 내주기 위해 필터 영역 자체를 안 그림
-    // (항로 보기/숨기기 토글은 지도 위 범례 옆으로 옮김 -> _buildMapOverlay)
-    if (_viewMode == _ViewMode.map) return const SizedBox.shrink();
-
-    final incheon = _islands.where((i) => i.ports.contains('인천항')).length;
-    final daebudo = _islands.where((i) => i.ports.contains('대부도')).length;
-    final samok = _islands.where((i) => i.ports.contains('삼목선착장')).length;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _FilterDropdown(
-                    value: _portFilter,
-                    items: [
-                      ('all', '출발 항구'),
-                      ('인천항', '인천항 ($incheon)'),
-                      ('대부도', '대부도 ($daebudo)'),
-                      ('삼목선착장', '삼목항 ($samok)'),
-                    ],
-                    onChanged: (v) => setState(() => _portFilter = v),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _FilterDropdown(
-                    value: _congestionFilter,
-                    items: const [
-                      ('all', '혼잡도'),
-                      ('low', '여유'),
-                      ('medium', '보통'),
-                      ('high', '혼잡'),
-                    ],
-                    onChanged: (v) => setState(() => _congestionFilter = v),
-                  ),
-                ),
-              ],
-            ),
         ],
       ),
     );
@@ -490,7 +434,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
       onRefresh: _loadIslands,
       child: ListView.builder(
       // top padding clears the floating header; bottom padding clears the floating nav bar
-      padding: EdgeInsets.fromLTRB(24, _headerHeight + 24, 24, 124),
+      padding: EdgeInsets.fromLTRB(24, _headerHeight + 4, 24, 124),
       itemCount: filtered.length + 1,
       itemBuilder: (context, i) {
         if (i == filtered.length) {
@@ -921,11 +865,15 @@ class _ViewTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = active ? AppColors.blue600 : AppColors.gray500;
-    return InkWell(
+    return TapFeedback(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        color: active ? AppColors.blue50 : Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -935,60 +883,11 @@ class _ViewTab extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
                 color: color,
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterDropdown extends StatelessWidget {
-  final String value;
-  final List<(String, String)> items;
-  final ValueChanged<String> onChanged;
-  const _FilterDropdown({
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.gray50,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isExpanded: true,
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: AppColors.gray500,
-            size: 20,
-          ),
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.gray900,
-          ),
-          items: items
-              .map(
-                (item) => DropdownMenuItem(
-                  value: item.$1,
-                  child: Text(item.$2, overflow: TextOverflow.ellipsis),
-                ),
-              )
-              .toList(),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
         ),
       ),
     );

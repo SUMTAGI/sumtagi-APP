@@ -112,62 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showAllFerryStatus(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.3,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (_, controller) => Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('전체 운항 현황', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
-                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context), color: AppColors.gray400),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView(
-                controller: controller,
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-                children: _ferryStatus.map((s) {
-                  final isCancelled = s.status == '결항';
-                  final isNone = s.status == '운항없음';
-                  final bgColor = isCancelled ? AppColors.red50 : isNone ? AppColors.gray100 : const Color(0xFFF0FDF4);
-                  final textColor = isCancelled ? AppColors.red700 : isNone ? AppColors.gray400 : const Color(0xFF15803D);
-                  final label = s.status == '정상' ? '정상 운항' : s.status;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(s.islandName, style: const TextStyle(fontSize: 15, color: AppColors.gray700)),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
-                          child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor)),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFerryRiskBanner() {
     if (_weather == null) return const SizedBox.shrink();
     final risk = WeatherService.assessFerryRisk(
@@ -557,7 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const Text('운항 현황', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray900, fontSize: 18)),
                     TapFeedback(
-                      onTap: () => _showAllFerryStatus(context),
+                      onTap: () => context.push('/schedule'),
                       customBorder: const CircleBorder(),
                       child: const Padding(
                         padding: EdgeInsets.all(8),
