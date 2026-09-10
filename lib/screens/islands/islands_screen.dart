@@ -958,37 +958,57 @@ class _FilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.gray50,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isExpanded: true,
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: AppColors.gray500,
-            size: 20,
+    final selectedLabel = items.firstWhere((i) => i.$1 == value, orElse: () => items.first).$2;
+
+    // 열리는 목록은 홈 날씨 장소 드롭다운과 같은 스타일(흰 배경, 둥근 모서리, 선택 항목 파란 강조)
+    return PopupMenuButton<String>(
+      onSelected: onChanged,
+      position: PopupMenuPosition.under,
+      color: Colors.white,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      constraints: const BoxConstraints(minWidth: 160),
+      itemBuilder: (_) => [
+        for (final item in items)
+          PopupMenuItem(
+            value: item.$1,
+            child: Text(
+              item.$2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: item.$1 == value ? FontWeight.w700 : FontWeight.w500,
+                color: item.$1 == value ? AppColors.blue600 : AppColors.gray900,
+              ),
+            ),
           ),
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.gray900,
-          ),
-          items: items
-              .map(
-                (item) => DropdownMenuItem(
-                  value: item.$1,
-                  child: Text(item.$2, overflow: TextOverflow.ellipsis),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.gray50,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                selectedLabel,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.gray900,
                 ),
-              )
-              .toList(),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
+              ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: AppColors.gray500,
+              size: 20,
+            ),
+          ],
         ),
       ),
     );

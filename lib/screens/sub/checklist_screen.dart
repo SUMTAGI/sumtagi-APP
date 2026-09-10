@@ -84,7 +84,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       appBar: AppBar(
         title: Text(
           _tripTitle != null ? '$_tripTitle 체크리스트' : '체크리스트',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.gray900),
         ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.gray900,

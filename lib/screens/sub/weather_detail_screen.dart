@@ -348,7 +348,7 @@ class _TodayDetail extends StatelessWidget {
             const Divider(height: 1, color: AppColors.gray100),
             const SizedBox(height: 14),
             SizedBox(
-              height: 96,
+              height: 116,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: hourly.length,
