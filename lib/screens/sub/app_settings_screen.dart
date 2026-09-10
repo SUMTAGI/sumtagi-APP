@@ -29,7 +29,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
               trailing: DropdownButton<String>(
                 value: _language,
                 underline: const SizedBox(),
-                items: ['한국어', 'English', '日本語'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
+                items: ['한국어', 'English', '日本語'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 14)))).toList(),
                 onChanged: (v) => setState(() => _language = v!),
               ),
             ),
@@ -39,7 +39,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
           _SettingCard(children: [
             ListTile(
               title: const Text('캐시 삭제', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              subtitle: const Text('앱의 임시 데이터를 삭제합니다', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+              subtitle: const Text('앱의 임시 데이터를 삭제합니다', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
               onTap: () => showDialog(
                 context: context,
@@ -56,7 +56,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
             const Divider(height: 1, indent: 16, color: AppColors.gray100),
             ListTile(
               title: const Text('앱 정보', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-              trailing: const Text('v1.0.0', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+              trailing: const Text('v1.0.0', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
             ),
           ]),
         ],
@@ -73,7 +73,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray500)),
+      child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray500)),
     );
   }
 }

@@ -75,14 +75,14 @@ class _TravelScreenState extends State<TravelScreen> {
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
         flexibleSpace: Container(
-          decoration: BoxDecoration(gradient: AppGradients.blueFade),
+          decoration: const BoxDecoration(gradient: AppGradients.blueFadeShort),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('여행 계획', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.gray900)),
-            const Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 13, color: AppColors.gray700)),
+            const Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 14, color: AppColors.gray700)),
           ],
         ),
         titleSpacing: 24,
@@ -148,7 +148,7 @@ class _TravelScreenState extends State<TravelScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(50)),
-                              child: Text(dday == 0 ? '오늘 출발!' : 'D-$dday', style: const TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 13)),
+                              child: Text(dday == 0 ? '오늘 출발!' : 'D-$dday', style: const TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 14)),
                             ),
                           const SizedBox(width: 8),
                           TapFeedback(
@@ -181,7 +181,7 @@ class _TravelScreenState extends State<TravelScreen> {
                     children: [
                       const Icon(Icons.location_on_rounded, color: Colors.white70, size: 14),
                       const SizedBox(width: 4),
-                      Text(islands, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                      Text(islands, style: const TextStyle(color: Colors.white70, fontSize: 14)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -204,7 +204,7 @@ class _TravelScreenState extends State<TravelScreen> {
                             color: Colors.white.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text('미확정', style: TextStyle(color: AppColors.gray900, fontWeight: FontWeight.w600, fontSize: 13)),
+                          child: const Text('미확정', style: TextStyle(color: AppColors.gray900, fontWeight: FontWeight.w600, fontSize: 14)),
                         ),
                       ],
                     ],
@@ -230,7 +230,7 @@ class _TravelScreenState extends State<TravelScreen> {
                       Expanded(
                         child: Text(
                           '일정이 아직 미확정이에요. 열어서 확정하면 홈에도 표시돼요.',
-                          style: TextStyle(fontSize: 13, color: Color(0xFF92400E)),
+                          style: TextStyle(fontSize: 14, color: Color(0xFF92400E)),
                         ),
                       ),
                       Icon(Icons.chevron_right_rounded, color: Color(0xFFD97706), size: 18),
@@ -262,8 +262,8 @@ class _TravelScreenState extends State<TravelScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('체크리스트', style: TextStyle(fontSize: 13, color: AppColors.gray700)),
-                      Text('$_checklistProgress%', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue600)),
+                      const Text('체크리스트', style: TextStyle(fontSize: 14, color: AppColors.gray700)),
+                      Text('$_checklistProgress%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.blue600)),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -371,7 +371,7 @@ class _TravelScreenState extends State<TravelScreen> {
               SizedBox(height: 16),
               Text('첫 여행을 계획해보세요', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.gray900)),
               SizedBox(height: 8),
-              Text('여행을 다녀오면 여기에 기록돼요', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+              Text('여행을 다녀오면 여기에 기록돼요', style: TextStyle(fontSize: 14, color: AppColors.gray600)),
             ],
           ),
         ),
@@ -415,20 +415,20 @@ class _TravelScreenState extends State<TravelScreen> {
                 children: [
                   const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray500),
                   const SizedBox(width: 4),
-                  Expanded(child: Text(islands.isNotEmpty ? islands.join(', ') : '섬 정보 없음', style: const TextStyle(fontSize: 13, color: AppColors.gray600))),
+                  Expanded(child: Text(islands.isNotEmpty ? islands.join(', ') : '섬 정보 없음', style: const TextStyle(fontSize: 14, color: AppColors.gray600))),
                 ],
               ),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${trip['start_date']} ~ ${trip['end_date']}', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                  Text('${trip['start_date']} ~ ${trip['end_date']}', style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                   TapFeedback(
                     onTap: () => context.push('/itinerary/${trip['id']}'),
                     borderRadius: BorderRadius.circular(6),
                     child: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                      child: Text('일정보기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w600)),
+                      child: Text('일정보기', style: TextStyle(fontSize: 14, color: AppColors.blue600, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],
@@ -491,7 +491,7 @@ class _TabButton extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(color: AppColors.blue600, borderRadius: BorderRadius.circular(50)),
-                  child: Text(badge!, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                  child: Text(badge!, style: const TextStyle(color: Colors.white, fontSize: 14)),
                 ),
               ],
             ],
@@ -516,7 +516,7 @@ class _QuickBtn extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(8)),
-          child: Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.blue700)),
+          child: Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.blue700)),
         ),
       ),
     );

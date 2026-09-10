@@ -252,12 +252,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     onTap: () => Navigator.pop(context),
                     child: const Row(children: [
                       Icon(Icons.chevron_left, color: Color(0xFFBFDBFE), size: 20),
-                      Text('뒤로', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
+                      Text('뒤로', style: TextStyle(fontSize: 14, color: Color(0xFFBFDBFE))),
                     ]),
                   ),
                   const SizedBox(height: 12),
                   const Text('교통 시간표', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const Text('오늘의 실시간 여객선 운항 정보 및 섬 내부 교통 안내', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
+                  const Text('오늘의 실시간 여객선 운항 정보 및 섬 내부 교통 안내', style: TextStyle(fontSize: 14, color: Color(0xFFBFDBFE))),
                 ],
               ),
             ),
@@ -311,7 +311,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         children: [
           Icon(Icons.warning_amber_rounded, size: 18, color: iconColor),
           const SizedBox(width: 8),
-          Expanded(child: Text(message, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor))),
+          Expanded(child: Text(message, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor))),
         ],
       ),
     );
@@ -326,7 +326,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('섬 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+              const Text('섬 선택', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
               const SizedBox(height: 8),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -341,7 +341,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           color: _selectedFerryIslandId == _kAllFerryFilter ? AppColors.blue600 : Colors.white,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text('전체', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _selectedFerryIslandId == _kAllFerryFilter ? Colors.white : AppColors.gray700)),
+                        child: Text('전체', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _selectedFerryIslandId == _kAllFerryFilter ? Colors.white : AppColors.gray700)),
                       ),
                     ),
                     ..._ferryIslands.map((island) {
@@ -355,7 +355,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           color: selected ? AppColors.blue600 : Colors.white,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(island.name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
+                        child: Text(island.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
                       ),
                     );
                   }),
@@ -397,7 +397,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       : _timetableGroups.isEmpty
                           ? const Padding(
                               padding: EdgeInsets.symmetric(vertical: 24),
-                              child: Center(child: Text('아직 등록된 시간표가 없는 섬이에요', style: TextStyle(fontSize: 13, color: AppColors.gray500))),
+                              child: Center(child: Text('아직 등록된 시간표가 없는 섬이에요', style: TextStyle(fontSize: 14, color: AppColors.gray500))),
                             )
                           : Column(
                               children: [
@@ -407,7 +407,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                       padding: const EdgeInsets.only(bottom: 6),
                                       child: Align(
                                         alignment: Alignment.centerLeft,
-                                        child: Text(group.islandName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray500)),
+                                        child: Text(group.islandName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray500)),
                                       ),
                                     ),
                                   ...group.schedules.map((s) => _FerryCard(schedule: s)),
@@ -433,7 +433,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       SizedBox(height: 16),
                       Text('지금은 표시할 출항 정보가 없어요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
                       SizedBox(height: 4),
-                      Text('이른 시간대이거나 오늘 운항이 없을 수 있어요 · 위 "운항 시간표 보기"로 정기 시간을 확인해보세요', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                      Text('이른 시간대이거나 오늘 운항이 없을 수 있어요 · 위 "운항 시간표 보기"로 정기 시간을 확인해보세요', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppColors.gray400)),
                     ],
                   ),
                 )
@@ -442,7 +442,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   if (_selectedFerryIslandId == _kAllFerryFilter)
                     Padding(
                       padding: const EdgeInsets.only(top: 4, bottom: 6),
-                      child: Text(group.islandName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gray500)),
+                      child: Text(group.islandName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray500)),
                     ),
                   ...group.schedules.map((s) => _FerryCard(schedule: s)),
                 ],
@@ -458,11 +458,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('운항 안내', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF92400E))),
+                          Text('운항 안내', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF92400E))),
                           SizedBox(height: 6),
-                          Text('• 기상 상황에 따라 운항이 지연되거나 결항될 수 있어요', style: TextStyle(fontSize: 13, color: Color(0xFF92400E), height: 1.5)),
-                          Text('• 출항 30분 전까지 승선 수속을 완료해주세요', style: TextStyle(fontSize: 13, color: Color(0xFF92400E), height: 1.5)),
-                          Text('• 성수기에는 사전 예약을 권장해요', style: TextStyle(fontSize: 13, color: Color(0xFF92400E), height: 1.5)),
+                          Text('• 기상 상황에 따라 운항이 지연되거나 결항될 수 있어요', style: TextStyle(fontSize: 14, color: Color(0xFF92400E), height: 1.5)),
+                          Text('• 출항 30분 전까지 승선 수속을 완료해주세요', style: TextStyle(fontSize: 14, color: Color(0xFF92400E), height: 1.5)),
+                          Text('• 성수기에는 사전 예약을 권장해요', style: TextStyle(fontSize: 14, color: Color(0xFF92400E), height: 1.5)),
                         ],
                       ),
                     ),
@@ -485,7 +485,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('섬 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+              const Text('섬 선택', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
               const SizedBox(height: 8),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -502,7 +502,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           color: selected ? AppColors.blue600 : Colors.white,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(island, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
+                        child: Text(island, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
                       ),
                     );
                   }).toList(),
@@ -620,7 +620,7 @@ class _FerryCard extends StatelessWidget {
                   const SizedBox(width: 3),
                   Text(schedule['departureTime'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                 ]),
-                Text(schedule['vessel'] as String, style: const TextStyle(fontSize: 11, color: AppColors.gray500), overflow: TextOverflow.ellipsis),
+                Text(schedule['vessel'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray500), overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -638,7 +638,7 @@ class _FerryCard extends StatelessWidget {
                 ]),
                 Text(
                   duration.isNotEmpty ? '소요 $duration · ${_priceText()}' : _priceText(),
-                  style: const TextStyle(fontSize: 11, color: AppColors.gray500),
+                  style: const TextStyle(fontSize: 13, color: AppColors.gray500),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -648,7 +648,7 @@ class _FerryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(color: _statusColor(), borderRadius: BorderRadius.circular(20)),
-            child: Text(schedule['status'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _statusTextColor())),
+            child: Text(schedule['status'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _statusTextColor())),
           ),
         ],
       ),
@@ -685,12 +685,12 @@ class _TransportCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                Text(subtitle, style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                 if (details.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   ...details.map((d) => Padding(
                     padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(d, style: const TextStyle(fontSize: 13, color: AppColors.gray700)),
+                    child: Text(d, style: const TextStyle(fontSize: 14, color: AppColors.gray700)),
                   )),
                 ],
               ],
@@ -700,7 +700,7 @@ class _TransportCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(color: AppColors.blue600, borderRadius: BorderRadius.circular(8)),
-              child: const Text('전화하기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white)),
+              child: const Text('전화하기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white)),
             ),
         ],
       ),

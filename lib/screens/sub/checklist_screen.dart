@@ -145,7 +145,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               decoration: isChecked ? TextDecoration.lineThrough : null,
                             ),
                           ),
-                          subtitle: Text(item['category'] as String? ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                          subtitle: Text(item['category'] as String? ?? '', style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                           activeColor: AppColors.blue600,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           secondary: IconButton(
@@ -171,7 +171,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedCategory,
-                            style: const TextStyle(fontSize: 13, color: AppColors.gray900),
+                            style: const TextStyle(fontSize: 14, color: AppColors.gray900),
                             items: _categories
                                 .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                                 .toList(),

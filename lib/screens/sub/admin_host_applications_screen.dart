@@ -98,7 +98,7 @@ class _AdminHostApplicationsScreenState extends State<AdminHostApplicationsScree
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             Text('숙소 운영자 신청 관리', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('신청서를 검토하고 승인 또는 반려해요', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
+            Text('신청서를 검토하고 승인 또는 반려해요', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -130,7 +130,7 @@ class _AdminHostApplicationsScreenState extends State<AdminHostApplicationsScree
                       ),
                       child: Text(
                         '$label ${counts[key] ?? 0}',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isActive ? Colors.white : AppColors.gray600),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isActive ? Colors.white : AppColors.gray600),
                       ),
                     ),
                   );
@@ -199,11 +199,11 @@ class _AdminHostApplicationsScreenState extends State<AdminHostApplicationsScree
                                       const SizedBox(height: 4),
                                       Text(
                                         '${app.representativeName ?? "대표자 미입력"} · ${app.phone}',
-                                        style: const TextStyle(fontSize: 12, color: AppColors.gray500),
+                                        style: const TextStyle(fontSize: 13, color: AppColors.gray500),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
-                                      Text(_formatDateTime(app.createdAt), style: const TextStyle(fontSize: 11, color: AppColors.gray400)),
+                                      Text(_formatDateTime(app.createdAt), style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
                                     ],
                                   ),
                                 ),
@@ -242,7 +242,7 @@ class _StatusBadge extends StatelessWidget {
         children: [
           Icon(icon, size: 12, color: fg),
           const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: fg)),
+          Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: fg)),
         ],
       ),
     );
@@ -312,7 +312,7 @@ class _HostApplicationDetailScreenState extends State<_HostApplicationDetailScre
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('반려 사유는 신청자에게 그대로 전달돼요. 구체적으로 작성해주세요.', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+              const Text('반려 사유는 신청자에게 그대로 전달돼요. 구체적으로 작성해주세요.', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
               const SizedBox(height: 12),
               TextField(
                 controller: reasonCtrl,
@@ -407,7 +407,7 @@ class _HostApplicationDetailScreenState extends State<_HostApplicationDetailScre
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('반려 사유', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.red500)),
+                    const Text('반려 사유', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.red500)),
                     const SizedBox(height: 4),
                     Text(app.rejectionReason!, style: const TextStyle(fontSize: 14, color: AppColors.red700, height: 1.4)),
                   ],
@@ -469,7 +469,7 @@ class _HostApplicationDetailScreenState extends State<_HostApplicationDetailScre
                     SizedBox(width: 8),
                     Expanded(
                       child: Text('반려된 신청이에요. 재신청하면 다시 검토 목록에 나타나요.',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray500)),
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray500)),
                     ),
                   ],
                 ),
@@ -500,7 +500,7 @@ class _DetailRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray400)),
+                Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
                 const SizedBox(height: 2),
                 Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray900)),
               ],

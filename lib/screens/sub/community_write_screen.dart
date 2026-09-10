@@ -179,7 +179,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     color: AppColors.gray700)),
             const SizedBox(height: 4),
             const Text('선택 사항',
-                style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                style: TextStyle(fontSize: 14, color: AppColors.gray400)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -200,7 +200,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                           child: Text(
                             island,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: _selectedIsland == island
                                   ? Colors.white
@@ -221,7 +221,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     color: AppColors.gray700)),
             const SizedBox(height: 4),
             const Text('선택 사항',
-                style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                style: TextStyle(fontSize: 14, color: AppColors.gray400)),
             const SizedBox(height: 10),
             TextField(
               controller: _titleCtrl,
@@ -303,11 +303,11 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                       color: AppColors.gray700)),
               const SizedBox(width: 6),
               Text('$_imageCount/$_maxImages',
-                  style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
+                  style: const TextStyle(fontSize: 14, color: AppColors.gray400)),
             ]),
             const SizedBox(height: 4),
             const Text('선택 사항',
-                style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                style: TextStyle(fontSize: 14, color: AppColors.gray400)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,

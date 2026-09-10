@@ -63,6 +63,14 @@ class AppGradients {
 
   static final LinearGradient blueFade = blueFadeTo(Colors.white);
 
+  /// 앱바처럼 높이가 낮은 상단 영역용 — 흰색까지 풀지 않고 #D5F0FF에서 끝냄
+  static const LinearGradient blueFadeShort = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF2563EB), Color(0xFF3B82F6), Color(0xFFD5F0FF)],
+    stops: [0.0, 0.5, 1.0],
+  );
+
   static const LinearGradient blueHeader = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

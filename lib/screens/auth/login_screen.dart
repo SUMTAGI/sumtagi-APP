@@ -240,7 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Expanded(child: Divider(color: AppColors.gray200)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: const Text('또는', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+                          child: const Text('또는', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
                         ),
                         const Expanded(child: Divider(color: AppColors.gray200)),
                       ],

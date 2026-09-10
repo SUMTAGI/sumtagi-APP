@@ -212,7 +212,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                             children: [
                               Icon(Icons.anchor_rounded, size: 14, color: port == '인천항' ? AppColors.red700 : AppColors.orange600),
                               const SizedBox(width: 4),
-                              Text(port, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: port == '인천항' ? AppColors.red700 : AppColors.orange600)),
+                              Text(port, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: port == '인천항' ? AppColors.red700 : AppColors.orange600)),
                             ],
                           ),
                         )).toList(),
@@ -316,7 +316,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                 Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray400),
                 SizedBox(width: 6),
                 Text('혼잡도 예측 정보를 수집중이에요',
-                    style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                    style: TextStyle(fontSize: 14, color: AppColors.gray400)),
               ]),
             )
           else ...[
@@ -352,7 +352,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                 SizedBox(width: 6),
                 Text('오늘 출발 여객선', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
               ]),
-              Text(dateLabel, style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
+              Text(dateLabel, style: const TextStyle(fontSize: 14, color: AppColors.gray400)),
             ],
           ),
           const SizedBox(height: 12),
@@ -362,7 +362,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
               decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(12)),
             )))
           else if (_ferrySchedule.isEmpty)
-            const Text('오늘 운항 정보를 확인하고 있어요', style: TextStyle(fontSize: 13, color: AppColors.gray400))
+            const Text('오늘 운항 정보를 확인하고 있어요', style: TextStyle(fontSize: 14, color: AppColors.gray400))
           else
             SizedBox(
               height: 84,
@@ -386,13 +386,13 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(f.status,
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: labelColor)),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: labelColor)),
                         const SizedBox(height: 2),
                         Text(f.departureTime,
                             style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: timeColor,
                                 decoration: f.isCancelled ? TextDecoration.lineThrough : null)),
                         const SizedBox(height: 2),
-                        Text(f.ferryName, style: const TextStyle(fontSize: 13, color: AppColors.gray500),
+                        Text(f.ferryName, style: const TextStyle(fontSize: 14, color: AppColors.gray500),
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                       ],
                     ),
@@ -454,8 +454,8 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                 Positioned(bottom: 10, left: 10, right: 10, child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(s.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                    Text(s.bestTime, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                    Text(s.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(s.bestTime, style: const TextStyle(color: Colors.white70, fontSize: 14)),
                   ],
                 )),
               ],
@@ -536,7 +536,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
                   decoration: BoxDecoration(color: riskBg, borderRadius: BorderRadius.circular(8)),
                   child: Text(
                     risk.label,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: riskColor),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: riskColor),
                   ),
                 ),
             ],
@@ -570,7 +570,7 @@ class _IslandDetailScreenState extends State<IslandDetailScreen> {
         children: [
           Icon(Icons.warning_amber_rounded, size: 18, color: iconColor),
           const SizedBox(width: 8),
-          Expanded(child: Text(message, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor))),
+          Expanded(child: Text(message, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor))),
         ],
       ),
     );
@@ -595,8 +595,8 @@ class _WeatherStat extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.gray600)),
-            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+            Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.gray900)),
           ],
         ),
       ],
@@ -620,7 +620,7 @@ class _TabBtn extends StatelessWidget {
           color: isActive ? AppColors.blue600 : AppColors.gray100,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isActive ? Colors.white : AppColors.gray700)),
+        child: Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isActive ? Colors.white : AppColors.gray700)),
       ),
     );
   }
@@ -665,25 +665,25 @@ class _PlaceCard extends StatelessWidget {
                       Row(children: [
                         const Icon(Icons.star_rounded, size: 14, color: Color(0xFFF59E0B)),
                         const SizedBox(width: 2),
-                        Text(rating!.toStringAsFixed(1), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+                        Text(rating!.toStringAsFixed(1), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray700)),
                       ]),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                Text(subtitle, style: const TextStyle(fontSize: 14, color: AppColors.blue600, fontWeight: FontWeight.w500)),
                 if (description != null) ...[
                   const SizedBox(height: 4),
-                  Text(description!, style: const TextStyle(fontSize: 13, color: AppColors.gray600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(description!, style: const TextStyle(fontSize: 14, color: AppColors.gray600), maxLines: 2, overflow: TextOverflow.ellipsis),
                 ],
                 if (extra != null) ...[
                   const SizedBox(height: 4),
-                  Text(extra!, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                  Text(extra!, style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                 ],
                 if (phone != null) ...[
                   const SizedBox(height: 4),
                   GestureDetector(
                     onTap: _call,
-                    child: Text('📞 $phone', style: const TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                    child: Text('📞 $phone', style: const TextStyle(fontSize: 14, color: AppColors.blue600, fontWeight: FontWeight.w500)),
                   ),
                 ],
               ],
@@ -801,7 +801,7 @@ class _ChartPainter extends CustomPainter {
       final tp = TextPainter(
         text: TextSpan(
           text: forecasts[i].dayLabel,
-          style: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
@@ -831,7 +831,7 @@ class _CongestionPill extends StatelessWidget {
         children: [
           Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 6),
-          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray500, fontWeight: FontWeight.w500)),
+          Text(label, style: const TextStyle(fontSize: 14, color: AppColors.gray500, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -853,9 +853,9 @@ class _InfoCard extends StatelessWidget {
           children: [
             Icon(icon, color: AppColors.blue600, size: 20),
             const SizedBox(height: 6),
-            Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+            Text(label, style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
             const SizedBox(height: 2),
-            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900), textAlign: TextAlign.center),
+            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.gray900), textAlign: TextAlign.center),
           ],
         ),
       ),

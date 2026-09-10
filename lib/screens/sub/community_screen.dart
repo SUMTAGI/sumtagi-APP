@@ -142,7 +142,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             Text('리뷰 & Q&A',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             Text('섬 여행 리뷰와 질문을 공유하세요',
-                style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+                style: TextStyle(fontSize: 14, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -165,7 +165,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     borderRadius: BorderRadius.circular(8)),
               ),
               child: const Text('글쓰기',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
             ),
           ),
         ],
@@ -184,7 +184,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     decoration: InputDecoration(
                       hintText: '리뷰/질문 검색',
                       hintStyle: const TextStyle(
-                          fontSize: 13, color: AppColors.gray400),
+                          fontSize: 14, color: AppColors.gray400),
                       prefixIcon: const Icon(Icons.search_rounded,
                           size: 20, color: AppColors.gray400),
                       suffixIcon: _searchCtrl.text.isEmpty
@@ -681,7 +681,7 @@ class _PostCardState extends State<_PostCard> {
                   Row(children: [
                     Text(name,
                         style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.gray900)),
                     if (widget.isQna && !isReply) ...[
@@ -694,7 +694,7 @@ class _PostCardState extends State<_PostCard> {
                             borderRadius: BorderRadius.circular(6)),
                         child: const Text('A',
                             style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF16A34A))),
                       ),
@@ -702,12 +702,12 @@ class _PostCardState extends State<_PostCard> {
                     const SizedBox(width: 6),
                     Text(_timeAgo(c['created_at'] as String? ?? ''),
                         style: const TextStyle(
-                            fontSize: 13, color: AppColors.gray400)),
+                            fontSize: 14, color: AppColors.gray400)),
                   ]),
                   const SizedBox(height: 3),
                   Text(c['content'] as String? ?? '',
                       style: const TextStyle(
-                          fontSize: 13, color: AppColors.gray700)),
+                          fontSize: 14, color: AppColors.gray700)),
                   const SizedBox(height: 4),
                   Row(children: [
                     if (!isReply)
@@ -718,7 +718,7 @@ class _PostCardState extends State<_PostCard> {
                         }),
                         child: const Text('답글',
                             style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: AppColors.gray400,
                                 fontWeight: FontWeight.w500)),
                       ),
@@ -728,14 +728,14 @@ class _PostCardState extends State<_PostCard> {
                         onTap: () => _editComment(c),
                         child: const Text('수정',
                             style: TextStyle(
-                                fontSize: 13, color: AppColors.gray400)),
+                                fontSize: 14, color: AppColors.gray400)),
                       ),
                       const SizedBox(width: 10),
                       GestureDetector(
                         onTap: () => _deleteComment(c),
                         child: const Text('삭제',
                             style: TextStyle(
-                                fontSize: 13, color: AppColors.gray400)),
+                                fontSize: 14, color: AppColors.gray400)),
                       ),
                     ],
                   ]),
@@ -808,7 +808,7 @@ class _PostCardState extends State<_PostCard> {
                                   const SizedBox(width: 2),
                                   Text(islandName,
                                       style: const TextStyle(
-                                          fontSize: 13,
+                                          fontSize: 14,
                                           color: AppColors.blue600,
                                           fontWeight: FontWeight.w500)),
                                 ]),
@@ -824,7 +824,7 @@ class _PostCardState extends State<_PostCard> {
                                         BorderRadius.circular(8)),
                                 child: const Text('Q',
                                     style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFFD97706))),
                               ),
@@ -832,7 +832,7 @@ class _PostCardState extends State<_PostCard> {
                           ]),
                           Text(_timeAgo(createdAt),
                               style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 14,
                                   color: AppColors.gray400)),
                         ],
                       ),
@@ -928,7 +928,7 @@ class _PostCardState extends State<_PostCard> {
                         Text(
                           '$_likesCount',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: _liked ? Colors.red : AppColors.gray600,
                           ),
@@ -949,7 +949,7 @@ class _PostCardState extends State<_PostCard> {
                               ? '답변 $_commentsCount개'
                               : '댓글 $_commentsCount',
                           style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: AppColors.gray600),
                         ),
@@ -987,7 +987,7 @@ class _PostCardState extends State<_PostCard> {
                         child: Column(children: [
                           const Text('댓글을 불러오지 못했어요',
                               style: TextStyle(
-                                  fontSize: 13, color: AppColors.gray400)),
+                                  fontSize: 14, color: AppColors.gray400)),
                           TextButton(
                             onPressed: _toggleComments,
                             child: const Text('다시 시도'),
@@ -1004,7 +1004,7 @@ class _PostCardState extends State<_PostCard> {
                               ? '첫 답변을 남겨보세요'
                               : '첫 댓글을 남겨보세요',
                           style: const TextStyle(
-                              fontSize: 13, color: AppColors.gray400),
+                              fontSize: 14, color: AppColors.gray400),
                         ),
                       ),
                     )
@@ -1020,7 +1020,7 @@ class _PostCardState extends State<_PostCard> {
                       child: Row(children: [
                         Text('$_replyToName님에게 답글 남기는 중',
                             style: const TextStyle(
-                                fontSize: 13, color: AppColors.blue600)),
+                                fontSize: 14, color: AppColors.blue600)),
                         const SizedBox(width: 6),
                         GestureDetector(
                           onTap: () => setState(() {
@@ -1043,7 +1043,7 @@ class _PostCardState extends State<_PostCard> {
                                 ? '답변을 입력하세요'
                                 : '댓글을 입력하세요',
                             hintStyle: const TextStyle(
-                                fontSize: 13, color: AppColors.gray400),
+                                fontSize: 14, color: AppColors.gray400),
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
@@ -1058,7 +1058,7 @@ class _PostCardState extends State<_PostCard> {
                                 horizontal: 14, vertical: 10),
                             isDense: true,
                           ),
-                          style: const TextStyle(fontSize: 13),
+                          style: const TextStyle(fontSize: 14),
                           onSubmitted: (_) => _addComment(),
                         ),
                       ),
@@ -1105,7 +1105,7 @@ class _TabBtn extends StatelessWidget {
         ),
         child: Text(label,
             style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: selected ? Colors.white : AppColors.gray700)),
       ),
@@ -1132,7 +1132,7 @@ class _SortChip extends StatelessWidget {
         ),
         child: Text(label,
             style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: selected ? AppColors.blue600 : AppColors.gray500)),
       ),
@@ -1159,7 +1159,7 @@ class _IslandChip extends StatelessWidget {
         ),
         child: Text(label,
             style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: selected ? Colors.white : AppColors.gray600)),
       ),

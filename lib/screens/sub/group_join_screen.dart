@@ -71,7 +71,7 @@ class _GroupJoinScreenState extends State<GroupJoinScreen> {
             const SizedBox(height: 16),
             const Text('초대 링크를 찾을 수 없어요', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.gray700)),
             const SizedBox(height: 8),
-            const Text('링크가 만료됐거나 잘못된 코드예요', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+            const Text('링크가 만료됐거나 잘못된 코드예요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () => context.go('/group-trip'),
@@ -101,7 +101,7 @@ class _GroupJoinScreenState extends State<GroupJoinScreen> {
             child: const Icon(Icons.group_rounded, size: 40, color: AppColors.blue600),
           ),
           const SizedBox(height: 16),
-          const Text('그룹 여행 초대', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+          const Text('그룹 여행 초대', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
           const SizedBox(height: 6),
           Text(group['name'] as String, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.gray900), textAlign: TextAlign.center),
           const SizedBox(height: 24),
@@ -132,7 +132,7 @@ class _GroupJoinScreenState extends State<GroupJoinScreen> {
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: AppColors.gray200,
-                    child: Text('+${members.length - 5}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray600)),
+                    child: Text('+${members.length - 5}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.gray600)),
                   ),
               ],
             ),

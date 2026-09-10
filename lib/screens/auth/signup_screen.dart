@@ -174,7 +174,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         : _step == 1 ? '기본 정보를 입력해주세요'
                         : isSocial ? '선호하는 여행 스타일을 알려주세요'
                         : '여행 스타일을 선택해주세요',
-                    style: const TextStyle(fontSize: 13, color: AppColors.gray600),
+                    style: const TextStyle(fontSize: 14, color: AppColors.gray600),
                   ),
                 ],
               ),
@@ -446,7 +446,7 @@ class _AgreementRow extends StatelessWidget {
             onTap: _openUrl,
             child: const Text(
               '보기',
-              style: TextStyle(fontSize: 13, color: AppColors.blue600, decoration: TextDecoration.underline),
+              style: TextStyle(fontSize: 14, color: AppColors.blue600, decoration: TextDecoration.underline),
             ),
           ),
       ],

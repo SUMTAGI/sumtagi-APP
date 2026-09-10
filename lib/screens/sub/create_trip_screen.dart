@@ -294,7 +294,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               ),
               Text(
                 'Step ${_step + 1} / $_totalSteps',
-                style: const TextStyle(fontSize: 13, color: AppColors.gray500),
+                style: const TextStyle(fontSize: 14, color: AppColors.gray500),
               ),
             ],
           ),
@@ -330,7 +330,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       children: [
         const Text('방문할 섬 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
-        const Text('어느 섬으로 떠나고 싶으세요? 섬간 이동이 어려워 한 번에 한 섬만 선택할 수 있어요.', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const Text('어느 섬으로 떠나고 싶으세요? 섬간 이동이 어려워 한 번에 한 섬만 선택할 수 있어요.', style: TextStyle(fontSize: 14, color: AppColors.gray600)),
         const SizedBox(height: 20),
         GridView.count(
           crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12,
@@ -367,7 +367,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             ),
             child: Text(
               '${_selectedIslands.first} 선택됨',
-              style: const TextStyle(fontSize: 13, color: AppColors.blue700),
+              style: const TextStyle(fontSize: 14, color: AppColors.blue700),
             ),
           ),
           if (_requiresGulupTransfer) ...[
@@ -408,7 +408,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           Expanded(
             child: Text(
               '굴업도는 인천항에서 덕적도를 거쳐 배를 갈아타고 들어가요.',
-              style: TextStyle(fontSize: 12, color: AppColors.blue700),
+              style: TextStyle(fontSize: 13, color: AppColors.blue700),
             ),
           ),
         ],
@@ -430,7 +430,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('선택된 섬', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue700)),
+                const Text('선택된 섬', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.blue700)),
                 const SizedBox(height: 4),
                 Text(
                   widget.preSelectedIsland!,
@@ -443,7 +443,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   ),
                   Text(
                     '✨ ${widget.recommendReason!}',
-                    style: const TextStyle(fontSize: 13, color: AppColors.blue700),
+                    style: const TextStyle(fontSize: 14, color: AppColors.blue700),
                   ),
                 ],
               ],
@@ -453,9 +453,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         ],
         const Text('여행 날짜', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
-        const Text('언제 떠나시나요?', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const Text('언제 떠나시나요?', style: TextStyle(fontSize: 14, color: AppColors.gray600)),
         const SizedBox(height: 20),
-        const Text('빠른 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+        const Text('빠른 선택', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray700)),
         const SizedBox(height: 10),
         GridView.count(
           crossAxisCount: 3,
@@ -477,7 +477,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 child: Text(
                   pick['label'] as String,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                     color: isActive ? AppColors.blue600 : AppColors.gray600,
                   ),
@@ -538,7 +538,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('총 여행 기간', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w500)),
+                    const Text('총 여행 기간', style: TextStyle(fontSize: 14, color: AppColors.blue600, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 4),
                     Text(
                       '${_endDate!.difference(_startDate!).inDays}박 ${_endDate!.difference(_startDate!).inDays + 1}일',
@@ -576,7 +576,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       children: [
         const Text('여행 인원 & 스타일', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         const SizedBox(height: 4),
-        const Text('함께 떠나는 인원과 여행 스타일을 선택하세요', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const Text('함께 떠나는 인원과 여행 스타일을 선택하세요', style: TextStyle(fontSize: 14, color: AppColors.gray600)),
         const SizedBox(height: 32),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -586,7 +586,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             Column(
               children: [
                 Text('$_travelers', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.gray900)),
-                const Text('명', style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+                const Text('명', style: TextStyle(fontSize: 14, color: AppColors.gray600)),
               ],
             ),
             const SizedBox(width: 24),
@@ -622,7 +622,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(999)),
-                          child: const Text('관광공사', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
+                          child: const Text('관광공사', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
                         ),
                       ),
                     Positioned.fill(
@@ -690,7 +690,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         ),
         const SizedBox(height: 6),
         const Text('입력하면 이 금액에 맞춰 숙소 등급을 자동으로 조정하고, 경비관리 화면의 총예산으로도 저장돼요.',
-          style: TextStyle(fontSize: 12, color: AppColors.gray500)),
+          style: TextStyle(fontSize: 13, color: AppColors.gray500)),
         const SizedBox(height: 24),
         const Text('일정 생성 방식', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
         const SizedBox(height: 12),
@@ -723,7 +723,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           const Text.rich(
             TextSpan(children: [
               TextSpan(text: 'AI에게 하고 싶은 말이 있나요? ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
-              TextSpan(text: '(선택)', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+              TextSpan(text: '(선택)', style: TextStyle(fontSize: 14, color: AppColors.gray400)),
             ]),
           ),
           const SizedBox(height: 12),
@@ -732,7 +732,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             maxLines: 3,
             decoration: InputDecoration(
               hintText: '예: 아이랑 같이 가요, 낚시하고 싶어요, 걷는 건 최소화해주세요',
-              hintStyle: const TextStyle(fontSize: 13, color: AppColors.gray400),
+              hintStyle: const TextStyle(fontSize: 14, color: AppColors.gray400),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -827,7 +827,7 @@ class _DateConfirm extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             '${date.year}년 ${date.month}월 ${date.day}일 (${_weekdays[date.weekday]})',
-            style: const TextStyle(fontSize: 13, color: AppColors.blue700, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 14, color: AppColors.blue700, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -870,7 +870,7 @@ class _GenerationModeCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: selected ? AppColors.blue600 : AppColors.gray900)),
                 const SizedBox(height: 2),
-                Text(description, style: const TextStyle(fontSize: 11, color: AppColors.gray500)),
+                Text(description, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
               ],
             ),
             if (recommended)
@@ -880,7 +880,7 @@ class _GenerationModeCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(color: AppColors.blue100, borderRadius: BorderRadius.circular(999)),
-                  child: const Text('추천', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.blue700)),
+                  child: const Text('추천', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.blue700)),
                 ),
               ),
           ],

@@ -139,7 +139,7 @@ class _AiIslandSearchBarState extends State<AiIslandSearchBar> {
                           key: ValueKey(_currentHint),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: AppColors.gray500, fontSize: 13),
+                          style: const TextStyle(color: AppColors.gray500, fontSize: 14),
                         ),
                       ),
                     ),

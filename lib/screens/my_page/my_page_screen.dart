@@ -289,7 +289,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                                     ? '다음 여행 · ${_upcomingTrip!['title'] ?? '여행'}'
                                     : '예정된 여행이 없어요',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                   color: _upcomingTrip != null ? AppColors.blue700 : AppColors.gray500,
                                 ),
@@ -302,11 +302,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
                                 if (dday < 0) return const SizedBox();
                                 return Text(
                                   dday == 0 ? '오늘' : 'D-$dday',
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.blue600),
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.blue600),
                                 );
                               })
                             else
-                              const Text('여행 계획 →', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue600)),
+                              const Text('여행 계획 →', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.blue600)),
                           ],
                         ),
                       ),
@@ -348,10 +348,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
                                     ((trip['islands'] as List?)?.cast<String>() ?? []).join(', ').isEmpty
                                         ? '섬 정보 없음'
                                         : ((trip['islands'] as List).cast<String>()).join(', '),
-                                    style: const TextStyle(fontSize: 13, color: AppColors.gray500),
+                                    style: const TextStyle(fontSize: 14, color: AppColors.gray500),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(trip['start_date'] as String? ?? '', style: const TextStyle(fontSize: 12, color: AppColors.gray400)),
+                                  Text(trip['start_date'] as String? ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
                                 ],
                               ),
                             ),
@@ -436,10 +436,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   Center(
                     child: TextButton(
                       onPressed: _handleDeleteAccount,
-                      child: const Text('회원 탈퇴', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
+                      child: const Text('회원 탈퇴', style: TextStyle(fontSize: 14, color: AppColors.gray400)),
                     ),
                   ),
-                  const Center(child: Text('버전 1.0.0', style: TextStyle(fontSize: 13, color: AppColors.gray500))),
+                  const Center(child: Text('버전 1.0.0', style: TextStyle(fontSize: 14, color: AppColors.gray500))),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -475,7 +475,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                           children: [
                             Text(_displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                             const SizedBox(height: 4),
-                            Text(_email, style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                            Text(_email, style: const TextStyle(fontSize: 14, color: Colors.white70)),
                           ],
                         ),
                       ),
@@ -569,9 +569,9 @@ class _StatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+          Text(label, style: const TextStyle(fontSize: 14, color: AppColors.gray600)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900)),
+          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.gray900)),
         ],
       ),
     );
@@ -609,7 +609,7 @@ class _StatTile extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11, color: AppColors.gray500),
+              style: const TextStyle(fontSize: 13, color: AppColors.gray500),
             ),
           ],
         ),
@@ -669,13 +669,13 @@ class _HostMenuItem extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(999)),
-                          child: Text(badge!, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.blue600)),
+                          child: Text(badge!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.blue600)),
                         ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 2),
-                  Text(desc, style: const TextStyle(fontSize: 13, color: AppColors.gray500), overflow: TextOverflow.ellipsis),
+                  Text(desc, style: const TextStyle(fontSize: 14, color: AppColors.gray500), overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
@@ -695,7 +695,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 10),
-      child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray500)),
+      child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray500)),
     );
   }
 }

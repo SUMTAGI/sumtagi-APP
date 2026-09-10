@@ -157,7 +157,7 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             Text('숙소 운영자 신청', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('섬타기에 숙소를 등록하고 게스트를 맞이해보세요', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
+            Text('섬타기에 숙소를 등록하고 게스트를 맞이해보세요', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -222,7 +222,7 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
                       Text(
                         _steps[i]['label'] as String,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: labelColor),
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: labelColor),
                       ),
                     ],
                   ),
@@ -259,7 +259,7 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
                             : (_application?.rejectionReason?.isNotEmpty == true
                                 ? _application!.rejectionReason!
                                 : '제출하신 정보를 다시 확인한 뒤 재신청해주세요.'),
-                    style: TextStyle(fontSize: 13, color: _statusText(status), height: 1.4),
+                    style: TextStyle(fontSize: 14, color: _statusText(status), height: 1.4),
                   ),
                 ],
               ),
@@ -279,7 +279,7 @@ class _HostApplyScreenState extends State<HostApplyScreen> {
                   Expanded(
                     child: Text(
                       '신청서 제출 후 관리자 검토를 거쳐 승인되면 숙소를 등록할 수 있어요.',
-                      style: TextStyle(fontSize: 13, color: AppColors.blue700, height: 1.4),
+                      style: TextStyle(fontSize: 14, color: AppColors.blue700, height: 1.4),
                     ),
                   ),
                 ],
@@ -429,7 +429,7 @@ class _Field extends StatelessWidget {
         ),
         if (error != null) ...[
           const SizedBox(height: 4),
-          Text(error!, style: const TextStyle(fontSize: 12, color: AppColors.red500)),
+          Text(error!, style: const TextStyle(fontSize: 13, color: AppColors.red500)),
         ],
       ],
     );

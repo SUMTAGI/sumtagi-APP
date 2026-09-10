@@ -236,7 +236,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
           statusBarColor: Colors.transparent,
         ),
         flexibleSpace: Container(
-          decoration: BoxDecoration(gradient: AppGradients.blueFade),
+          decoration: const BoxDecoration(gradient: AppGradients.blueFadeShort),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +253,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
             const Text(
               '인천의 아름다운 섬들을 탐색해보세요',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 color: AppColors.gray700,
               ),
             ),
@@ -462,7 +462,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
             Text(
               '항로 ${_showRoutes ? "숨기기" : "보기"}',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: _showRoutes ? AppColors.blue700 : AppColors.gray700,
               ),
@@ -516,7 +516,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                 Text(
                   '• 주말/공휴일은 1주일 전에 미리 예약하세요',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: AppColors.blue700,
                     height: 1.5,
                   ),
@@ -524,7 +524,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                 Text(
                   '• 출발 전날 운항 여부를 꼭 확인해주세요',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: AppColors.blue700,
                     height: 1.5,
                   ),
@@ -532,7 +532,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                 Text(
                   '• 자외선 차단제, 편한 신발 챙기는 거 잊지 마세요',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: AppColors.blue700,
                     height: 1.5,
                   ),
@@ -788,7 +788,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                           Text(
                             marker.description,
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               color: AppColors.gray600,
                             ),
                           ),
@@ -814,7 +814,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                       Text(
                         marker.ferryTime,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: AppColors.gray700,
                         ),
                       ),
@@ -831,7 +831,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                         child: Text(
                           _congestionLabels[marker.congestion] ?? '',
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             color: AppColors.gray900,
                             fontWeight: FontWeight.w600,
                           ),
@@ -841,7 +841,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                       Text(
                         marker.formattedFerryPrice,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: AppColors.blue600,
                         ),
@@ -868,7 +868,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
                               child: Text(
                                 f,
                                 style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 14,
                                   color: AppColors.gray700,
                                 ),
                               ),
@@ -934,7 +934,7 @@ class _ViewTab extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: color,
               ),
@@ -974,7 +974,7 @@ class _FilterDropdown extends StatelessWidget {
             size: 20,
           ),
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
             color: AppColors.gray900,
           ),
@@ -1093,7 +1093,7 @@ class _IslandCard extends StatelessWidget {
                         child: Text(
                           _congestionLabel,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             color: AppColors.gray900,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1113,7 +1113,7 @@ class _IslandCard extends StatelessWidget {
                       Text(
                         island.description,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: AppColors.gray600,
                         ),
                       ),
@@ -1137,7 +1137,7 @@ class _IslandCard extends StatelessWidget {
                                   Text(
                                     f,
                                     style: const TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 14,
                                       color: AppColors.gray700,
                                     ),
                                   ),
@@ -1159,7 +1159,7 @@ class _IslandCard extends StatelessWidget {
                           Text(
                             island.ferryTime,
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: AppColors.gray900,
                             ),
@@ -1174,7 +1174,7 @@ class _IslandCard extends StatelessWidget {
                           Text(
                             island.bestSeason,
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: AppColors.gray900,
                             ),
@@ -1188,7 +1188,7 @@ class _IslandCard extends StatelessWidget {
                           const Text(
                             '여객선 요금',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               color: AppColors.gray600,
                             ),
                           ),
@@ -1221,7 +1221,7 @@ class _IslandCard extends StatelessWidget {
                                 child: Text(
                                   port,
                                   style: const TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     color: Colors.white,
                                   ),
                                 ),
@@ -1257,7 +1257,7 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(fontSize: 13, color: AppColors.gray700),
+          style: const TextStyle(fontSize: 14, color: AppColors.gray700),
         ),
       ],
     );

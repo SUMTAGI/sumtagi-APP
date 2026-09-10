@@ -173,7 +173,7 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       child: AnimatedDefaultTextStyle(
         duration: const Duration(milliseconds: 200),
-        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: color),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,

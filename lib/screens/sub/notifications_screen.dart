@@ -81,7 +81,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('알림', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text(unread > 0 ? '읽지 않은 알림 $unread개' : '모두 읽었어요', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+            Text(unread > 0 ? '읽지 않은 알림 $unread개' : '모두 읽었어요', style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -97,7 +97,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   _notifications = _notifications.map((n) => {...n, 'is_read': true}).toList();
                 });
               },
-              child: const Text('모두 읽기', style: TextStyle(color: AppColors.blue600, fontSize: 13)),
+              child: const Text('모두 읽기', style: TextStyle(color: AppColors.blue600, fontSize: 14)),
             ),
         ],
       ),
@@ -143,9 +143,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   children: [
                                     Text(n['title'] as String? ?? '', style: TextStyle(fontSize: 14, fontWeight: isRead ? FontWeight.normal : FontWeight.w600, color: AppColors.gray900)),
                                     const SizedBox(height: 4),
-                                    Text(n['message'] as String? ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray600, height: 1.4)),
+                                    Text(n['message'] as String? ?? '', style: const TextStyle(fontSize: 14, color: AppColors.gray600, height: 1.4)),
                                     const SizedBox(height: 6),
-                                    Text(_timeAgo(n['created_at'] as String? ?? ''), style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
+                                    Text(_timeAgo(n['created_at'] as String? ?? ''), style: const TextStyle(fontSize: 14, color: AppColors.gray400)),
                                   ],
                                 ),
                               ),

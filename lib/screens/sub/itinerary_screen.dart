@@ -324,7 +324,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(_typeLabels[t]!, textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
                                 color: selected ? Colors.white : AppColors.gray700)),
                           ),
                         ),
@@ -388,21 +388,21 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray600)),
+        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray600)),
         const SizedBox(height: 4),
         TextField(
           controller: ctrl,
           keyboardType: type,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.gray400, fontSize: 13),
+            hintStyle: const TextStyle(color: AppColors.gray400, fontSize: 14),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             isDense: true,
           ),
-          style: const TextStyle(fontSize: 13),
+          style: const TextStyle(fontSize: 14),
         ),
       ],
     );
@@ -486,7 +486,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                       const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 14),
                       const SizedBox(width: 4),
                       Text(_isEditMode ? '저장 후 나가기' : '홈으로',
-                        style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                        style: const TextStyle(color: Colors.white70, fontSize: 14)),
                     ]),
                   ),
                   GestureDetector(
@@ -501,7 +501,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                         Icon(_isEditMode ? Icons.check_rounded : Icons.edit_rounded, size: 14, color: _isEditMode ? Colors.white : AppColors.gray900),
                         const SizedBox(width: 4),
                         Text(_isEditMode ? '저장' : '편집',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isEditMode ? Colors.white : AppColors.gray900)),
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _isEditMode ? Colors.white : AppColors.gray900)),
                       ]),
                     ),
                   ),
@@ -513,7 +513,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               const SizedBox(height: 6),
               if (_isEditMode)
                 const Text('활동을 탭해서 수정하거나 + 버튼으로 추가하세요',
-                  style: TextStyle(fontSize: 13, color: Colors.white70))
+                  style: TextStyle(fontSize: 14, color: Colors.white70))
               else
                 Row(children: [
                   Icon(
@@ -524,17 +524,17 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(_itinerary!['departurePort'] as String? ?? '인천항',
-                    style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                    style: const TextStyle(fontSize: 14, color: Colors.white70)),
                   const SizedBox(width: 14),
                   const Icon(Icons.people_rounded, size: 13, color: Colors.white70),
                   const SizedBox(width: 4),
                   Text('${_itinerary!['travelers']}명',
-                    style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                    style: const TextStyle(fontSize: 14, color: Colors.white70)),
                   const SizedBox(width: 14),
                   const Icon(Icons.attach_money_rounded, size: 13, color: Colors.white70),
                   const SizedBox(width: 4),
                   Text('${_fmt((_itinerary!['totalCost'] as num?)?.toInt() ?? 0)}원',
-                    style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                    style: const TextStyle(fontSize: 14, color: Colors.white70)),
                 ]),
             ],
           ),
@@ -584,7 +584,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
           if (date != null)
             Text('${date.month}월 ${date.day}일 (${weekdays[date.weekday]})',
-              style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+              style: const TextStyle(fontSize: 14, color: AppColors.gray600)),
         ],
       ),
     );
@@ -684,7 +684,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                       width: 28, height: 28,
                       child: Container(
                         decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        child: const Center(child: Text('출', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))),
+                        child: const Center(child: Text('출', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold))),
                       ),
                     ),
                     ...stopCoords.asMap().entries.map((e) => Marker(
@@ -692,7 +692,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                       width: 28, height: 28,
                       child: Container(
                         decoration: BoxDecoration(color: AppColors.blue600, shape: BoxShape.circle),
-                        child: Center(child: Text('${e.key + 1}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))),
+                        child: Center(child: Text('${e.key + 1}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold))),
                       ),
                     )),
                   ]),
@@ -702,7 +702,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
           ),
           const SizedBox(height: 6),
           Text(routeText, textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+            style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
           const SizedBox(height: 24),
         ],
       ),
@@ -762,7 +762,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
         children: [
           const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.gray600),
           const SizedBox(width: 6),
-          Text(message, style: const TextStyle(fontSize: 12, color: AppColors.gray600)),
+          Text(message, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
         ],
       ),
     );
@@ -791,7 +791,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF92400E)),
                   ),
                   const SizedBox(height: 4),
-                  ..._risks.map((r) => Text(r.message, style: const TextStyle(fontSize: 13, color: Color(0xFF92400E)))),
+                  ..._risks.map((r) => Text(r.message, style: const TextStyle(fontSize: 14, color: Color(0xFF92400E)))),
                 ],
               ),
             ),
@@ -838,12 +838,12 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               SizedBox(width: 6),
               Text('예약 준비 체크리스트', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.gray900, fontSize: 15)),
             ]),
-            Text('$doneCount/${_bookings.length}', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+            Text('$doneCount/${_bookings.length}', style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
           ]),
           const SizedBox(height: 4),
           const Text(
             '여객선·숙박·식당 예약은 sumtagi가 대신 해주지 않아요. 연락처로 직접 예약한 뒤 완료로 체크하세요.',
-            style: TextStyle(fontSize: 13, color: AppColors.gray500),
+            style: TextStyle(fontSize: 14, color: AppColors.gray500),
           ),
           const SizedBox(height: 12),
           Container(
@@ -873,7 +873,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                           decoration: BoxDecoration(color: AppColors.gray100, borderRadius: BorderRadius.circular(4)),
-                          child: Text(_bookingCategoryLabel[b['category']] ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray600, fontWeight: FontWeight.w500)),
+                          child: Text(_bookingCategoryLabel[b['category']] ?? '', style: const TextStyle(fontSize: 14, color: AppColors.gray600, fontWeight: FontWeight.w500)),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
@@ -881,7 +881,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
                             b['name'] as String? ?? '',
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w500,
+                              fontSize: 14, fontWeight: FontWeight.w500,
                               color: isDone ? AppColors.gray400 : AppColors.gray900,
                               decoration: isDone ? TextDecoration.lineThrough : null,
                             ),
@@ -934,7 +934,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('일정이 확정됐어요', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.green700, fontSize: 15)),
-                Text('여행 탭에서 일정을 확인하세요', style: TextStyle(fontSize: 13, color: AppColors.green700)),
+                Text('여행 탭에서 일정을 확인하세요', style: TextStyle(fontSize: 14, color: AppColors.green700)),
               ],
             )),
           ]),
@@ -953,7 +953,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text('확정하면 홈 화면에서 일정을 바로 확인할 수 있어요', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppColors.gray600)),
+        const Text('확정하면 홈 화면에서 일정을 바로 확인할 수 있어요', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppColors.gray600)),
       ]),
     );
   }
@@ -1007,19 +1007,19 @@ class _ActivityCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(activity['time'] as String? ?? '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue600)),
+              Text(activity['time'] as String? ?? '', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.blue600)),
               const SizedBox(height: 4),
               Text(activity['title'] as String? ?? '', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
               const SizedBox(height: 4),
-              Text(activity['description'] as String? ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+              Text(activity['description'] as String? ?? '', style: const TextStyle(fontSize: 14, color: AppColors.gray600)),
               const SizedBox(height: 10),
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Row(children: [
                   const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray500),
                   const SizedBox(width: 4),
-                  Text(activity['location'] as String? ?? '', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                  Text(activity['location'] as String? ?? '', style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                 ]),
-                if (price > 0) Text('${_fmtNum(price)}원', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray900)),
+                if (price > 0) Text('${_fmtNum(price)}원', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
               ]),
               if (canBook) ...[
                 const SizedBox(height: 10),
@@ -1028,7 +1028,7 @@ class _ActivityCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: isBooked ? null : () => onBook(activity),
                     style: ElevatedButton.styleFrom(backgroundColor: isBooked ? AppColors.gray100 : AppColors.blue600, foregroundColor: isBooked ? AppColors.gray500 : Colors.white, padding: const EdgeInsets.symmetric(vertical: 10), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0),
-                    child: Text(isBooked ? '예약완료' : '예약하기', style: const TextStyle(fontSize: 13)),
+                    child: Text(isBooked ? '예약완료' : '예약하기', style: const TextStyle(fontSize: 14)),
                   ),
                 ),
               ],
@@ -1096,14 +1096,14 @@ class _ActivityEditCardState extends State<_ActivityEditCard> {
       onChanged: (_) => _flush(),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.gray400, fontSize: 13),
+        hintStyle: const TextStyle(color: AppColors.gray400, fontSize: 14),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         isDense: true,
       ),
-      style: const TextStyle(fontSize: 13, color: AppColors.gray900),
+      style: const TextStyle(fontSize: 14, color: AppColors.gray900),
     );
   }
 
@@ -1122,7 +1122,7 @@ class _ActivityEditCardState extends State<_ActivityEditCard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(color: AppColors.blue50, borderRadius: BorderRadius.circular(6)),
-            child: Text(typeLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.blue600)),
+            child: Text(typeLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.blue600)),
           ),
           GestureDetector(
             onTap: widget.onDelete,

@@ -232,12 +232,12 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     onTap: () => Navigator.pop(context),
                     child: const Row(children: [
                       Icon(Icons.chevron_left, color: Color(0xFFBFDBFE), size: 20),
-                      Text('뒤로', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
+                      Text('뒤로', style: TextStyle(fontSize: 14, color: Color(0xFFBFDBFE))),
                     ]),
                   ),
                   const SizedBox(height: 12),
                   const Text('긴급 연락처', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const Text('위급한 상황에 대비하세요', style: TextStyle(fontSize: 13, color: Color(0xFFBFDBFE))),
+                  const Text('위급한 상황에 대비하세요', style: TextStyle(fontSize: 14, color: Color(0xFFBFDBFE))),
                 ],
               ),
             ),
@@ -289,7 +289,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                           const SizedBox(width: 10),
                           Column(
                             children: const [
-                              Text('해상 조난·사고', style: TextStyle(fontSize: 13, color: Colors.white)),
+                              Text('해상 조난·사고', style: TextStyle(fontSize: 14, color: Colors.white)),
                               Text('122 해양경찰 신고', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                             ],
                           ),
@@ -331,7 +331,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('섬 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.gray700)),
+                const Text('섬 선택', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.gray700)),
                 const SizedBox(height: 8),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -348,7 +348,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                             color: selected ? AppColors.blue600 : AppColors.gray100,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(island, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
+                          child: Text(island, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.gray700)),
                         ),
                       );
                     }).toList(),
@@ -398,7 +398,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                               children: [
                                 ListTile(
                                   title: Text(aid['title'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                                  subtitle: Text(aid['symptoms'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                                  subtitle: Text(aid['symptoms'] as String, style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                                   trailing: Icon(expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: AppColors.gray400),
                                   onTap: () => setState(() => _expandedAid = expanded ? null : aid['id'] as String),
                                 ),
@@ -411,15 +411,15 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Text('응급처치 방법', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.blue900)),
+                                          const Text('응급처치 방법', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.blue900)),
                                           const SizedBox(height: 8),
                                           ...(((aid['treatment'] as List)).asMap().entries.map((e) => Padding(
                                             padding: const EdgeInsets.only(bottom: 6),
                                             child: Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text('${e.key + 1}. ', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.blue800)),
-                                                Expanded(child: Text(e.value as String, style: const TextStyle(fontSize: 13, color: AppColors.blue800, height: 1.4))),
+                                                Text('${e.key + 1}. ', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.blue800)),
+                                                Expanded(child: Text(e.value as String, style: const TextStyle(fontSize: 14, color: AppColors.blue800, height: 1.4))),
                                               ],
                                             ),
                                           ))),
@@ -453,10 +453,10 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                               children: const [
                                 Text('긴급 귀항 안내', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                                 SizedBox(height: 8),
-                                Text('• 기상 악화 시 여객선 결항 가능', style: TextStyle(fontSize: 13, color: AppColors.gray700, height: 1.6)),
-                                Text('• 헬기 긴급 수송: 119 또는 해경 연락', style: TextStyle(fontSize: 13, color: AppColors.gray700, height: 1.6)),
-                                Text('• 응급 환자는 최우선 이송', style: TextStyle(fontSize: 13, color: AppColors.gray700, height: 1.6)),
-                                Text('• 여행자 보험 가입 권장', style: TextStyle(fontSize: 13, color: AppColors.gray700, height: 1.6)),
+                                Text('• 기상 악화 시 여객선 결항 가능', style: TextStyle(fontSize: 14, color: AppColors.gray700, height: 1.6)),
+                                Text('• 헬기 긴급 수송: 119 또는 해경 연락', style: TextStyle(fontSize: 14, color: AppColors.gray700, height: 1.6)),
+                                Text('• 응급 환자는 최우선 이송', style: TextStyle(fontSize: 14, color: AppColors.gray700, height: 1.6)),
+                                Text('• 여행자 보험 가입 권장', style: TextStyle(fontSize: 14, color: AppColors.gray700, height: 1.6)),
                               ],
                             ),
                           ),
@@ -497,7 +497,7 @@ class _EmergencyBtn extends StatelessWidget {
             const SizedBox(width: 10),
             Column(
               children: [
-                Text(small, style: const TextStyle(fontSize: 13, color: AppColors.blue600)),
+                Text(small, style: const TextStyle(fontSize: 14, color: AppColors.blue600)),
                 Text(number, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.blue600)),
               ],
             ),
@@ -537,14 +537,14 @@ class _ContactCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
-                Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                Text(subtitle, style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                 if (address != null) ...[
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(Icons.location_on_rounded, size: 12, color: AppColors.gray500),
                       const SizedBox(width: 2),
-                      Expanded(child: Text(address!, style: const TextStyle(fontSize: 13, color: AppColors.gray600))),
+                      Expanded(child: Text(address!, style: const TextStyle(fontSize: 14, color: AppColors.gray600))),
                     ],
                   ),
                 ],
@@ -559,7 +559,7 @@ class _ContactCard extends StatelessWidget {
                       children: [
                         const Icon(Icons.phone_rounded, size: 14, color: Colors.white),
                         const SizedBox(width: 6),
-                        Text(phone, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white)),
+                        Text(phone, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white)),
                       ],
                     ),
                   ),

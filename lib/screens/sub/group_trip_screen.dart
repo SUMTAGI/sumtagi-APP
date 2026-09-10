@@ -249,7 +249,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                 const SizedBox(height: 16),
                 const Text('초대 코드로 참여', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                 const SizedBox(height: 4),
-                const Text('친구에게 받은 6자리 코드를 입력하세요', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+                const Text('친구에게 받은 6자리 코드를 입력하세요', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
                 const SizedBox(height: 20),
                 TextField(
                   controller: codeCtrl,
@@ -457,7 +457,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                       child: const Row(children: [
                         Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 13),
                         SizedBox(width: 4),
-                        Text('뒤로', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        Text('뒤로', style: TextStyle(color: Colors.white70, fontSize: 14)),
                       ]),
                     ),
                     const SizedBox(height: 10),
@@ -470,7 +470,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                           children: [
                             Text('그룹 여행', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                             SizedBox(height: 2),
-                            Text('친구들과 함께 계획하세요', style: TextStyle(fontSize: 13, color: Colors.white70)),
+                            Text('친구들과 함께 계획하세요', style: TextStyle(fontSize: 14, color: Colors.white70)),
                           ],
                         ),
                         GestureDetector(
@@ -484,7 +484,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                             child: const Row(children: [
                               Icon(Icons.login_rounded, size: 14, color: AppColors.gray900),
                               SizedBox(width: 6),
-                              Text('코드 참여', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray900)),
+                              Text('코드 참여', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray900)),
                             ]),
                           ),
                         ),
@@ -569,7 +569,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                       ),
                       child: Text(
                         g['name'] as String,
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isActive ? Colors.white : AppColors.gray700),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isActive ? Colors.white : AppColors.gray700),
                       ),
                     ),
                   );
@@ -582,7 +582,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                       color: AppColors.gray100,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text('+ 새 그룹', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray600)),
+                    child: const Text('+ 새 그룹', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray600)),
                   ),
                 ),
               ],
@@ -628,7 +628,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                     Row(children: [
                       const Icon(Icons.calendar_month_rounded, size: 13, color: AppColors.gray500),
                       const SizedBox(width: 4),
-                      Text('${group['startDate']} - ${group['endDate']}', style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+                      Text('${group['startDate']} - ${group['endDate']}', style: const TextStyle(fontSize: 14, color: AppColors.gray600)),
                     ]),
                   ],
                 ),
@@ -641,7 +641,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                   child: const Row(children: [
                     Icon(Icons.share_rounded, size: 14, color: Colors.white),
                     SizedBox(width: 4),
-                    Text('초대 링크', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+                    Text('초대 링크', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
                   ]),
                 ),
               ),
@@ -656,7 +656,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('초대 코드  ', style: TextStyle(fontSize: 13, color: AppColors.gray500)),
+                  const Text('초대 코드  ', style: TextStyle(fontSize: 14, color: AppColors.gray500)),
                   Text(code, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.blue600, letterSpacing: 4)),
                   const SizedBox(width: 6),
                   const Icon(Icons.copy_rounded, size: 14, color: AppColors.blue600),
@@ -672,7 +672,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('참여자 (${members.length}명)', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                  Text('참여자 (${members.length}명)', style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 12,
@@ -681,9 +681,9 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                       children: [
                         CircleAvatar(radius: 22, backgroundImage: NetworkImage(m['avatar'] as String), backgroundColor: AppColors.gray200),
                         const SizedBox(height: 4),
-                        Text(m['name'] as String, style: const TextStyle(fontSize: 13, color: AppColors.gray700)),
+                        Text(m['name'] as String, style: const TextStyle(fontSize: 14, color: AppColors.gray700)),
                         if (m['isOwner'] as bool)
-                          const Text('방장', style: TextStyle(fontSize: 13, color: AppColors.blue600)),
+                          const Text('방장', style: TextStyle(fontSize: 14, color: AppColors.blue600)),
                       ],
                     )).toList(),
                   ),
@@ -698,7 +698,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                     child: const Row(children: [
                       Icon(Icons.delete_outline_rounded, size: 14, color: Colors.red),
                       SizedBox(width: 4),
-                      Text('그룹 삭제', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.red)),
+                      Text('그룹 삭제', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.red)),
                     ]),
                   ),
                 )
@@ -711,7 +711,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                     child: const Row(children: [
                       Icon(Icons.logout_rounded, size: 14, color: AppColors.gray600),
                       SizedBox(width: 4),
-                      Text('나가기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray600)),
+                      Text('나가기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray600)),
                     ]),
                   ),
                 ),
@@ -746,7 +746,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
               const Text('비용 분담', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
               GestureDetector(
                 onTap: () => _showAddExpenseSheet(group['id'] as String),
-                child: const Text('+ 추가', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w600)),
+                child: const Text('+ 추가', style: TextStyle(fontSize: 14, color: AppColors.blue600, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -765,7 +765,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                 children: [
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(e['description'] as String, style: const TextStyle(fontSize: 14, color: AppColors.gray700)),
-                    Text('${getPaidBy(e['paid_by'] as String)} 결제', style: const TextStyle(fontSize: 13, color: AppColors.gray400)),
+                    Text('${getPaidBy(e['paid_by'] as String)} 결제', style: const TextStyle(fontSize: 14, color: AppColors.gray400)),
                   ]),
                   Text('${_fmt((e['amount'] as int?) ?? 0)}원', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
                 ],
@@ -773,7 +773,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
             )),
           ] else ...[
             const SizedBox(height: 16),
-            Center(child: Text('지출 내역을 기록해보세요', style: TextStyle(fontSize: 13, color: AppColors.gray400))),
+            Center(child: Text('지출 내역을 기록해보세요', style: TextStyle(fontSize: 14, color: AppColors.gray400))),
           ],
         ],
       ),
@@ -797,13 +797,13 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
               const Text('투표', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.gray900)),
               GestureDetector(
                 onTap: () => _showAddPollSheet(group['id'] as String),
-                child: const Text('+ 만들기', style: TextStyle(fontSize: 13, color: AppColors.blue600, fontWeight: FontWeight.w600)),
+                child: const Text('+ 만들기', style: TextStyle(fontSize: 14, color: AppColors.blue600, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
           const SizedBox(height: 14),
           if (polls.isEmpty)
-            Center(child: Text('새로운 투표를 만들어보세요', style: TextStyle(fontSize: 13, color: AppColors.gray400)))
+            Center(child: Text('새로운 투표를 만들어보세요', style: TextStyle(fontSize: 14, color: AppColors.gray400)))
           else
             ...polls.map((poll) => _buildPollCard(poll, me, group['id'] as String)),
         ],
@@ -868,9 +868,9 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
                           Row(children: [
                             if (hasVoted) const Icon(Icons.check_circle_rounded, size: 14, color: AppColors.blue600),
                             if (hasVoted) const SizedBox(width: 4),
-                            Text(opt['text'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: hasVoted ? AppColors.blue600 : AppColors.gray700)),
+                            Text(opt['text'] as String, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: hasVoted ? AppColors.blue600 : AppColors.gray700)),
                           ]),
-                          Text('${(pct * 100).round()}%  $count표', style: const TextStyle(fontSize: 13, color: AppColors.gray500)),
+                          Text('${(pct * 100).round()}%  $count표', style: const TextStyle(fontSize: 14, color: AppColors.gray500)),
                         ],
                       ),
                     ),
@@ -889,7 +889,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray700)),
+        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray700)),
         const SizedBox(height: 6),
         TextField(
           controller: ctrl,
@@ -916,7 +916,7 @@ class _GroupTripScreenState extends State<GroupTripScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 13, color: labelColor)),
+          Text(label, style: TextStyle(fontSize: 14, color: labelColor)),
           const SizedBox(height: 4),
           Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: valueColor)),
         ],

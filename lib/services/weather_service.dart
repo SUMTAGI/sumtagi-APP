@@ -55,16 +55,17 @@ class WeatherForecastDay {
     this.windSpeed,
   });
 
-  factory WeatherForecastDay.fromJson(Map<String, dynamic> j) => WeatherForecastDay(
-    day: j['day'] as String,
-    date: j['date'] as String,
-    condition: j['condition'] as String,
-    high: j['high'] as int,
-    low: j['low'] as int,
-    rainChance: j['rainChance'] as int,
-    waveHeight: (j['waveHeight'] as num?)?.toDouble(),
-    windSpeed: (j['windSpeed'] as num?)?.toDouble(),
-  );
+  factory WeatherForecastDay.fromJson(Map<String, dynamic> j) =>
+      WeatherForecastDay(
+        day: j['day'] as String,
+        date: j['date'] as String,
+        condition: j['condition'] as String,
+        high: j['high'] as int,
+        low: j['low'] as int,
+        rainChance: j['rainChance'] as int,
+        waveHeight: (j['waveHeight'] as num?)?.toDouble(),
+        windSpeed: (j['windSpeed'] as num?)?.toDouble(),
+      );
 
   Map<String, dynamic> toJson() => {
     'day': day,
@@ -78,25 +79,70 @@ class WeatherForecastDay {
   };
 }
 
+/// 시간별 예보 한 칸 (현재 시각부터 24시간)
+class WeatherHour {
+  final String time; // 'HH시' 표시용 라벨
+  final int hour; // 0~23
+  final String condition;
+  final double temperature;
+  final int rainChance;
+  final double? waveHeight;
+
+  const WeatherHour({
+    required this.time,
+    required this.hour,
+    required this.condition,
+    required this.temperature,
+    required this.rainChance,
+    this.waveHeight,
+  });
+
+  factory WeatherHour.fromJson(Map<String, dynamic> j) => WeatherHour(
+    time: j['time'] as String,
+    hour: j['hour'] as int,
+    condition: j['condition'] as String,
+    temperature: (j['temperature'] as num).toDouble(),
+    rainChance: j['rainChance'] as int,
+    waveHeight: (j['waveHeight'] as num?)?.toDouble(),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'time': time,
+    'hour': hour,
+    'condition': condition,
+    'temperature': temperature,
+    'rainChance': rainChance,
+    'waveHeight': waveHeight,
+  };
+}
+
 class WeatherResult {
   final WeatherCurrent current;
+  final List<WeatherHour> hourly;
   final List<WeatherForecastDay> forecast;
   final DateTime fetchedAt;
 
   const WeatherResult({
     required this.current,
+    this.hourly = const [],
     required this.forecast,
     required this.fetchedAt,
   });
 
   factory WeatherResult.fromJson(Map<String, dynamic> j) => WeatherResult(
     current: WeatherCurrent.fromJson(j['current']),
-    forecast: (j['forecast'] as List).map((e) => WeatherForecastDay.fromJson(e)).toList(),
+    hourly: ((j['hourly'] as List?) ?? const [])
+        .map((e) => WeatherHour.fromJson(e))
+        .toList(),
+    forecast: (j['forecast'] as List)
+        .map((e) => WeatherForecastDay.fromJson(e))
+        .toList(),
     fetchedAt: DateTime.parse(j['fetchedAt'] as String),
   );
 
   Map<String, dynamic> toJson() => {
     'current': current.toJson(),
+    'hourly': hourly.map((e) => e.toJson()).toList(),
     'forecast': forecast.map((e) => e.toJson()).toList(),
     'fetchedAt': fetchedAt.toIso8601String(),
   };
@@ -106,14 +152,14 @@ enum FerryRisk { safe, caution, danger }
 
 extension FerryRiskExt on FerryRisk {
   String get label => switch (this) {
-    FerryRisk.safe    => '운항 정상',
+    FerryRisk.safe => '운항 정상',
     FerryRisk.caution => '운항 주의',
-    FerryRisk.danger  => '결항 위험',
+    FerryRisk.danger => '결항 위험',
   };
   String get description => switch (this) {
-    FerryRisk.safe    => '현재 기상 조건이 양호합니다',
+    FerryRisk.safe => '현재 기상 조건이 양호합니다',
     FerryRisk.caution => '기상 악화로 일부 항로 지연 가능',
-    FerryRisk.danger  => '강풍·높은 파고로 결항 가능성 있음',
+    FerryRisk.danger => '강풍·높은 파고로 결항 가능성 있음',
   };
 }
 
@@ -123,6 +169,7 @@ class WeatherService {
     if (windSpeed >= 36 || waveHeight >= 1.5) return FerryRisk.caution;
     return FerryRisk.safe;
   }
+
   static const _cacheDuration = Duration(minutes: 30);
   static const _incheonLat = 37.4563;
   static const _incheonLon = 126.7052;
@@ -139,20 +186,29 @@ class WeatherService {
     return '비';
   }
 
+  // 캐시 키 버전: 시간별 예보(hourly) 추가로 v2
   static Future<WeatherResult?> getWeather() =>
-      _getWeatherForLocation(_incheonLat, _incheonLon, 'incheon_weather_v1');
+      _getWeatherForLocation(_incheonLat, _incheonLon, 'incheon_weather_v2');
 
   /// 섬 좌표 기준 날씨 조회. 좌표 없는 섬은 인천 대표 좌표로 대체
-  static Future<WeatherResult?> getWeatherForIsland(String islandId, {double? lat, double? lng}) {
+  static Future<WeatherResult?> getWeatherForIsland(
+    String islandId, {
+    double? lat,
+    double? lng,
+  }) {
     final hasCoords = lat != null && lng != null;
     return _getWeatherForLocation(
       hasCoords ? lat : _incheonLat,
       hasCoords ? lng : _incheonLon,
-      'island_weather_v1_$islandId',
+      'island_weather_v2_$islandId',
     );
   }
 
-  static Future<WeatherResult?> _getWeatherForLocation(double lat, double lon, String cacheKey) async {
+  static Future<WeatherResult?> _getWeatherForLocation(
+    double lat,
+    double lon,
+    String cacheKey,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
 
     // 캐시 유효하면 반환
@@ -171,6 +227,7 @@ class WeatherService {
         'https://api.open-meteo.com/v1/forecast'
         '?latitude=$lat&longitude=$lon'
         '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m'
+        '&hourly=temperature_2m,weather_code,precipitation_probability'
         '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max'
         '&timezone=Asia%2FSeoul&forecast_days=6',
       );
@@ -187,7 +244,8 @@ class WeatherService {
 
       if (responses[0].statusCode != 200) return _cachedOrNull(prefs, cacheKey);
 
-      final forecastJson = jsonDecode(responses[0].body) as Map<String, dynamic>;
+      final forecastJson =
+          jsonDecode(responses[0].body) as Map<String, dynamic>;
       final currentJson = forecastJson['current'] as Map<String, dynamic>;
       final dailyJson = forecastJson['daily'] as Map<String, dynamic>;
 
@@ -195,10 +253,13 @@ class WeatherService {
       List<String> waveTimes = [];
       List<double> waveHeights = [];
       if (responses[1].statusCode == 200) {
-        final marineJson = jsonDecode(responses[1].body) as Map<String, dynamic>;
+        final marineJson =
+            jsonDecode(responses[1].body) as Map<String, dynamic>;
         final hourly = marineJson['hourly'] as Map<String, dynamic>;
         waveTimes = (hourly['time'] as List).cast<String>();
-        waveHeights = (hourly['wave_height'] as List).map((e) => (e as num?)?.toDouble() ?? 0.5).toList();
+        waveHeights = (hourly['wave_height'] as List)
+            .map((e) => (e as num?)?.toDouble() ?? 0.5)
+            .toList();
       }
 
       double waveHeight = 0.5;
@@ -210,7 +271,8 @@ class WeatherService {
       double? maxWaveForDate(String date) {
         double? maxV;
         for (var i = 0; i < waveTimes.length; i++) {
-          if (waveTimes[i].startsWith(date) && (maxV == null || waveHeights[i] > maxV)) {
+          if (waveTimes[i].startsWith(date) &&
+              (maxV == null || waveHeights[i] > maxV)) {
             maxV = waveHeights[i];
           }
         }
@@ -225,23 +287,56 @@ class WeatherService {
         return WeatherForecastDay(
           day: _weekdays[date.weekday],
           date: '${date.month}/${date.day}',
-          condition: _wmoToCondition((dailyJson['weather_code'] as List)[idx] as int),
+          condition: _wmoToCondition(
+            (dailyJson['weather_code'] as List)[idx] as int,
+          ),
           high: ((dailyJson['temperature_2m_max'] as List)[idx] as num).round(),
           low: ((dailyJson['temperature_2m_min'] as List)[idx] as num).round(),
-          rainChance: ((dailyJson['precipitation_probability_max'] as List)[idx] as num?)?.round() ?? 0,
+          rainChance:
+              ((dailyJson['precipitation_probability_max'] as List)[idx]
+                      as num?)
+                  ?.round() ??
+              0,
           waveHeight: maxWaveForDate(dates[idx]),
           windSpeed: (windMaxList?[idx] as num?)?.toDouble(),
         );
       });
 
+      // 시간별 예보: 현재 시각부터 24시간. 파고는 같은 시각의 해양 데이터에서 매칭
+      final hourlyJson = forecastJson['hourly'] as Map<String, dynamic>?;
+      final hourly = <WeatherHour>[];
+      if (hourlyJson != null) {
+        final times = (hourlyJson['time'] as List).cast<String>();
+        final temps = hourlyJson['temperature_2m'] as List;
+        final codes = hourlyJson['weather_code'] as List;
+        final rains = hourlyJson['precipitation_probability'] as List?;
+        final nowHour = DateTime.now().hour;
+        for (var i = nowHour; i < times.length && hourly.length < 24; i++) {
+          final t = DateTime.parse(times[i]);
+          final waveIdx = waveTimes.indexOf(times[i]);
+          hourly.add(
+            WeatherHour(
+              time: '${t.hour}시',
+              hour: t.hour,
+              condition: _wmoToCondition(codes[i] as int),
+              temperature: (temps[i] as num).toDouble(),
+              rainChance: (rains?[i] as num?)?.round() ?? 0,
+              waveHeight: waveIdx >= 0 ? waveHeights[waveIdx] : null,
+            ),
+          );
+        }
+      }
+
       final result = WeatherResult(
         current: WeatherCurrent(
           temperature: (currentJson['temperature_2m'] as num).toDouble(),
-          apparentTemperature: (currentJson['apparent_temperature'] as num).toDouble(),
+          apparentTemperature: (currentJson['apparent_temperature'] as num)
+              .toDouble(),
           condition: _wmoToCondition(currentJson['weather_code'] as int),
           windSpeed: (currentJson['wind_speed_10m'] as num).toDouble(),
           waveHeight: waveHeight,
         ),
+        hourly: hourly,
         forecast: forecast,
         fetchedAt: DateTime.now(),
       );
@@ -253,7 +348,10 @@ class WeatherService {
     }
   }
 
-  static WeatherResult? _cachedOrNull(SharedPreferences prefs, String cacheKey) {
+  static WeatherResult? _cachedOrNull(
+    SharedPreferences prefs,
+    String cacheKey,
+  ) {
     final cached = prefs.getString(cacheKey);
     if (cached == null) return null;
     try {

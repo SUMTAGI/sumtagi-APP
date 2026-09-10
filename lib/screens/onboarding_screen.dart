@@ -151,7 +151,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             children: const [
                               Icon(Icons.chevron_left, size: 16, color: AppColors.gray500),
                               SizedBox(width: 4),
-                              Text('이전', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray500)),
+                              Text('이전', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray500)),
                             ],
                           ),
                         ),
@@ -172,7 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           child: const Text(
                             '건너뛰기',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.gray500),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.gray500),
                           ),
                         ),
                       ),
@@ -293,7 +293,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 SizedBox(width: 8),
                                 Text(
                                   '준비 완료! 지금 바로 시작하세요',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.gray900),
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.gray900),
                                 ),
                                 SizedBox(width: 8),
                                 Text('✨', style: TextStyle(fontSize: 20)),
