@@ -240,7 +240,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         automaticallyImplyLeading: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
         flexibleSpace: Container(
-          decoration: BoxDecoration(gradient: AppGradients.blueFade),
+          decoration: const BoxDecoration(gradient: AppGradients.blueHeader),
           child: SafeArea(
             bottom: false,
             child: Padding(

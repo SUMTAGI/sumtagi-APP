@@ -158,11 +158,15 @@ class _IslandsScreenState extends State<IslandsScreen> {
     try {
       final islands = await IslandService.getIslands();
       islands.shuffle(Random());
-      if (mounted)
+      if (mounted) {
         setState(() {
           _islands = islands;
           _loading = false;
         });
+        // 로딩 중엔 헤더가 트리에 없어 initState의 측정이 실패했으므로,
+        // 로딩이 끝나 헤더가 실제로 그려진 뒤 다시 한번 측정
+        WidgetsBinding.instance.addPostFrameCallback((_) => _measureHeader());
+      }
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
@@ -236,7 +240,7 @@ class _IslandsScreenState extends State<IslandsScreen> {
           statusBarColor: Colors.transparent,
         ),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppGradients.blueFadeShort),
+          decoration: const BoxDecoration(gradient: AppGradients.blueHeader),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,14 +251,14 @@ class _IslandsScreenState extends State<IslandsScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.gray900,
+                color: Colors.white,
               ),
             ),
             const Text(
               '인천의 아름다운 섬들을 탐색해보세요',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.gray700,
+                color: Colors.white70,
               ),
             ),
           ],
@@ -489,8 +493,9 @@ class _IslandsScreenState extends State<IslandsScreen> {
     return RefreshIndicator(
       onRefresh: _loadIslands,
       child: ListView.builder(
-      // top padding clears the floating header; bottom padding clears the floating nav bar
-      padding: EdgeInsets.fromLTRB(24, _headerHeight + 24, 24, 124),
+      // top padding clears the floating header (헤더 하단 여백 16 + 여기 12 = 28px,
+      // 탭바→드롭다운 간격(하단패딩12+상단패딩16=28px)과 동일하게 맞춤); bottom padding clears the floating nav bar
+      padding: EdgeInsets.fromLTRB(24, _headerHeight + 12, 24, 124),
       itemCount: filtered.length + 1,
       itemBuilder: (context, i) {
         if (i == filtered.length) {
@@ -1091,16 +1096,19 @@ class _IslandCard extends StatelessWidget {
                   left: 12,
                   right: 12,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        island.name,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      Flexible(
+                        child: Text(
+                          island.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,

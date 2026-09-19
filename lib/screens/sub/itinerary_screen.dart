@@ -467,7 +467,7 @@ class _ItineraryScreenState extends State<ItineraryScreen> {
 
   Widget _buildHeader() {
     return Container(
-      decoration: BoxDecoration(gradient: AppGradients.blueFade),
+      decoration: const BoxDecoration(gradient: AppGradients.blueHeader),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -1005,7 +1005,7 @@ class _ActivityCard extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.gray100), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6)]),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(activity['time'] as String? ?? '', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.blue600)),
               const SizedBox(height: 4),
@@ -1097,6 +1097,7 @@ class _ActivityEditCardState extends State<_ActivityEditCard> {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: AppColors.gray400, fontSize: 14),
+        filled: false,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),

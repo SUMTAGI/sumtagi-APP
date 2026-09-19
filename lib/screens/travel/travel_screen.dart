@@ -75,14 +75,14 @@ class _TravelScreenState extends State<TravelScreen> {
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppGradients.blueFadeShort),
+          decoration: const BoxDecoration(gradient: AppGradients.blueHeader),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('여행 계획', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.gray900)),
-            const Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 14, color: AppColors.gray700)),
+            const Text('여행 계획', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text('일정 생성과 예약 관리', style: TextStyle(fontSize: 14, color: Colors.white70)),
           ],
         ),
         titleSpacing: 24,
